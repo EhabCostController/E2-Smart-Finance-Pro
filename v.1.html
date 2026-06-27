@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E2 SMART Finance Pro</title>
+    <style>
+        :root {
+            /* Theme Variables (Default Dark Mode) */
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+            --panel-bg: rgba(30, 41, 59, 0.45);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #7dd3fc;
+            --oled-bg: #020617;
+            --oled-border: rgba(56, 189, 248, 0.2);
+            --oled-text: #38bdf8;
+            --btn-fn: rgba(148, 163, 184, 0.1);
+            --btn-fn-hover: rgba(148, 163, 184, 0.2);
+            --btn-num: rgba(255, 255, 255, 0.03);
+            --btn-num-hover: rgba(255, 255, 255, 0.08);
+            --btn-op: rgba(249, 115, 22, 0.2);
+            --btn-op-hover: rgba(249, 115, 22, 0.3);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 8px 32px rgba(0,0,0,0.37);
+            --glass-blur: blur(20px);
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Theme Configurations */
+        [data-theme="light"] {
+            --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            --panel-bg: rgba(255, 255, 255, 0.65);
+            --panel-border: rgba(0, 0, 0, 0.06);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --oled-bg: #f8fafc;
+            --oled-border: rgba(2, 132, 199, 0.3);
+            --oled-text: #0f172a;
+            --btn-fn: rgba(71, 85, 105, 0.08);
+            --btn-fn-hover: rgba(71, 85, 105, 0.15);
+            --btn-num: rgba(255, 255, 255, 0.8);
+            --btn-num-hover: rgba(241, 245, 249, 1);
+            --btn-op: rgba(249, 115, 22, 0.15);
+            --btn-op-hover: rgba(249, 115, 22, 0.25);
+            --shadow-md: 0 8px 32px rgba(148, 163, 184, 0.25);
+        }
+
+        [data-theme="midnight"] {
+            --bg-gradient: linear-gradient(135deg, #020205 0%, #000000 100%);
+            --panel-bg: rgba(10, 10, 20, 0.7);
+            --panel-border: rgba(139, 92, 246, 0.15);
+            --text-primary: #f5f3ff;
+            --text-secondary: #a78bfa;
+            --accent: #8b5cf6;
+            --accent-hover: #a78bfa;
+            --oled-bg: #000000;
+            --oled-border: rgba(139, 92, 246, 0.4);
+            --oled-text: #a78bfa;
+            --btn-fn: rgba(139, 92, 246, 0.1);
+            --btn-fn-hover: rgba(139, 92, 246, 0.2);
+            --btn-num: rgba(255, 255, 255, 0.02);
+            --btn-num-hover: rgba(255, 255, 255, 0.06);
+            --btn-op: rgba(236, 72, 153, 0.15);
+            --btn-op-hover: rgba(236, 72, 153, 0.25);
+        }
+
+        [data-theme="emerald"] {
+            --bg-gradient: linear-gradient(135deg, #022c22 0%, #020617 100%);
+            --panel-bg: rgba(6, 78, 59, 0.25);
+            --panel-border: rgba(16, 185, 129, 0.15);
+            --text-primary: #ecfdf5;
+            --text-secondary: #34d399;
+            --accent: #10b981;
+            --accent-hover: #34d399;
+            --oled-bg: #021e17;
+            --oled-border: rgba(16, 185, 129, 0.3);
+            --oled-text: #34d399;
+            --btn-fn: rgba(16, 185, 129, 0.1);
+            --btn-fn-hover: rgba(16, 185, 129, 0.2);
+            --btn-num: rgba(255, 255, 255, 0.02);
+            --btn-num-hover: rgba(255, 255, 255, 0.06);
+            --btn-op: rgba(16, 185, 129, 0.25);
+            --btn-op-hover: rgba(16, 185, 129, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: var(--font-family);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+            padding: 10px;
+        }
+
+        /* Desktop Optimization Sandbox */
+        .app-sandbox {
+            width: 100%;
+            max-width: 480px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 32px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: appEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes appEntrance {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Loading Screen Overlay */
+        .loading-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #020617;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+        .loading-screen.hidden { opacity: 0; visibility: hidden; }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 4px solid rgba(56, 189, 248, 0.1);
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* App Header */
+        header {
+            padding: 20px 24px 12px 24px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .brand-zone {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+        .brand-title span { color: var(--accent); }
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .meta-badges {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 12px;
+        }
+        .badge {
+            background: var(--btn-fn);
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            text-align: center;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid var(--panel-border);
+        }
+
+        /* OLED Workstation Display */
+        .display-container {
+            background: var(--oled-bg);
+            border: 1px solid var(--oled-border);
+            margin: 16px 24px;
+            padding: 16px;
+            border-radius: 18px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+            position: relative;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .display-formula {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            min-height: 1.2rem;
+            word-break: break-all;
+            text-align: left;
+            width: 100%;
+            direction: ltr;
+        }
+        .display-main {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--oled-text);
+            white-space: nowrap;
+            width: 100%;
+            text-align: left;
+            direction: ltr;
+            transition: font-size 0.15s ease;
+        }
+        .display-indicators {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            justify-content: flex-start;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Workstation Tabs Navigation */
+        .tabs-nav {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 0 24px;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .tabs-nav::-webkit-scrollbar { display: none; }
+        .tab-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background: var(--btn-fn);
+            color: var(--accent);
+            border: 1px solid var(--panel-border);
+        }
+
+        /* Tab Content Panel Layouts */
+        .tab-panel { display: none; padding: 0 24px 24px 24px; }
+        .tab-panel.active { display: block; }
+
+        /* Scientific / Standard Grid */
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .calc-grid.five-cols { grid-template-columns: repeat(5, 1fr); }
+
+        /* Universal Premium Button System */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            outline: none;
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            height: 52px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: transform 0.05s ease, background-color 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-num { background: var(--btn-num); }
+        .btn-num:hover { background: var(--btn-num-hover); }
+        .btn-fn { background: var(--btn-fn); color: var(--text-secondary); font-size: 0.95rem; }
+        .btn-fn:hover { background: var(--btn-fn-hover); }
+        .btn-op { background: var(--btn-op); color: var(--accent); font-size: 1.2rem; }
+        .btn-op:hover { background: var(--btn-op-hover); }
+        .btn-accent { background: var(--accent); color: #ffffff; }
+        .btn-accent:hover { background: var(--accent-hover); }
+
+        /* Memory Status Area */
+        .memory-bar {
+            grid-column: span 4;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        .memory-bar.five-cols { grid-column: span 5; }
+        .btn-mem { height: 32px; font-size: 0.75rem; border-radius: 8px; }
+
+        /* Professional Forms Styles */
+        .form-section {
+            background: rgba(0,0,0,0.15);
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid var(--panel-border);
+            margin-bottom: 12px;
+        }
+        .form-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .quick-presets {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .btn-preset {
+            height: 36px; font-size: 0.8rem; border-radius: 8px; background: var(--btn-fn);
+        }
+        .btn-preset.active {
+            background: var(--accent); color: white; border-color: var(--accent);
+        }
+        .form-group {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-group label { font-size: 0.78rem; color: var(--text-secondary); }
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .input-control {
+            background: var(--oled-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            outline: none;
+            text-align: left;
+            direction: ltr;
+            width: 100%;
+        }
+        .input-control:focus { border-color: var(--accent); }
+        
+        /* Select Dropdowns Native override */
+        select.input-control {
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat; background-position: left 10px center; background-size: 16px;
+            padding-left: 32px; text-align: right; direction: rtl;
+        }
+
+        .expandable-zone {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .expandable-zone.open { max-height: 100px; }
+
+        /* Output Summary Cards */
+        .summary-card {
+            background: rgba(56, 189, 248, 0.04);
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            border-radius: 16px; padding: 14px; margin-top: 12px;
+        }
+        .summary-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px dashed var(--panel-border);
+        }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { font-size: 0.85rem; color: var(--text-secondary); }
+        .summary-value { font-size: 1.05rem; font-weight: 700; direction: ltr; }
+        .summary-value.highlight { color: var(--accent); }
+
+        /* History Paper Tape Ledger */
+        .history-controls {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px;
+        }
+        .btn-action { height: 32px; font-size: 0.75rem; border-radius: 8px; }
+        .tape-container {
+            background: var(--oled-bg); border: 1px solid var(--panel-border);
+            border-radius: 14px; max-height: 280px; overflow-y: auto; padding: 12px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .tape-record {
+            border-bottom: 1px dashed var(--panel-border); padding-bottom: 8px;
+            display: flex; flex-direction: column; gap: 2px; position: relative;
+        }
+        .tape-record:last-child { border-bottom: none; }
+        .tape-meta { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-secondary); }
+        .tape-exp { font-size: 0.85rem; color: var(--text-primary); text-align: left; direction: ltr; }
+        .tape-res { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-align: left; direction: ltr; margin-top: 2px;}
+        .tape-row-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+        .btn-inline { background: none; border: none; color: var(--text-secondary); font-size: 0.7rem; cursor: pointer; padding: 2px 4px; }
+        .btn-inline:hover { color: var(--accent); }
+
+        /* Ripple Effect Canvas Engine */
+        .ripple {
+            position: absolute; border-radius: 50%; background: rgba(255,255,255,0.25);
+            transform: scale(0); animation: rippleEffect 0.4s linear; pointer-events: none;
+        }
+        @keyframes rippleEffect { to { transform: scale(4); opacity: 0; } }
+
+        /* Focus Ring Outline for Accessibility */
+        *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <!-- Loading Animation Engine -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <div style="margin-top: 16px; font-weight: 600; font-size: 0.9rem; color: #94a3b8; letter-spacing: 0.5px;">E2 SMART WORKSTATION</div>
+    </div>
+
+    <!-- App Main Container (Guaranteed No-Stretch Sandboxed Layout) -->
+    <main class="app-sandbox">
+        
+        <!-- Header Info Grid -->
+        <header>
+            <div class="brand-zone">
+                <div>
+                    <h1 class="brand-title">E2 SMART <span>Finance Pro</span></h1>
+                    <p class="brand-subtitle">Professional Financial Workstation</p>
+                </div>
+            </div>
+            <div class="meta-badges">
+                <div class="badge" id="badgeTheme">النمط: داكن</div>
+                <div class="badge" id="badgeCurrency">العملة: EGP</div>
+                <div class="badge" id="badgeTax">الضريبة: 14%</div>
+                <div class="badge" id="badgePrecision">الدقة: 8D</div>
+            </div>
+        </header>
+
+        <!-- OLED Master Display Station -->
+        <section class="display-container" aria-live="polite">
+            <div class="display-formula" id="displayFormula"></div>
+            <div class="display-main" id="displayMain">0</div>
+            <div class="display-indicators">
+                <span id="indMem" style="opacity: 0.2;">M</span>
+                <span id="indOp" style="opacity: 0.2;">OP</span>
+                <span id="indConst" style="opacity: 0.2;">K</span>
+            </div>
+        </section>
+
+        <!-- Workstation Core Module Router Tabs -->
+        <nav class="tabs-nav" role="tablist">
+            <button class="tab-btn active" data-tab="calc" role="tab">الحاسبة</button>
+            <button class="tab-btn" data-tab="vat" role="tab">القيمة المضافة VAT</button>
+            <button class="tab-btn" data-tab="foodcost" role="tab">تكلفة الأغذية F&B</button>
+            <button class="tab-btn" data-tab="pricing" role="tab">الهامش والخصم</button>
+            <button class="tab-btn" data-tab="history" role="tab">شريط العمليات</button>
+            <button class="tab-btn" data-tab="settings" role="tab">الإعدادات</button>
+        </nav>
+
+        <!-- MODULE 1: Financial Calculator Core Engine -->
+        <div class="tab-panel active" id="panel-calc">
+            <div class="calc-grid five-cols">
+                <!-- Memory Registers Row -->
+                <div class="memory-bar five-cols">
+                    <button class="btn btn-fn btn-mem" onclick="Memory.clear()">MC</button>
+                    <button class="btn btn-fn btn-mem" onclick="Memory.recall()">MR</button>
+                    <button class="btn btn-fn btn-mem" onclick="Memory.store()">MS</button>
+                    <button class="btn btn-fn btn-mem" onclick="Memory.plus()">M+</button>
+                    <button class="btn btn-fn btn-mem" onclick="Memory.minus()">M-</button>
+                    <button class="btn btn-fn btn-mem" onclick="Memory.mrc()">MRC</button>
+                </div>
+                
+                <!-- Row 1 -->
+                <button class="btn btn-fn" onclick="Engine.clearEntry()">CE</button>
+                <button class="btn btn-fn" onclick="Engine.allClear()">AC</button>
+                <button class="btn btn-fn" onclick="Engine.backspace()">⌫</button>
+                <button class="btn btn-op" onclick="Engine.setOperator('÷')">÷</button>
+                <button class="btn btn-op" onclick="Engine.execFunction('1/x')">1/x</button>
+                
+                <!-- Row 2 -->
+                <button class="btn btn-num" onclick="Engine.appendDigit('7')">7</button>
+                <button class="btn btn-num" onclick="Engine.appendDigit('8')">8</button>
+                <button class="btn btn-num" onclick="Engine.appendDigit('9')">9</button>
+                <button class="btn btn-op" onclick="Engine.setOperator('×')">×</button>
+                <button class="btn btn-op" onclick="Engine.execFunction('x²')">x²</button>
+                
+                <!-- Row 3 -->
+                <button class="btn btn-num" onclick="Engine.appendDigit('4')">4</button>
+                <button class="btn btn-num" onclick="Engine.appendDigit('5')">5</button>
+                <button class="btn btn-num" onclick="Engine.appendDigit('6')">6</button>
+                <button class="btn btn-op" onclick="Engine.setOperator('-')">-</button>
+                <button class="btn btn-op" onclick="Engine.execFunction('√')">√</button>
+                
+                <!-- Row 4 -->
+                <button class="btn btn-num" onclick="Engine.appendDigit('1')">1</button>
+                <button class="btn btn-num" onclick="Engine.appendDigit('2')">2</button>
+                <button class="btn btn-num" onclick="Engine.appendDigit('3')">3</button>
+                <button class="btn btn-op" onclick="Engine.setOperator('+')">+</button>
+                <button class="btn btn-op" onclick="Engine.execTaxPlus()">Tax+</button>
+                
+                <!-- Row 5 -->
+                <button class="btn btn-fn" onclick="Engine.toggleSign()">±</button>
+                <button class="btn btn-num" onclick="Engine.appendDigit('0')">0</button>
+                <button class="btn btn-num" onclick="Engine.appendDecimal()">.</button>
+                <button class="btn btn-accent" onclick="Engine.evaluate()">=</button>
+                <button class="btn btn-op" onclick="Engine.execTaxMinus()">Tax-</button>
+            </div>
+        </div>
+
+        <!-- MODULE 2: Advanced VAT Control Matrix -->
+        <div class="tab-panel" id="panel-vat">
+            <div class="form-section">
+                <div class="form-title">تخصيص شريحة الضريبة المستهدفة</div>
+                <div class="quick-presets" id="vatPresets">
+                    <button class="btn btn-preset" data-val="1">1%</button>
+                    <button class="btn btn-preset" data-val="2">2%</button>
+                    <button class="btn btn-preset" data-val="3">3%</button>
+                    <button class="btn btn-preset" data-val="5">5%</button>
+                    <button class="btn btn-preset" data-val="8">8%</button>
+                    <button class="btn btn-preset active" data-val="14">14%</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>ملف الضريبة الجاهز</label>
+                    <select class="input-control" id="vatProfileSelect">
+                        <option value="14">الضريبة العامة الموحدة (14%)</option>
+                        <option value="10">ضريبة الجدول والخدمات (10%)</option>
+                        <option value="5">السلع الأساسية المعفاة نسبياً (5%)</option>
+                        <option value="custom">تخصيص نسبة ضريبية أخرى... (Other)</option>
+                    </select>
+                </div>
+                
+                <div class="expandable-zone" id="vatCustomZone">
+                    <div class="form-group" style="padding-top: 8px;">
+                        <label>النسبة الضريبية المخصصة (%)</label>
+                        <input type="number" class="input-control" id="vatCustomInput" value="14" step="0.01" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-title">معالجة الحساب الضريبي المباشر</div>
+                <div class="form-group">
+                    <label>المبلغ الأساسي للعملية الماليّة</label>
+                    <input type="number" class="input-control" id="vatBaseInput" value="100" step="any">
+                </div>
+                <div class="calc-grid" style="margin-top: 12px;">
+                    <button class="btn btn-accent" onclick="VatEngine.calcPlus()">إضافة الضريبة Tax+</button>
+                    <button class="btn btn-op" onclick="VatEngine.calcMinus()">فصل الضريبة Tax-</button>
+                    <button class="btn btn-fn" onclick="VatEngine.loadFromCalc()" style="grid-column: span 2;">سحب الرقم من شاشة الحاسبة الرئيسية</button>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-row"><span class="summary-label">الصافي (Net Amount):</span><span class="summary-value" id="vatOutNet">0.00</span></div>
+                <div class="summary-row"><span class="summary-label">قيمة الضريبة (Tax Amount):</span><span class="summary-value" id="vatOutTax">0.00</span></div>
+                <div class="summary-row"><span class="summary-label">الإجمالي شامل الضريبة (Gross):</span><span class="summary-value highlight" id="vatOutGross">0.00</span></div>
+            </div>
+        </div>
+
+        <!-- MODULE 3: Food Cost Control Workstation -->
+        <div class="tab-panel" id="panel-foodcost">
+            <div class="form-section">
+                <div class="form-title">إدارة رقابة تكاليف الأغذية والمشروبات</div>
+                <div class="form-group">
+                    <label>تكلفة الوصفة الإجمالية (Recipe Cost)</label>
+                    <input type="number" class="input-control" id="fcRecipeCost" value="35" step="any">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>سعر البيع المستهدف (Price)</label>
+                        <input type="number" class="input-control" id="fcSalePrice" value="100" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label>نسبة تكلفة الغذاء المستهدفة FC%</label>
+                        <input type="number" class="input-control" id="fcTargetPercent" value="35" step="any">
+                    </div>
+                </div>
+                <div class="calc-grid" style="margin-top:12px; grid-template-columns: 1fr 1fr;">
+                    <button class="btn btn-accent" onclick="FcEngine.calcFromPrice()">حساب بناءً على سعر البيع</button>
+                    <button class="btn btn-op" onclick="FcEngine.calcFromPercent()">حساب بناءً على نسبة الـ FC%</button>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-row"><span class="summary-label">نسبة تكلفة الأغذية الفعليّة (FC%):</span><span class="summary-value" id="fcOutPercent">0.00%</span></div>
+                <div class="summary-row"><span class="summary-label">سعر البيع المقترح لنسبة الأمان:</span><span class="summary-value" id="fcOutIdealPrice">0.00</span></div>
+                <div class="summary-row"><span class="summary-label">الربح الهامشي (Margin Amount):</span><span class="summary-value" id="fcOutMarginAmt">0.00</span></div>
+                <div class="summary-row"><span class="summary-label">معدل مضاعف التكلفة (Markup X):</span><span class="summary-value" id="fcOutMarkup">0.00</span></div>
+                <div class="summary-row"><span class="summary-label">المساهمة الربحية الكلية (Contribution):</span><span class="summary-value highlight" id="fcOutCont">0.00</span></div>
+            </div>
+        </div>
+
+        <!-- MODULE 4: Margin, Markup & Discount Engine -->
+        <div class="tab-panel" id="panel-pricing">
+            <div class="form-section">
+                <div class="form-title">تحليل مضاعف الربح والمبيعات</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>التكلفة الأساسية (Cost)</label>
+                        <input type="number" class="input-control" id="prCost" value="80" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label>سعر المبيع (Selling Price)</label>
+                        <input type="number" class="input-control" id="prPrice" value="100" step="any">
+                    </div>
+                </div>
+                <button class="btn btn-accent" style="width:100%; margin-top:8px;" onclick="PricingEngine.calcMarginMarkup()">تحليل الهامش والمضاعف الفوري</button>
+            </div>
+
+            <div class="form-section">
+                <div class="form-title">إدارة الخصومات ورسوم الخدمة الفندقية</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>نسبة الخصم التجاري (%)</label>
+                        <input type="number" class="input-control" id="prDiscount" value="10" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label>رسوم الخدمة الفندقية (%)</label>
+                        <input type="number" class="input-control" id="prService" value="12" step="any">
+                    </div>
+                </div>
+                <button class="btn btn-op" style="width:100%; margin-top:8px;" onclick="PricingEngine.calcDiscountsService()">تطبيق مصفوفة الخصم والخدمة</button>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-row"><span class="summary-label">هامش الربح (Margin %):</span><span class="summary-value" id="prOutMargin">0.00%</span></div>
+                <div class="summary-row"><span class="summary-label">المضاعف الإنتاجي (Markup %):</span><span class="summary-value" id="prOutMarkup">0.00%</span></div>
+                <div class="summary-row"><span class="summary-label">قيمة الخصم المستقطع:</span><span class="summary-value" id="prOutDiscVal">0.00</span></div>
+                <div class="summary-row"><span class="summary-label">قيمة رسوم الخدمة المنبثقة:</span><span class="summary-value" id="prOutServVal">0.00</span></div>
+                <div class="summary-row"><span class="summary-label">الصافي النهائي المستهدف:</span><span class="summary-value highlight" id="prOutFinal">0.00</span></div>
+            </div>
+        </div>
+
+        <!-- MODULE 5: Audit Paper Tape History Ledger -->
+        <div class="tab-panel" id="panel-history">
+            <div class="history-controls">
+                <button class="btn btn-fn btn-action" onclick="History.copyAll()">نسخ الحافظة</button>
+                <button class="btn btn-fn btn-action" onclick="History.exportCSV()">تصدير CSV</button>
+                <button class="btn btn-fn btn-action" onclick="History.printTape()">طباعة</button>
+                <button class="btn btn-op btn-action" onclick="History.clearAll()">تطهير الشريط</button>
+            </div>
+            <div class="tape-container" id="tapeContainer">
+                <!-- Records injected dynamically via Engine -->
+            </div>
+        </div>
+
+        <!-- MODULE 6: Configuration & Strategy Center -->
+        <div class="tab-panel" id="panel-settings">
+            <div class="form-section">
+                <div class="form-title">مصفوفة الهوية والألوان</div>
+                <div class="form-group">
+                    <label>نمط الواجهة والمظهر</label>
+                    <select class="input-control" id="setThemeSelect" onchange="SettingsCenter.changeTheme(this.value)">
+                        <option value="dark">النمط القياسي المظلم (Premium Dark)</option>
+                        <option value="light">النمط الاحترافي المضيء (Fluent Light)</option>
+                        <option value="midnight">نمط منتصف الليل الملكي (Midnight Violet)</option>
+                        <option value="emerald">نمط الزمرد لمديري الحسابات (Emerald Green)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-title">المعايير الحسابية المتقدمة</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>رمز العملة النشط</label>
+                        <input type="text" class="input-control" id="setCurrencyInput" value="EGP" oninput="SettingsCenter.updateCurrency(this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>التقريب الافتراضي</label>
+                        <select class="input-control" id="setPrecisionSelect" onchange="SettingsCenter.updatePrecision(this.value)">
+                            <option value="2">خانتين (العقود الماليّة الافتراضية)</option>
+                            <option value="4">4 خانات (تدقيق تكاليف المكونات)</option>
+                            <option value="8" selected>8 خانات (التحليل المتناهي الدقة)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-title">إعدادات النظام التفاعلي</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>المؤثرات الصوتية للأزرار</label>
+                        <select class="input-control" id="setSoundSelect" onchange="SettingsCenter.toggleSound(this.value)">
+                            <option value="on">تفعيل التغذية السمعية</option>
+                            <option value="off">كتم الصوت</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>محرك الاهتزاز اللمسي</label>
+                        <select class="input-control" id="setVibeSelect" onchange="SettingsCenter.toggleVibration(this.value)">
+                            <option value="on">تفعيل الاهتزاز الهابتك</option>
+                            <option value="off">تعطيل</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-op" style="width: 100%; margin-top: 8px;" onclick="SettingsCenter.factoryReset()">استعادة ضبط المصنع الشامل</button>
+        </div>
+
+    </main>
+
+    <!-- Audio Synthesis Core for Click Feedback -->
+    <script>
+        const AudioSynth = {
+            ctx: null,
+            playClick() {
+                if(localStorage.getItem("e2_sound") === "off") return;
+                try {
+                    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + 0.05);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.05);
+                } catch(e){}
+            }
+        };
+
+        const HapticEngine = {
+            vibrate() {
+                if(localStorage.getItem("e2_vibe") === "off") return;
+                if(navigator.vibrate) navigator.vibrate(12);
+            }
+        };
+    </script>
+
+    <!-- High Precision Financial Arithmetic Library -->
+    <script>
+        const HighPrecision = {
+            // Elimination of typical IEEE 754 floating point issues via fixed transformation conversion
+            add(a, b) { return (parseFloat(a) + parseFloat(b)); },
+            sub(a, b) { return (parseFloat(a) - parseFloat(b)); },
+            mul(a, b) { return (parseFloat(a) * parseFloat(b)); },
+            div(a, b) { 
+                if(parseFloat(b) === 0) return "Error";
+                return (parseFloat(a) / parseFloat(b)); 
+            },
+            format(num, decimals = 8) {
+                if(isNaN(num) || !isFinite(num)) return "Error";
+                let s = num.toString();
+                if(s.includes('e') || s.includes('E')) {
+                    // Convert exponential forms back to explicit clean string outputs to adhere strictly to specification
+                    return num.toFixed(decimals).replace(/\.?0+$/, "");
+                }
+                if(!s.includes('.')) return s;
+                let parts = s.split('.');
+                if(parts[1].length > decimals) {
+                    return num.toFixed(decimals);
+                }
+                return s;
+            }
+        };
+    </script>
+
+    <!-- UI State Router and Button Ripple Injection -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Initializing Workstation Router Tabs
+            const tabs = document.querySelectorAll(".tab-btn");
+            const panels = document.querySelectorAll(".tab-panel");
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", () => {
+                    AudioSynth.playClick();
+                    HapticEngine.vibrate();
+                    tabs.forEach(t => t.classList.remove("active"));
+                    panels.forEach(p => p.classList.remove("active"));
+                    tab.classList.add("active");
+                    const TargetPanel = document.getElementById(`panel-${tab.dataset.tab}`);
+                    if(TargetPanel) TargetPanel.classList.add("active");
+                });
+            });
+
+            // Auto Injecting Visual Material Ripple Effects into All Interaction Targets
+            document.body.addEventListener("click", (e) => {
+                let targetBtn = e.target.closest(".btn, .tab-btn, .btn-preset");
+                if (!targetBtn) return;
+                
+                let circle = document.createElement("span");
+                circle.classList.add("ripple");
+                let rect = targetBtn.getBoundingClientRect();
+                let x = e.clientX - rect.left;
+                let y = e.clientY - rect.top;
+                circle.style.left = `${x}px`;
+                circle.style.top = `${y}px`;
+                
+                targetBtn.appendChild(circle);
+                setTimeout(() => circle.remove(), 400);
+            });
+
+            // Gracefully remove loading mask after pipeline preparation
+            setTimeout(() => {
+                document.getElementById("loadingScreen").classList.add("hidden");
+            }, 500);
+
+            // Init State
+            SettingsCenter.loadAll();
+            Engine.updateDisplay();
+        });
+    </script>
+
+    <!-- CORE MODULE ENGINE: Calculation State Machine -->
+    <script>
+        const Engine = {
+            currentInput: "0",
+            formulaString: "",
+            storedOperand: null,
+            activeOperator: null,
+            resetInputOnNextDigit: false,
+            lastEqualsOperand: null,
+            lastEqualsOperator: null,
+
+            updateDisplay() {
+                const mainDisp = document.getElementById("displayMain");
+                const formDisp = document.getElementById("displayFormula");
+                
+                // Set text directly
+                mainDisp.innerText = this.currentInput;
+                formDisp.innerText = this.formulaString;
+
+                // Handle OLED indicator states
+                document.getElementById("indOp").style.opacity = this.activeOperator ? "1" : "0.2";
+                document.getElementById("indConst").style.opacity = this.lastEqualsOperator ? "1" : "0.2";
+
+                // High Fidelity Resilient Font Auto-Scaler (No Crop Guarantee)
+                let textLength = this.currentInput.length;
+                if(textLength > 18) {
+                    mainDisp.style.fontSize = "1.05rem";
+                } else if(textLength > 12) {
+                    mainDisp.style.fontSize = "1.45rem";
+                } else if(textLength > 8) {
+                    mainDisp.style.fontSize = "1.9rem";
+                } else {
+                    mainDisp.style.fontSize = "2.2rem";
+                }
+            },
+
+            appendDigit(digit) {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if (this.resetInputOnNextDigit || this.currentInput === "0") {
+                    this.currentInput = digit;
+                    this.resetInputOnNextDigit = false;
+                } else {
+                    this.currentInput += digit;
+                }
+                this.updateDisplay();
+            },
+
+            appendDecimal() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if (this.resetInputOnNextDigit) {
+                    this.currentInput = "0.";
+                    this.resetInputOnNextDigit = false;
+                    this.updateDisplay();
+                    return;
+                }
+                if (!this.currentInput.includes(".")) {
+                    this.currentInput += ".";
+                }
+                this.updateDisplay();
+            },
+
+            toggleSign() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if(this.currentInput === "0" || this.currentInput === "Error") return;
+                if(this.currentInput.startsWith("-")) {
+                    this.currentInput = this.currentInput.substring(1);
+                } else {
+                    this.currentInput = "-" + this.currentInput;
+                }
+                this.updateDisplay();
+            },
+
+            backspace() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if(this.resetInputOnNextDigit || this.currentInput === "Error") return;
+                if(this.currentInput.length > 1) {
+                    this.currentInput = this.currentInput.slice(0, -1);
+                } else {
+                    this.currentInput = "0";
+                }
+                this.updateDisplay();
+            },
+
+            clearEntry() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                this.currentInput = "0";
+                this.updateDisplay();
+            },
+
+            allClear() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                this.currentInput = "0";
+                this.formulaString = "";
+                this.storedOperand = null;
+                this.activeOperator = null;
+                this.resetInputOnNextDigit = false;
+                this.lastEqualsOperand = null;
+                this.lastEqualsOperator = null;
+                this.updateDisplay();
+            },
+
+            setOperator(op) {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if(this.currentInput === "Error") return;
+
+                let val = parseFloat(this.currentInput);
+
+                if(this.activeOperator && !this.resetInputOnNextDigit) {
+                    // Continuous calculation workflow
+                    let res = this.performMath(this.storedOperand, val, this.activeOperator);
+                    if(res === "Error") {
+                        this.allClear();
+                        this.currentInput = "Error";
+                        this.updateDisplay();
+                        return;
+                    }
+                    this.storedOperand = res;
+                    this.currentInput = HighPrecision.format(res, SettingsCenter.precision);
+                } else {
+                    this.storedOperand = val;
+                }
+
+                this.activeOperator = op;
+                this.formulaString = `${HighPrecision.format(this.storedOperand, SettingsCenter.precision)} ${op}`;
+                this.resetInputOnNextDigit = true;
+                this.lastEqualsOperator = null; 
+                this.lastEqualsOperand = null;
+                this.updateDisplay();
+            },
+
+            evaluate() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if(this.currentInput === "Error") return;
+
+                let currentVal = parseFloat(this.currentInput);
+                let result;
+
+                // Handle Modern Commercial Printing Calculator Repeated Equals Logic
+                if (this.activeOperator) {
+                    this.lastEqualsOperator = this.activeOperator;
+                    this.lastEqualsOperand = currentVal;
+                    
+                    result = this.performMath(this.storedOperand, currentVal, this.activeOperator);
+                    this.formulaString = "";
+                    this.activeOperator = null;
+                } else if (this.lastEqualsOperator) {
+                    result = this.performMath(currentVal, this.lastEqualsOperand, this.lastEqualsOperator);
+                } else {
+                    return; // No pending actions
+                }
+
+                if(result === "Error") {
+                    this.allClear();
+                    this.currentInput = "Error";
+                    this.updateDisplay();
+                    return;
+                }
+
+                let formattedResult = HighPrecision.format(result, SettingsCenter.precision);
+                
+                // Commit to Historical Paper Tape Ledger System
+                let expr = this.lastEqualsOperator ? `${currentVal} ${this.lastEqualsOperator} ${this.lastEqualsOperand}` : currentVal.toString();
+                History.addRecord(expr, formattedResult, "حاسبة عامة");
+
+                this.currentInput = formattedResult;
+                this.resetInputOnNextDigit = true;
+                this.updateDisplay();
+            },
+
+            performMath(a, b, op) {
+                switch(op) {
+                    case '+': return HighPrecision.add(a, b);
+                    case '-': return HighPrecision.sub(a, b);
+                    case '×': return HighPrecision.mul(a, b);
+                    case '÷': return HighPrecision.div(a, b);
+                }
+                return "Error";
+            },
+
+            execFunction(func) {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if(this.currentInput === "Error") return;
+                let val = parseFloat(this.currentInput);
+                let res;
+                switch(func) {
+                    case '1/x': 
+                        if(val === 0) { res = "Error"; } else { res = 1 / val; }
+                        break;
+                    case 'x²': res = val * val; break;
+                    case '√': 
+                        if(val < 0) { res = "Error"; } else { res = Math.sqrt(val); }
+                        break;
+                }
+                if(res === "Error") {
+                    this.allClear(); this.currentInput = "Error";
+                } else {
+                    this.currentInput = HighPrecision.format(res, SettingsCenter.precision);
+                    History.addRecord(`${func}(${val})`, this.currentInput, "دالة رياضية");
+                }
+                this.updateDisplay();
+            },
+
+            execTaxPlus() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let rate = parseFloat(SettingsCenter.defaultTax);
+                let val = parseFloat(this.currentInput);
+                if(isNaN(val)) return;
+                let tax = HighPrecision.mul(val, rate / 100);
+                let gross = HighPrecision.add(val, tax);
+                
+                this.currentInput = HighPrecision.format(gross, SettingsCenter.precision);
+                this.formulaString = `${val} + VAT ${rate}%`;
+                History.addRecord(`${val} + Tax (${rate}%)`, this.currentInput, "إضافة ضريبة");
+                this.updateDisplay();
+            },
+
+            execTaxMinus() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let rate = parseFloat(SettingsCenter.defaultTax);
+                let val = parseFloat(this.currentInput);
+                if(isNaN(val)) return;
+                // Reverse Tax Extraction Protocol
+                let net = HighPrecision.div(val, HighPrecision.add(1, rate / 100));
+                
+                this.currentInput = HighPrecision.format(net, SettingsCenter.precision);
+                this.formulaString = `${val} - VAT Extracted ${rate}%`;
+                History.addRecord(`${val} - Extracted Tax (${rate}%)`, this.currentInput, "خصم ضريبة");
+                this.updateDisplay();
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: High Precision Memory Registers -->
+    <script>
+        const Memory = {
+            register: 0,
+            clear() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                this.register = 0; document.getElementById("indMem").style.opacity = "0.2";
+            },
+            recall() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                Engine.currentInput = HighPrecision.format(this.register, SettingsCenter.precision);
+                Engine.updateDisplay();
+            },
+            store() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let val = parseFloat(Engine.currentInput);
+                if(!isNaN(val)) {
+                    this.register = val;
+                    document.getElementById("indMem").style.opacity = "1";
+                }
+            },
+            plus() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let val = parseFloat(Engine.currentInput);
+                if(!isNaN(val)) {
+                    this.register = HighPrecision.add(this.register, val);
+                    document.getElementById("indMem").style.opacity = "1";
+                }
+            },
+            minus() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let val = parseFloat(Engine.currentInput);
+                if(!isNaN(val)) {
+                    this.register = HighPrecision.sub(this.register, val);
+                    document.getElementById("indMem").style.opacity = "1";
+                }
+            },
+            mrc() {
+                // Dual Action Memory Toggle standard
+                this.recall();
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: Advanced VAT Matrix Engine Engine -->
+    <script>
+        const VatEngine = {
+            init() {
+                const select = document.getElementById("vatProfileSelect");
+                const customZone = document.getElementById("vatCustomZone");
+                const presets = document.querySelectorAll("#vatPresets .btn-preset");
+
+                select.addEventListener("change", (e) => {
+                    if(e.target.value === "custom") {
+                        customZone.classList.add("open");
+                        SettingsCenter.updateTax(document.getElementById("vatCustomInput").value);
+                    } else {
+                        customZone.classList.remove("open");
+                        SettingsCenter.updateTax(e.target.value);
+                        this.syncPresetHighlight(e.target.value);
+                    }
+                });
+
+                document.getElementById("vatCustomInput").addEventListener("input", (e) => {
+                    SettingsCenter.updateTax(e.target.value);
+                });
+
+                presets.forEach(p => {
+                    p.addEventListener("click", () => {
+                        presets.forEach(b => b.classList.remove("active"));
+                        p.classList.add("active");
+                        select.value = p.dataset.val;
+                        customZone.classList.remove("open");
+                        SettingsCenter.updateTax(p.dataset.val);
+                    });
+                });
+            },
+            syncPresetHighlight(val) {
+                const presets = document.querySelectorAll("#vatPresets .btn-preset");
+                presets.forEach(b => {
+                    if(b.dataset.val === val.toString()) b.classList.add("active");
+                    else b.classList.remove("active");
+                });
+            },
+            loadFromCalc() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let cVal = parseFloat(Engine.currentInput);
+                if(!isNaN(cVal)) document.getElementById("vatBaseInput").value = cVal;
+            },
+            calcPlus() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let base = parseFloat(document.getElementById("vatBaseInput").value) || 0;
+                let rate = parseFloat(SettingsCenter.defaultTax);
+                let tax = HighPrecision.mul(base, rate / 100);
+                let gross = HighPrecision.add(base, tax);
+
+                document.getElementById("vatOutNet").innerText = HighPrecision.format(base, 2);
+                document.getElementById("vatOutTax").innerText = HighPrecision.format(tax, 2);
+                document.getElementById("vatOutGross").innerText = HighPrecision.format(gross, 2);
+                
+                History.addRecord(`Tax+ [${base} + ${rate}%]`, HighPrecision.format(gross, 2), "مصفوفة VAT");
+            },
+            calcMinus() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let gross = parseFloat(document.getElementById("vatBaseInput").value) || 0;
+                let rate = parseFloat(SettingsCenter.defaultTax);
+                let net = HighPrecision.div(gross, HighPrecision.add(1, rate / 100));
+                let tax = HighPrecision.sub(gross, net);
+
+                document.getElementById("vatOutNet").innerText = HighPrecision.format(net, 2);
+                document.getElementById("vatOutTax").innerText = HighPrecision.format(tax, 2);
+                document.getElementById("vatOutGross").innerText = HighPrecision.format(gross, 2);
+
+                History.addRecord(`Tax- [${gross} - Extracted ${rate}%]`, HighPrecision.format(net, 2), "مصفوفة VAT");
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: F&B Hospitality Cost Control Workstation -->
+    <script>
+        const FcEngine = {
+            calcFromPrice() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let recipeCost = parseFloat(document.getElementById("fcRecipeCost").value) || 0;
+                let salePrice = parseFloat(document.getElementById("fcSalePrice").value) || 0;
+                if(salePrice === 0) return;
+
+                let fcPercent = HighPrecision.mul(HighPrecision.div(recipeCost, salePrice), 100);
+                let marginAmt = HighPrecision.sub(salePrice, recipeCost);
+                let markup = HighPrecision.div(salePrice, recipeCost);
+
+                this.renderOutputs(fcPercent, salePrice, marginAmt, markup, marginAmt);
+                History.addRecord(`F&B Analysis (By Price: Cost ${recipeCost} / Price ${salePrice})`, `${fcPercent.toFixed(2)}% FC`, "رقابة الأغذية");
+            },
+            calcFromPercent() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let recipeCost = parseFloat(document.getElementById("fcRecipeCost").value) || 0;
+                let targetPercent = parseFloat(document.getElementById("fcTargetPercent").value) || 0;
+                if(targetPercent === 0) return;
+
+                let idealPrice = HighPrecision.div(recipeCost, targetPercent / 100);
+                let marginAmt = HighPrecision.sub(idealPrice, recipeCost);
+                let markup = HighPrecision.div(100, targetPercent);
+
+                this.renderOutputs(targetPercent, idealPrice, marginAmt, markup, marginAmt);
+                History.addRecord(`F&B Target (By %: Cost ${recipeCost} / Target ${targetPercent}%)`, `Price: ${idealPrice.toFixed(2)}`, "رقابة الأغذية");
+            },
+            renderOutputs(fcPct, idealPrice, marginAmt, markup, cont) {
+                document.getElementById("fcOutPercent").innerText = fcPct.toFixed(2) + "%";
+                document.getElementById("fcOutIdealPrice").innerText = HighPrecision.format(idealPrice, 2);
+                document.getElementById("fcOutMarginAmt").innerText = HighPrecision.format(marginAmt, 2);
+                document.getElementById("fcOutMarkup").innerText = markup.toFixed(2) + " x";
+                document.getElementById("fcOutCont").innerText = HighPrecision.format(cont, 2);
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: Margin, Markup & Discount Engine -->
+    <script>
+        const PricingEngine = {
+            calcMarginMarkup() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let cost = parseFloat(document.getElementById("prCost").value) || 0;
+                let price = parseFloat(document.getElementById("prPrice").value) || 0;
+                if(price === 0 || cost === 0) return;
+
+                let margin = HighPrecision.mul(HighPrecision.div(HighPrecision.sub(price, cost), price), 100);
+                let markup = HighPrecision.mul(HighPrecision.div(HighPrecision.sub(price, cost), cost), 100);
+
+                document.getElementById("prOutMargin").innerText = margin.toFixed(2) + "%";
+                document.getElementById("prOutMarkup").innerText = markup.toFixed(2) + "%";
+                
+                History.addRecord(`Margin/Markup analysis (Cost: ${cost}, Price: ${price})`, `Margin: ${margin.toFixed(2)}%`, "التسعير والتحليل");
+            },
+            calcDiscountsService() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let basePrice = parseFloat(document.getElementById("prPrice").value) || 0;
+                let discPct = parseFloat(document.getElementById("prDiscount").value) || 0;
+                let servPct = parseFloat(document.getElementById("prService").value) || 0;
+
+                let discVal = HighPrecision.mul(basePrice, discPct / 100);
+                let afterDisc = HighPrecision.sub(basePrice, discVal);
+                let servVal = HighPrecision.mul(afterDisc, servPct / 100);
+                let finalTotal = HighPrecision.add(afterDisc, servVal);
+
+                document.getElementById("prOutDiscVal").innerText = HighPrecision.format(discVal, 2);
+                document.getElementById("prOutServVal").innerText = HighPrecision.format(servVal, 2);
+                document.getElementById("prOutFinal").innerText = HighPrecision.format(finalTotal, 2);
+
+                History.addRecord(`Matrix System [Price: ${basePrice} - ${discPct}% Disc + ${servPct}% Serv]`, HighPrecision.format(finalTotal, 2), "التسعير والتحليل");
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: Printing Paper Tape Ledger System & Export Core -->
+    <script>
+        const History = {
+            records: JSON.parse(localStorage.getItem("e2_tape_records")) || [],
+            
+            addRecord(expression, result, profile = "عام") {
+                let now = new Date();
+                let dateStr = now.toLocaleDateString('ar-EG');
+                let timeStr = now.toLocaleTimeString('ar-EG');
+                
+                let rec = { expression, result, profile, date: dateStr, time: timeStr, id: Date.now() };
+                this.records.unshift(rec);
+                this.save();
+                this.render();
+            },
+            deleteRecord(id) {
+                this.records = this.records.filter(r => r.id !== id);
+                this.save(); this.render();
+            },
+            clearAll() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                this.records = []; this.save(); this.render();
+            },
+            save() { localStorage.setItem("e2_tape_records", JSON.stringify(this.records)); },
+            render() {
+                const container = document.getElementById("tapeContainer");
+                container.innerHTML = "";
+                if(this.records.length === 0) {
+                    container.innerHTML = `<div style='text-align:center; padding:20px; color:var(--text-secondary); font-size:0.8rem;'>الشريط المالي فارغ تماماً حالياً</div>`;
+                    return;
+                }
+                this.records.forEach(r => {
+                    let item = document.createElement("div");
+                    item.classList.add("tape-record");
+                    item.innerHTML = `
+                        <div class="tape-meta"><span>${r.profile}</span><span>${r.date} - ${r.time}</span></div>
+                        <div class="tape-exp">${r.expression}</div>
+                        <div class="tape-res">${r.result}</div>
+                        <div class="tape-row-btns">
+                            <button class="btn-inline" onclick="History.reuseVal('${r.result}')">سحب الحساب</button>
+                            <button class="btn-inline" onclick="History.deleteRecord(${r.id})">حذف</button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            },
+            reuseVal(val) {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                if(!isNaN(parseFloat(val))) {
+                    Engine.currentInput = val; Engine.updateDisplay();
+                }
+            },
+            copyAll() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let txt = this.records.map(r => `[${r.profile}] ${r.date} ${r.time} -> ${r.expression} = ${r.result}`).join("\n");
+                navigator.clipboard.writeText(txt);
+            },
+            exportCSV() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + "الملف,التاريخ,الوقت,المعادلة,النتيجة\n" + 
+                    this.records.map(r => `"${r.profile}","${r.date}","${r.time}","${r.expression}","${r.result}"`).join("\n");
+                let encodedUri = encodeURI(csvContent);
+                let link = document.createElement("a");
+                link.setAttribute("href", encodedUri); link.setAttribute("download", `E2_SMART_TAPE_${Date.now()}.csv`);
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            },
+            printTape() {
+                AudioSynth.playClick(); HapticEngine.vibrate();
+                window.print();
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: Central Configuration and Preferences Strategy -->
+    <script>
+        const SettingsCenter = {
+            theme: "dark",
+            currency: "EGP",
+            precision: 8,
+            defaultTax: 14,
+
+            loadAll() {
+                this.theme = localStorage.getItem("e2_theme") || "dark";
+                this.currency = localStorage.getItem("e2_currency") || "EGP";
+                this.precision = parseInt(localStorage.getItem("e2_precision")) || 8;
+                this.defaultTax = parseFloat(localStorage.getItem("e2_tax")) || 14;
+
+                document.getElementById("setThemeSelect").value = this.theme;
+                document.getElementById("setCurrencyInput").value = this.currency;
+                document.getElementById("setPrecisionSelect").value = this.precision;
+                document.getElementById("vatCustomInput").value = this.defaultTax;
+                document.getElementById("vatProfileSelect").value = [14, 10, 5].includes(this.defaultTax) ? this.defaultTax : "custom";
+                if(document.getElementById("vatProfileSelect").value === "custom") {
+                    document.getElementById("vatCustomZone").classList.add("open");
+                }
+
+                // Syncing Active Interactive UI Elements
+                document.body.setAttribute("data-theme", this.theme);
+                this.refreshBadges();
+                VatEngine.init();
+                VatEngine.syncPresetHighlight(this.defaultTax);
+                History.render();
+            },
+            refreshBadges() {
+                let tName = document.getElementById("setThemeSelect").options[document.getElementById("setThemeSelect").selectedIndex]?.text || "داكن";
+                document.getElementById("badgeTheme").innerText = `النمط: ${this.theme.toUpperCase()}`;
+                document.getElementById("badgeCurrency").innerText = `العملة: ${this.currency}`;
+                document.getElementById("badgeTax").innerText = `الضريبة: ${this.defaultTax}%`;
+                document.getElementById("badgePrecision").innerText = `الدقة: ${this.precision}D`;
+            },
+            changeTheme(val) {
+                this.theme = val; localStorage.setItem("e2_theme", val);
+                document.body.setAttribute("data-theme", val); this.refreshBadges();
+            },
+            updateCurrency(val) {
+                this.currency = val || "EGP"; localStorage.setItem("e2_currency", this.currency);
+                this.refreshBadges();
+            },
+            updatePrecision(val) {
+                this.precision = parseInt(val); localStorage.setItem("e2_precision", val);
+                this.refreshBadges(); Engine.updateDisplay();
+            },
+            updateTax(val) {
+                let parsed = parseFloat(val);
+                if(!isNaN(parsed)) {
+                    this.defaultTax = parsed; localStorage.setItem("e2_tax", val);
+                    this.refreshBadges();
+                }
+            },
+            toggleSound(val) { localStorage.setItem("e2_sound", val); },
+            toggleVibration(val) { localStorage.setItem("e2_vibe", val); },
+            factoryReset() {
+                localStorage.clear(); location.reload();
+            }
+        };
+    </script>
+
+    <!-- Native Mechanical Keyboard Hooking Engine -->
+    <script>
+        document.addEventListener("keydown", (e) => {
+            // Prevent interference during standard workflow typing inside fields
+            if(document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "SELECT") return;
+
+            let key = e.key;
+            if(key >= "0" && key <= "9") Engine.appendDigit(key);
+            else if(key === ".") Engine.appendDecimal();
+            else if(key === "+") Engine.setOperator("+");
+            else if(key === "-") Engine.setOperator("-");
+            else if(key === "*") Engine.setOperator("×");
+            else if(key === "/") { e.preventDefault(); Engine.setOperator("÷"); }
+            else if(key === "Enter" || key === "=") { e.preventDefault(); Engine.evaluate(); }
+            else if(key === "Backspace") Engine.backspace();
+            else if(key === "Escape") Engine.allClear();
+            else if(key === "Delete") Engine.clearEntry();
+        });
+    </script>
+</body>
+</html>

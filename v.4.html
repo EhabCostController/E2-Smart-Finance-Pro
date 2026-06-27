@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E2 SMART Finance Pro</title>
+    <style>
+        :root {
+            --bg-app: #07111F;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --primary: #00D4FF;
+            --primary-glow: rgba(0, 212, 255, 0.35);
+            --success: #00E676;
+            --warning: #E5A93C; /* لون ذهبي مطفأ مريح للعين بديل للأصفر الفاقع */
+            --danger: #FF5252;
+            --text-main: #FFFFFF;
+            --text-muted: rgba(255, 255, 255, 0.65);
+            
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            --blur-glass: blur(25px);
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            --shadow-neomorphic: 0 8px 24px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.05);
+            --shadow-pressed: inset 0 4px 12px rgba(0,0,0,0.4), 0 1px 2px rgba(255,255,255,0.05);
+        }
+
+        [data-theme="light"] {
+            --bg-app: #F4F7FC;
+            --card-bg: rgba(0, 0, 0, 0.04);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --primary: #0088CC;
+            --primary-glow: rgba(0, 136, 204, 0.2);
+            --text-main: #0E1726;
+            --text-muted: rgba(14, 23, 38, 0.65);
+            --warning: #B37D14;
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255,255,255,0.7);
+            --shadow-neomorphic: 0 8px 24px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,0.4);
+            --shadow-pressed: inset 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: var(--font-family);
+        }
+
+        body {
+            background: var(--bg-app);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 16px;
+            transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(0,0,0,0) 70%);
+            top: -200px;
+            left: -200px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .workstation-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: var(--blur-glass);
+            -webkit-backdrop-filter: var(--blur-glass);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 24px 24px 16px 24px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .brand-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .app-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+        .app-title span { color: var(--primary); }
+        .app-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* تحويل البار العلوي إلى أزرار تفاعلية بالكامل */
+        .status-action-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .status-action-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-border);
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .status-action-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .status-action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .oled-workstation-display {
+            background: #02070F;
+            margin: 16px 24px;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 150px;
+            justify-content: space-between;
+        }
+        .oled-expression-line {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            min-height: 1.4rem;
+            width: 100%;
+            direction: ltr;
+            text-align: left;
+        }
+        .oled-primary-numerical-line {
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+            width: 100%;
+            direction: ltr;
+            text-align: left;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        /* تعديل وتحسين مظهر منطقة التفقيط لتكون مريحة للعين ومحاذاتها صحيحة */
+        .oled-tafqeet-line {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--warning);
+            margin-top: 10px;
+            width: 100%;
+            text-align: right; /* محاذاة لليمين لمنع العشوائية البصرية */
+            line-height: 1.4;  /* إعطاء مسافة عمودية كافية مريحة للمطالعة */
+            min-height: 1.2rem;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .navigation-scroller {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            padding: 0 24px;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .nav-tab-trigger {
+            padding: 8px 4px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            border: 1px solid transparent;
+        }
+        .nav-tab-trigger.active {
+            background: rgba(255,255,255,0.08);
+            color: var(--primary);
+            border-color: var(--card-border);
+            box-shadow: var(--shadow-neomorphic);
+        }
+
+        .workspace-panel { display: none; padding: 0 24px 24px 24px; }
+        .workspace-panel.active { display: block; }
+
+        .tactile-button-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .tactile-button-grid.five-cols { grid-template-columns: repeat(5, 1fr); }
+
+        .tactile-key {
+            height: 52px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-main);
+            font-size: 1.15rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-neomorphic);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+        }
+        .tactile-key:active {
+            transform: scale(0.96);
+            box-shadow: var(--shadow-pressed);
+        }
+        .tactile-key.key-fn { background: rgba(255,255,255,0.08); color: var(--text-muted); font-size: 0.95rem; }
+        .tactile-key.key-op { background: rgba(0, 212, 255, 0.1); color: var(--primary); font-size: 1.25rem; border-color: rgba(0, 212, 255, 0.2); }
+        .tactile-key.key-tafqeet { background: rgba(229, 169, 60, 0.15); color: var(--warning); border-color: rgba(229, 169, 60, 0.3); font-size: 0.95rem; font-weight: 700; }
+        .tactile-key.key-accent { background: var(--primary); color: #07111F; font-weight: 700; }
+
+        .premium-inline-select {
+            background: #02070F;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 0 10px;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            height: 52px;
+            text-align: center;
+            direction: rtl;
+        }
+
+        .tax-profile-matrix {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .tax-interactive-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 12px 6px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .tax-interactive-card .card-value { font-size: 1.1rem; font-weight: 700; }
+        .tax-interactive-card.active { background: rgba(0, 212, 255, 0.08); border-color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+
+    <main class="workstation-container">
+        <header>
+            <div class="brand-meta">
+                <div>
+                    <h2 class="app-title">E2 SMART <span>Pro</span></h2>
+                    <p class="app-subtitle">Financial Workstation Platform</p>
+                </div>
+                <div id="clockDisplay" style="font-size: 0.85rem; font-weight: 700; color: var(--primary); direction: ltr;">00:00:00</div>
+            </div>
+            
+            <!-- أزرار البار العلوي التفاعلية المحدثة للتعديل السريع والديناميكي -->
+            <div class="status-action-container">
+                <button class="status-action-btn" id="btnThemeToggle" onclick="CentralConfig.toggleTheme()">المظهر: داكن</button>
+                <button class="status-action-btn" id="btnCurrencyToggle" onclick="CentralConfig.rotateCurrency()">العملة: جنيهاً</button>
+                <button class="status-action-btn" id="btnPrecisionToggle" onclick="CentralConfig.rotatePrecision()">الدقة: 8 خانات</button>
+            </div>
+        </header>
+
+        <section class="oled-workstation-display">
+            <div class="oled-expression-line" id="oledExpression"></div>
+            <div class="oled-primary-numerical-line" id="oledNumericalMain">0</div>
+            <div class="oled-tafqeet-line" id="oledTafqeetDisplay"></div>
+        </section>
+
+        <nav class="navigation-scroller">
+            <button class="nav-tab-trigger active" data-target="calc">المحطة الحسابية</button>
+            <button class="nav-tab-trigger" data-target="tax">البيان الضريبي</button>
+            <button class="nav-tab-trigger" data-target="settings">الإعدادات</button>
+        </nav>
+
+        <!-- PANEL 1: Calculator -->
+        <div class="workspace-panel active" id="view-calc">
+            <div class="tactile-button-grid five-cols">
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('mc')">MC</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('mr')">MR</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('ms')">MS</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('m+')">M+</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('m-')">M-</button>
+
+                <button class="tactile-key key-op" onclick="CoreEngine.appendSyntax('(')">(</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.appendSyntax(')')">)</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('^')">xʸ</button>
+                <button class="tactile-key key-fn" onclick="CoreEngine.clearEntry()">CE</button>
+                <button class="tactile-key key-fn" onclick="CoreEngine.allClear()">AC</button>
+
+                <button class="tactile-key key-fn" onclick="CoreEngine.backspace()">⌫</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('7')">7</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('8')">8</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('9')">9</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('/')">÷</button>
+
+                <button class="tactile-key key-op" onclick="CoreEngine.execFunctional('1/x')">1/x</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('4')">4</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('5')">5</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('6')">6</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('*')">×</button>
+
+                <button class="tactile-key key-op" onclick="CoreEngine.execFunctional('√')">√</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('1')">1</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('2')">2</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('3')">3</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('-')">-</button>
+
+                <button class="tactile-key key-op" onclick="CoreEngine.injectTaxDirect(true)">Tax+</button>
+                <button class="tactile-key key-fn" onclick="CoreEngine.toggleInversion()">±</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('0')">0</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDecimal()">.</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('+')">+</button>
+
+                <button class="tactile-key key-op" onclick="CoreEngine.injectTaxDirect(false)">Tax-</button>
+                <div style="grid-column: span 2;">
+                    <select class="premium-inline-select" id="inlineTaxSelector" onchange="CentralConfig.updateSystemTaxRate(this.value)">
+                        <option value="14" selected>النوع: 14%</option>
+                        <option value="12">النوع: 12%</option>
+                        <option value="10">النوع: 10%</option>
+                        <option value="8">النوع: 8%</option>
+                        <option value="5">النوع: 5%</option>
+                        <option value="2">النوع: 2%</option>
+                        <option value="1">النوع: 1%</option>
+                    </select>
+                </div>
+                <button class="tactile-key key-tafqeet" onclick="CoreEngine.triggerArabicTafqeet()">تفقيط</button>
+                <button class="tactile-key key-accent" onclick="CoreEngine.evaluate()">=</button>
+            </div>
+        </div>
+
+        <!-- PANEL 2: Tax Profiles -->
+        <div class="workspace-panel" id="view-tax">
+            <div class="tax-profile-matrix" id="taxCardsMatrix">
+                <div class="tax-interactive-card" data-rate="1"><div class="card-value">1%</div></div>
+                <div class="tax-interactive-card" data-rate="2"><div class="card-value">2%</div></div>
+                <div class="tax-interactive-card" data-rate="5"><div class="card-value">5%</div></div>
+                <div class="tax-interactive-card" data-rate="8"><div class="card-value">8%</div></div>
+                <div class="tax-interactive-card" data-rate="10"><div class="card-value">10%</div></div>
+                <div class="tax-interactive-card" data-rate="12"><div class="card-value">12%</div></div>
+                <div class="tax-interactive-card active" data-rate="14"><div class="card-value">14%</div></div>
+            </div>
+        </div>
+
+        <!-- PANEL 3: Settings -->
+        <div class="workspace-panel" id="view-settings">
+            <p style="font-size:0.9rem; color:var(--text-muted);">تعديل الخيارات متاح الآن مباشرة من الأزرار العلوية للوصول السريع.</p>
+        </div>
+    </main>
+
+    <script>
+        const TafqeetEngine = {
+            ones: ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"],
+            tens: ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"],
+            teens: ["عشرة", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"],
+            hundreds: ["", "مائة", "مائتان", "ثلاثمائة", "أربعمائة", "خمسمائة", "ستمائة", "سبعمائة", "ثمانمائة", "تسعمائة"],
+            
+            convert(num) {
+                if (num === 0) return "صفر";
+                if (num < 0) return "سالب " + this.convert(Math.abs(num));
+                
+                let text = "";
+                if (num >= 1000000) {
+                    let millions = Math.floor(num / 1000000);
+                    text += (millions === 1 ? "مليون" : millions === 2 ? "مليونان" : this.convert(millions) + " ملايين") + " ";
+                    num %= 1000000;
+                }
+                if (num >= 1000) {
+                    let thousands = Math.floor(num / 1000);
+                    if (text !== "") text += "و ";
+                    if (thousands === 1) text += "ألف";
+                    else if (thousands === 2) text += "ألفان";
+                    else if (thousands >= 3 && thousands <= 10) text += this.ones[thousands] + " آلاف";
+                    else text += this.convert(thousands) + " ألف";
+                    num %= 1000;
+                }
+                if (num >= 100) {
+                    let hund = Math.floor(num / 100);
+                    if (text !== "") text += "و ";
+                    text += this.hundreds[hund];
+                    num %= 100;
+                }
+                if (num > 0) {
+                    if (text !== "") text += "و ";
+                    if (num < 10) text += this.ones[num];
+                    else if (num < 20) text += this.teens[num - 10];
+                    else {
+                        let opOnes = num % 10;
+                        let opTens = Math.floor(num / 10);
+                        if (opOnes > 0) text += this.ones[opOnes] + " و";
+                        text += this.tens[opTens];
+                    }
+                }
+                return text.trim();
+            },
+            
+            tafqeetFull(amount, currencyName = "جنيهاً") {
+                let mainAmount = Math.floor(amount);
+                let fractionAmount = Math.round((amount - mainAmount) * 100);
+                
+                let output = "=" + this.convert(mainAmount) + " " + currencyName;
+                if (fractionAmount > 0) {
+                    output += " و " + this.convert(fractionAmount) + " قرشاً";
+                }
+                return output + " فقط لا غير.";
+            }
+        };
+
+        const PreciseMath = {
+            cleanRender(num, decimalPositions = 8) {
+                if(isNaN(num) || !isFinite(num)) return "Error";
+                let rawStr = num.toString();
+                if(rawStr.includes('e') || rawStr.includes('E')) return num.toFixed(decimalPositions).replace(/\.?0+$/, "");
+                if(!rawStr.includes('.')) return rawStr;
+                let splitted = rawStr.split('.');
+                if(splitted[1].length > decimalPositions) return num.toFixed(decimalPositions);
+                return rawStr;
+            },
+            evaluateExpression(expr) {
+                try {
+                    let sanitized = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/[^0-9+\-*/().^ ]/g, '');
+                    while(sanitized.includes('^')) {
+                        sanitized = sanitized.replace(/([0-9.]+)\^([0-9.]+)/g, "Math.pow($1,$2)");
+                    }
+                    let res = new Function(`return (${sanitized})`)();
+                    return (res !== undefined && !isNaN(res)) ? res : "Error";
+                } catch(e) { return "Error"; }
+            }
+        };
+
+        const CentralConfig = {
+            currentTheme: "dark",
+            currencies: ["جنيهاً", "USD", "EUR"],
+            currencyIndex: 0,
+            precisions: [2, 4, 6, 8],
+            precisionIndex: 3,
+            currency: "جنيهاً",
+            precision: 8,
+            defaultSystemTaxPercentage: 14,
+
+            toggleTheme() {
+                this.currentTheme = this.currentTheme === "dark" ? "light" : "dark";
+                document.documentElement.setAttribute("data-theme", this.currentTheme);
+                document.getElementById("btnThemeToggle").innerText = `المظهر: ${this.currentTheme === "dark" ? "داكن" : "فاتح"}`;
+            },
+
+            rotateCurrency() {
+                this.currencyIndex = (this.currencyIndex + 1) % this.currencies.length;
+                this.currency = this.currencies[this.currencyIndex];
+                document.getElementById("btnCurrencyToggle").innerText = `العملة: ${this.currency}`;
+                CoreEngine.triggerArabicTafqeet(); // تحديث فوري للتفقيط إذا كان ظاهراً
+            },
+
+            rotatePrecision() {
+                this.precisionIndex = (this.precisionIndex + 1) % this.precisions.length;
+                this.precision = this.precisions[this.precisionIndex];
+                document.getElementById("btnPrecisionToggle").innerText = `الدقة: ${this.precision} خانات`;
+                // إعادة معالجة الرقم الحالي بالدقة الجديدة مباشرة
+                let currentVal = PreciseMath.evaluateExpression(CoreEngine.currentDisplayState);
+                if(currentVal !== "Error" && CoreEngine.isEvaluationFinished) {
+                    CoreEngine.currentDisplayState = PreciseMath.cleanRender(currentVal, this.precision);
+                    CoreEngine.updateOledDisplayState();
+                }
+            },
+
+            updateSystemTaxRate(r) { 
+                this.defaultSystemTaxPercentage = parseFloat(r) || 14; 
+                document.getElementById("inlineTaxSelector").value = r;
+                const cards = document.querySelectorAll("#taxCardsMatrix .tax-interactive-card");
+                cards.forEach(card => card.classList.toggle("active", card.dataset.rate === r));
+            }
+        };
+
+        const CoreEngine = {
+            currentDisplayState: "0",
+            isEvaluationFinished: false,
+
+            updateOledDisplayState() {
+                document.getElementById("oledNumericalMain").innerText = this.currentDisplayState;
+                document.getElementById("oledExpression").innerText = this.isEvaluationFinished ? "" : this.currentDisplayState;
+            },
+
+            appendDigit(digit) {
+                if (this.currentDisplayState === "0" || this.isEvaluationFinished || this.currentDisplayState === "Error") {
+                    this.currentDisplayState = digit;
+                    this.isEvaluationFinished = false;
+                } else { this.currentDisplayState += digit; }
+                this.updateOledDisplayState();
+                this.clearTafqeetLine();
+            },
+
+            appendSyntax(char) {
+                if (this.currentDisplayState === "0" || this.isEvaluationFinished || this.currentDisplayState === "Error") {
+                    this.currentDisplayState = char;
+                    this.isEvaluationFinished = false;
+                } else { this.currentDisplayState += char; }
+                this.updateOledDisplayState();
+            },
+
+            appendDecimal() {
+                if(this.isEvaluationFinished) {
+                    this.currentDisplayState = "0.";
+                    this.isEvaluationFinished = false;
+                    this.updateOledDisplayState();
+                    return;
+                }
+                if(!this.currentDisplayState.includes('.')) {
+                    this.currentDisplayState += ".";
+                    this.updateOledDisplayState();
+                }
+            },
+
+            setOperator(op) {
+                this.isEvaluationFinished = false;
+                if(this.currentDisplayState === "Error") return;
+                this.currentDisplayState += ` ${op} `;
+                this.updateOledDisplayState();
+            },
+
+            backspace() {
+                if(this.currentDisplayState === "Error" || this.isEvaluationFinished) return;
+                this.currentDisplayState = this.currentDisplayState.trimEnd().slice(0, -1);
+                if(this.currentDisplayState === "") this.currentDisplayState = "0";
+                this.updateOledDisplayState();
+                this.clearTafqeetLine();
+            },
+
+            clearEntry() { this.allClear(); },
+            allClear() {
+                this.currentDisplayState = "0";
+                this.isEvaluationFinished = false;
+                this.updateOledDisplayState();
+                this.clearTafqeetLine();
+            },
+
+            toggleInversion() {
+                if(this.currentDisplayState === "0" || this.currentDisplayState === "Error") return;
+                this.currentDisplayState = this.currentDisplayState.startsWith("-") ? this.currentDisplayState.substring(1) : "-" + this.currentDisplayState;
+                this.updateOledDisplayState();
+            },
+
+            evaluate() {
+                if(this.currentDisplayState === "Error") return;
+                let evalOutput = PreciseMath.evaluateExpression(this.currentDisplayState);
+                this.currentDisplayState = evalOutput === "Error" ? "Error" : PreciseMath.cleanRender(evalOutput, CentralConfig.precision);
+                this.isEvaluationFinished = true;
+                this.updateOledDisplayState();
+            },
+
+            execFunctional(func) {
+                let val = PreciseMath.evaluateExpression(this.currentDisplayState);
+                if(val === "Error") { this.currentDisplayState = "Error"; this.updateOledDisplayState(); return; }
+                let res = func === '1/x' ? (val !== 0 ? 1 / val : "Error") : (val >= 0 ? Math.sqrt(val) : "Error");
+                this.currentDisplayState = res === "Error" ? "Error" : PreciseMath.cleanRender(res, CentralConfig.precision);
+                this.isEvaluationFinished = true;
+                this.updateOledDisplayState();
+            },
+
+            injectTaxDirect(isAdd) {
+                let baseVal = PreciseMath.evaluateExpression(this.currentDisplayState);
+                if(baseVal === "Error") return;
+                let rate = parseFloat(CentralConfig.defaultSystemTaxPercentage);
+                let finalVal = isAdd ? (baseVal * (1 + rate/100)) : (baseVal / (1 + rate/100));
+                this.currentDisplayState = PreciseMath.cleanRender(finalVal, CentralConfig.precision);
+                this.isEvaluationFinished = true;
+                this.updateOledDisplayState();
+                this.clearTafqeetLine();
+            },
+
+            triggerArabicTafqeet() {
+                let currentVal = parseFloat(this.currentDisplayState);
+                if(isNaN(currentVal) || this.currentDisplayState === "Error" || currentVal === 0) {
+                    return;
+                }
+                document.getElementById("oledTafqeetDisplay").innerText = TafqeetEngine.tafqeetFull(currentVal, CentralConfig.currency);
+            },
+            
+            clearTafqeetLine() { document.getElementById("oledTafqeetDisplay").innerText = ""; }
+        };
+
+        const MemoryModule = {
+            buffer: 0,
+            exec(cmd) {
+                let currentVal = parseFloat(CoreEngine.currentDisplayState) || 0;
+                if(cmd === 'mc') this.buffer = 0;
+                else if(cmd === 'mr') CoreEngine.currentDisplayState = PreciseMath.cleanRender(this.buffer, CentralConfig.precision);
+                else if(cmd === 'ms') this.buffer = currentVal;
+                else if(cmd === 'm+') this.buffer += currentVal;
+                else if(cmd === 'm-') this.buffer -= currentVal;
+                CoreEngine.updateOledDisplayState();
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const tabs = document.querySelectorAll(".nav-tab-trigger");
+            const panels = document.querySelectorAll(".workspace-panel");
+            tabs.forEach(tab => {
+                tab.addEventListener("click", () => {
+                    tabs.forEach(t => t.classList.remove("active"));
+                    panels.forEach(p => p.classList.remove("active"));
+                    tab.classList.add("active");
+                    document.getElementById(`view-${tab.dataset.target}`).classList.add("active");
+                });
+            });
+
+            setInterval(() => { document.getElementById("clockDisplay").innerText = new Date().toLocaleTimeString('en-US'); }, 1000);
+            
+            const cards = document.querySelectorAll("#taxCardsMatrix .tax-interactive-card");
+            cards.forEach(c => c.addEventListener("click", () => CentralConfig.updateSystemTaxRate(c.dataset.rate)));
+        });
+    </script>
+</body>
+</html>

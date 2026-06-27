@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E2 SMART Finance Pro</title>
+    <style>
+        :root {
+            /* Enterprise Palette Customization */
+            --bg-app: #07111F;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --primary: #00D4FF;
+            --primary-glow: rgba(0, 212, 255, 0.35);
+            --success: #00E676;
+            --success-glow: rgba(0, 230, 118, 0.25);
+            --warning: #FFC107;
+            --danger: #FF5252;
+            --text-main: #FFFFFF;
+            --text-muted: rgba(255, 255, 255, 0.65);
+            
+            /* Structural Foundations */
+            --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            --blur-glass: blur(25px);
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            --shadow-neomorphic: 0 8px 24px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.05);
+            --shadow-pressed: inset 0 4px 12px rgba(0,0,0,0.4), 0 1px 2px rgba(255,255,255,0.05);
+        }
+
+        /* Specific Theme Variations managed purely by high performance CSS attributes */
+        [data-theme="light"] {
+            --bg-app: #F4F7FC;
+            --card-bg: rgba(0, 0, 0, 0.04);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --primary: #0088CC;
+            --primary-glow: rgba(0, 136, 204, 0.2);
+            --text-main: #0E1726;
+            --text-muted: rgba(14, 23, 38, 0.65);
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255,255,255,0.7);
+            --shadow-neomorphic: 0 8px 24px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,0.4);
+            --shadow-pressed: inset 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="midnight"] {
+            --bg-app: #03030A;
+            --card-bg: rgba(123, 97, 255, 0.06);
+            --card-border: rgba(123, 97, 255, 0.15);
+            --primary: #7B61FF;
+            --primary-glow: rgba(123, 97, 255, 0.4);
+            --text-main: #F5F5FA;
+        }
+
+        [data-theme="emerald"] {
+            --bg-app: #02170D;
+            --card-bg: rgba(0, 230, 118, 0.05);
+            --card-border: rgba(0, 230, 118, 0.15);
+            --primary: #00E676;
+            --primary-glow: rgba(0, 230, 118, 0.35);
+            --text-main: #ECFDF5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: var(--font-family);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: var(--bg-app);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 16px;
+            transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Ambient Dynamic Background Glow System running at 60 FPS */
+        .ambient-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(0,0,0,0) 70%);
+            top: -200px;
+            left: -200px;
+            z-index: -1;
+            pointer-events: none;
+            animation: floatingGlow 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes floatingGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 50px) scale(1.15); }
+        }
+
+        /* Premium Boot Splash Screen Engine */
+        .splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #07111F;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
+        }
+        .splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .splash-logo-container {
+            text-align: center;
+            animation: splashEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .splash-logo {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #FFFFFF;
+        }
+        .splash-logo span {
+            color: var(--primary);
+            text-shadow: 0 0 30px var(--primary-glow);
+        }
+        .splash-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Structural Fixed Responsive Sandbox Constraint */
+        .workstation-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: var(--blur-glass);
+            -webkit-backdrop-filter: var(--blur-glass);
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: workstationReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+        }
+
+        @keyframes workstationReveal {
+            from { opacity: 0; transform: translateY(40px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Elegant Integrated Header Matrix */
+        header {
+            padding: 24px 24px 16px 24px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .brand-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .app-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .app-title span { color: var(--primary); }
+        .app-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Status Ticker Row */
+        .status-badge-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .status-meta-badge {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--card-border);
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-align: center;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        /* Advanced OLED Display Station Architecture */
+        .oled-workstation-display {
+            background: #02070F;
+            margin: 16px 24px;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 140px;
+            justify-content: space-between;
+            position: relative;
+        }
+        .oled-expression-line {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            min-height: 1.4rem;
+            word-break: break-all;
+            direction: ltr;
+            text-align: left;
+            width: 100%;
+        }
+        .oled-primary-numerical-line {
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+            white-space: nowrap;
+            width: 100%;
+            direction: ltr;
+            text-align: left;
+            transition: font-size 0.1s linear;
+        }
+        .oled-indicator-matrix {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+        .oled-indicator {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            opacity: 0.2;
+            transition: opacity 0.2s ease;
+        }
+        .oled-indicator.active {
+            opacity: 1;
+            color: var(--success);
+        }
+
+        /* Business Navigation Tabs Layout */
+        .navigation-scroller {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 0 24px;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .navigation-scroller::-webkit-scrollbar { display: none; }
+        .nav-tab-trigger {
+            padding: 10px 18px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-tab-trigger.active {
+            background: rgba(255,255,255,0.08);
+            color: var(--primary);
+            box-shadow: var(--shadow-neomorphic);
+        }
+
+        /* Tab Content Infrastructure */
+        .workspace-panel { display: none; padding: 0 24px 24px 24px; }
+        .workspace-panel.active { display: block; }
+
+        /* Tactical Scientific Grid Layout */
+        .tactile-button-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .tactile-button-grid.five-cols { grid-template-columns: repeat(5, 1fr); }
+
+        /* Premium Tactile Keypad Execution Component */
+        .tactile-key {
+            position: relative;
+            height: 56px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-neomorphic);
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.2s;
+            overflow: hidden;
+        }
+        .tactile-key::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(0,0,0,0.1));
+            pointer-events: none;
+        }
+        .tactile-key:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+        }
+        .tactile-key:active {
+            transform: scale(0.96);
+            box-shadow: var(--shadow-pressed);
+        }
+        .tactile-key.key-fn {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        .tactile-key.key-op {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--primary);
+            font-size: 1.3rem;
+            border-color: rgba(0, 212, 255, 0.2);
+        }
+        .tactile-key.key-op:hover { background: rgba(0, 212, 255, 0.15); }
+        .tactile-key.key-accent {
+            background: var(--primary);
+            color: #07111F;
+            font-weight: 700;
+        }
+        .tactile-key.key-accent:hover {
+            background: #40E0FF;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Interactive Tax Profile Card Matrices */
+        .tax-profile-matrix {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .tax-interactive-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .tax-interactive-card .card-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .tax-interactive-card .card-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .tax-interactive-card.active {
+            background: rgba(0, 212, 255, 0.08);
+            border-color: var(--primary);
+            box-shadow: 0 0 16px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+        .tax-interactive-card.active::before {
+            content: ''; position: absolute; top: -1px; left: -1px; right: -1px; bottom: -1px;
+            border-radius: var(--radius-md); border: 1px solid var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow); pointer-events: none;
+        }
+
+        /* Functional Form Group Standardizations */
+        .form-cluster-panel {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .panel-cluster-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .form-row-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .input-group-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .input-group-wrapper:last-child { margin-bottom: 0; }
+        .input-group-wrapper label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .premium-input-field {
+            background: #02070F;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            color: #FFFFFF;
+            font-size: 1rem;
+            font-weight: 600;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            direction: ltr;
+            text-align: left;
+        }
+        .premium-input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+        select.premium-input-field {
+            direction: rtl;
+            text-align: right;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: left 12px center;
+            background-size: 16px;
+        }
+
+        .smooth-expansion-zone {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .smooth-expansion-zone > div { overflow: hidden; }
+        .smooth-expansion-zone.expanded { grid-template-rows: 1fr; }
+
+        /* Advanced Enterprise Analytical Summary Cards */
+        .analytics-ledger-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.05) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+        .ledger-row-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.06);
+        }
+        .ledger-row-item:last-child { border-bottom: none; }
+        .ledger-label { font-size: 0.85rem; color: var(--text-muted); }
+        .ledger-value { font-size: 1.1rem; font-weight: 700; direction: ltr; }
+        .ledger-value.prominent { color: var(--primary); text-shadow: 0 0 8px var(--primary-glow); }
+
+        /* Operational Analytics Metrics Dashboard Component */
+        .dashboard-grid-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .metric-mini-tile {
+            background: rgba(0,0,0,0.15);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+        }
+        .metric-tile-lbl { font-size: 0.72rem; color: var(--text-muted); }
+        .metric-tile-val { font-size: 1.2rem; font-weight: 700; margin-top: 4px; color: var(--text-main); direction: ltr; text-align: right; }
+
+        /* Statement Receipt Paper Tape View */
+        .tape-utilities-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .action-utility-btn {
+            padding: 8px; font-size: 0.75rem; font-weight: 600; border-radius: var(--radius-sm);
+        }
+        .audit-paper-tape {
+            background: #02070F;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .tape-receipt-item {
+            border-bottom: 1px dashed rgba(255,255,255,0.08);
+            padding-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .tape-receipt-item:last-child { border-bottom: none; }
+        .receipt-timestamp-row {
+            display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 4px;
+        }
+        .receipt-expression { font-size: 0.9rem; color: var(--text-main); direction: ltr; text-align: left; }
+        .receipt-conclusion-row {
+            display: flex; justify-content: space-between; align-items: center; margin-top: 4px;
+        }
+        .receipt-badge { font-size: 0.65rem; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); }
+        .receipt-final-val { font-size: 1.15rem; font-weight: 700; color: var(--primary); direction: ltr; }
+        
+        .receipt-action-group {
+            display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;
+        }
+        .inline-action-trigger {
+            background: none; border: none; color: var(--text-muted); font-size: 0.7rem; cursor: pointer;
+        }
+        .inline-action-trigger:hover { color: var(--primary); }
+
+        /* Material Animation Layer Injection Support */
+        .ripple-layer {
+            position: absolute; border-radius: 50%; background: rgba(255,255,255,0.25);
+            transform: scale(0); animation: rippleEffect 0.4s linear; pointer-events: none;
+        }
+        @keyframes rippleEffect { to { transform: scale(4); opacity: 0; } }
+
+        /* SVGs Embedded Inline System Core Layout */
+        .svg-icon {
+            width: 16px; height: 16px; fill: currentColor; display: inline-block; vertical-align: middle; margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow" id="ambientGlowEngine"></div>
+
+    <!-- Production Start Splash Engine Layer -->
+    <div class="splash-screen" id="bootSplashSystem">
+        <div class="splash-logo-container">
+            <h1 class="splash-logo">E2 <span>SMART</span></h1>
+            <p class="splash-subtitle">آلة حاسبة مالية احترافية</p>
+        </div>
+    </div>
+
+    <!-- Main Workstation Terminal Sandbox Frame -->
+    <main class="workstation-container">
+        
+        <header>
+            <div class="brand-meta">
+                <div>
+                    <h2 class="app-title">E2 SMART <span>Pro</span></h2>
+                    <p class="app-subtitle">Financial Workstation Platform</p>
+                </div>
+                <div id="clockDisplay" style="font-size: 0.85rem; font-weight: 700; color: var(--primary); direction: ltr;">11:37 AM</div>
+            </div>
+            
+            <div class="status-badge-container">
+                <div class="status-meta-badge" id="metaThemeBadge">المظهر: داكن</div>
+                <div class="status-meta-badge" id="metaCurrencyBadge">العملة: EGP</div>
+                <div class="status-meta-badge" id="metaPrecisionBadge">الدقة: 8 منبثقة</div>
+            </div>
+        </header>
+
+        <!-- Advanced Hybrid OLED Display Module -->
+        <section class="oled-workstation-display" aria-label="شاشة التحليلات العضوية">
+            <div class="oled-expression-line" id="oledExpression"></div>
+            <div class="oled-primary-numerical-line" id="oledNumericalMain">0</div>
+            
+            <div class="oled-indicator-matrix">
+                <div class="oled-indicator" id="indMemory">MEM</div>
+                <div class="oled-indicator" id="indTax">TAX</div>
+                <div class="oled-indicator" id="indTape">TAPE</div>
+                <div class="oled-indicator" id="indOp">OP</div>
+            </div>
+        </section>
+
+        <!-- System Architecture Internal Router Navigation -->
+        <nav class="navigation-scroller" role="tablist">
+            <button class="nav-tab-trigger active" data-target="calc">المحطة الحسابية</button>
+            <button class="nav-tab-trigger" data-target="tax">البيان الضريبي</button>
+            <button class="nav-tab-trigger" data-target="hospitality">إدارة الضيافة F&B</button>
+            <button class="nav-tab-trigger" data-target="analytics">لوحة التحليلات</button>
+            <button class="nav-tab-trigger" data-target="tape">شريط المراجعة</button>
+            <button class="nav-tab-trigger" data-target="settings">الإعدادات السيادية</button>
+        </nav>
+
+        <!-- WORKSPACE PANEL 1: Core Financial Calculator -->
+        <div class="workspace-panel active" id="view-calc">
+            <div class="tactile-button-grid five-cols">
+                
+                <!-- Financial Memory Registers Row Array -->
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('mc')">MC</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('mr')">MR</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('ms')">MS</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('m+')">M+</button>
+                <button class="tactile-key key-fn" onclick="MemoryModule.exec('m-')">M-</button>
+
+                <!-- Row 2 Execution -->
+                <button class="tactile-key key-fn" onclick="CoreEngine.clearEntry()">CE</button>
+                <button class="tactile-key key-fn" onclick="CoreEngine.allClear()">AC</button>
+                <button class="tactile-key key-fn" onclick="CoreEngine.backspace()">⌫</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('÷')">÷</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.execFunctional('1/x')">1/x</button>
+
+                <!-- Row 3 Execution -->
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('7')">7</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('8')">8</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('9')">9</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('×')">×</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.execFunctional('x²')">x²</button>
+
+                <!-- Row 4 Execution -->
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('4')">4</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('5')">5</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('6')">6</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('-')">-</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.execFunctional('√')">√</button>
+
+                <!-- Row 5 Execution -->
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('1')">1</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('2')">2</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('3')">3</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.setOperator('+')">+</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.injectTaxDirect(true)">Tax+</button>
+
+                <!-- Row 6 Execution -->
+                <button class="tactile-key key-fn" onclick="CoreEngine.toggleInversion()">±</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDigit('0')">0</button>
+                <button class="tactile-key" onclick="CoreEngine.appendDecimal()">.</button>
+                <button class="tactile-key key-accent" onclick="CoreEngine.evaluate()">=</button>
+                <button class="tactile-key key-op" onclick="CoreEngine.injectTaxDirect(false)">Tax-</button>
+            </div>
+        </div>
+
+        <!-- WORKSPACE PANEL 2: Advanced Interactive Tax Profiles -->
+        <div class="workspace-panel" id="view-tax">
+            <div class="panel-cluster-title">بطاقات تخصيص الشرائح الضريبية النشطة</div>
+            
+            <div class="tax-profile-matrix" id="taxCardsMatrix">
+                <div class="tax-interactive-card" data-rate="1">
+                    <div class="card-value">1%</div>
+                    <div class="card-label">شريحة أ</div>
+                </div>
+                <div class="tax-interactive-card" data-rate="2">
+                    <div class="card-value">2%</div>
+                    <div class="card-label">شريحة ب</div>
+                </div>
+                <div class="tax-interactive-card" data-rate="3">
+                    <div class="card-value">3%</div>
+                    <div class="card-label">شريحة ج</div>
+                </div>
+                <div class="tax-interactive-card" data-rate="5">
+                    <div class="card-value">5%</div>
+                    <div class="card-label">الخدمات الأساسية</div>
+                </div>
+                <div class="tax-interactive-card" data-rate="8">
+                    <div class="card-value">8%</div>
+                    <div class="card-label">الرسوم النسبية</div>
+                </div>
+                <div class="tax-interactive-card active" data-rate="14">
+                    <div class="card-value">14%</div>
+                    <div class="card-label">القيمة المضافة الموحدة</div>
+                </div>
+                <div class="tax-interactive-card" data-rate="custom" style="grid-column: span 3;">
+                    <div class="card-value">تخصيص شريحة مخصصة (Other)</div>
+                </div>
+            </div>
+
+            <!-- Custom Expansion Element Wrapper Built cleanly -->
+            <div class="smooth-expansion-zone" id="taxCustomInputCollapse">
+                <div>
+                    <div class="input-group-wrapper" style="padding: 4px 2px 14px 2px;">
+                        <label>نسبة الضريبة المخصصة (%)</label>
+                        <input type="number" class="premium-input-field" id="taxCustomInputField" value="14" step="0.01" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-cluster-panel">
+                <div class="panel-cluster-title">المعالجة الضريبية المباشرة للمبالغ المقطوعة</div>
+                <div class="input-group-wrapper">
+                    <label>المبلغ المالي الأساسي للمطابقة المعيارية</label>
+                    <input type="number" class="premium-input-field" id="taxProcessingInputSource" value="1000" step="any">
+                </div>
+                <div class="form-row-layout" style="margin-top: 14px;">
+                    <button class="tactile-key key-accent" onclick="TaxProcessingMatrix.executeForward()">إضافة الضريبة Tax+</button>
+                    <button class="tactile-key key-op" onclick="TaxProcessingMatrix.executeReverse()">فصل الضريبة Tax-</button>
+                </div>
+            </div>
+
+            <div class="analytics-ledger-card">
+                <div class="ledger-row-item"><span class="ledger-label">الصافي المعياري (Net Amount):</span><span class="ledger-value" id="taxOutNet">0.00</span></div>
+                <div class="ledger-row-item"><span class="ledger-label">القيمة الضريبية المستخرجة (VAT Amount):</span><span class="ledger-value" id="taxOutTax">0.00</span></div>
+                <div class="ledger-row-item"><span class="ledger-label">الإجمالي الكلي (Gross Amount):</span><span class="ledger-value prominent" id="taxOutGross">0.00</span></div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE PANEL 3: Professional Hospitality Management Center -->
+        <div class="workspace-panel" id="view-hospitality">
+            <div class="form-cluster-panel">
+                <div class="panel-cluster-title">منصة الرقابة المتقدمة للأغذية والمشروبات F&B Cost</div>
+                
+                <div class="form-row-layout">
+                    <div class="input-group-wrapper">
+                        <label>تكلفة الوصفة (Recipe Cost)</label>
+                        <input type="number" class="premium-input-field" id="hospRecipeCost" value="35" step="any">
+                    </div>
+                    <div class="input-group-wrapper">
+                        <label>سعر البيع الافتراضي</label>
+                        <input type="number" class="premium-input-field" id="hospSalePrice" value="100" step="any">
+                    </div>
+                </div>
+
+                <div class="form-row-layout">
+                    <div class="input-group-wrapper">
+                        <label>الخصم الممنوح (%)</label>
+                        <input type="number" class="premium-input-field" id="hospDiscount" value="0" step="any">
+                    </div>
+                    <div class="input-group-wrapper">
+                        <label>رسوم الخدمة فندق/مطعم (%)</label>
+                        <input type="number" class="premium-input-field" id="hospServiceCharge" value="12" step="any">
+                    </div>
+                </div>
+
+                <div class="form-row-layout" style="margin-top: 8px;">
+                    <button class="tactile-key key-accent" style="grid-column: span 2;" onclick="HospitalityEngine.processFullAnalysis()">تشغيل مصفوفة التحليل الرقابي الشامل</button>
+                </div>
+            </div>
+
+            <div class="analytics-ledger-card">
+                <div class="ledger-row-item"><span class="ledger-label">نسبة تكلفة الأغذية الفعليّة (FC%):</span><span class="ledger-value" id="hospOutFcPct">0.00%</span></div>
+                <div class="ledger-row-item"><span class="ledger-label">هامش الربح الإجمالي (Margin %):</span><span class="ledger-value" id="hospOutMarginPct">0.00%</span></div>
+                <div class="ledger-row-item"><span class="ledger-label">معدل مضاعف الإنتاج والتسعير (Markup):</span><span class="ledger-value" id="hospOutMarkup">0.00x</span></div>
+                <div class="ledger-row-item"><span class="ledger-label">هامش المساهمة الربحية (Contribution):</span><span class="ledger-value prominent" id="hospOutContribution">0.00</span></div>
+                <div class="ledger-row-item"><span class="ledger-label">إجمالي الفاتورة النهائية شاملة الخدمة والضريبة:</span><span class="ledger-value prominent" id="hospOutGrandTotal">0.00</span></div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE PANEL 4: Live Analytical Metric Dashboard -->
+        <div class="workspace-panel" id="view-analytics">
+            <div class="panel-cluster-title">لوحة التحليلات والمطابقات المالية الفورية</div>
+            
+            <div class="dashboard-grid-matrix">
+                <div class="metric-mini-tile">
+                    <div class="metric-tile-lbl">إجمالي الحسابات الجارية</div>
+                    <div class="metric-tile-val" id="dashTotalCount">0</div>
+                </div>
+                <div class="metric-mini-tile">
+                    <div class="metric-tile-lbl">حصيلة الضرائب اليوم</div>
+                    <div class="metric-tile-val" id="dashVatSum">0.00</div>
+                </div>
+                <div class="metric-mini-tile">
+                    <div class="metric-tile-lbl">متوسط حجم العمليات</div>
+                    <div class="metric-tile-val" id="dashAvgValue">0.00</div>
+                </div>
+                <div class="metric-mini-tile">
+                    <div class="metric-tile-lbl">مخزن السجل الاستراتيجي</div>
+                    <div class="metric-tile-val" id="dashTapeSize">0</div>
+                </div>
+            </div>
+
+            <div class="analytics-ledger-card">
+                <div class="ledger-row-item"><span class="ledger-label">قيمة مسجل الذاكرة الفوري (Memory):</span><span class="ledger-value prominent" id="dashMemValue">0.00</span></div>
+                <div class="ledger-row-item"><span class="ledger-label">الشريحة الضريبية الأكثر استخداماً:</span><span class="ledger-value" id="dashFavTax">14%</span></div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE PANEL 5: Audit Paper Tape View Component -->
+        <div class="workspace-panel" id="view-tape">
+            <div class="tape-utilities-bar">
+                <button class="tactile-key key-fn action-utility-btn" onclick="AuditTapeSystem.copyAllStream()">نسخ</button>
+                <button class="tactile-key key-fn action-utility-btn" onclick="AuditTapeSystem.exportCSVStream()">تصدير CSV</button>
+                <button class="tactile-key key-op action-utility-btn" onclick="AuditTapeSystem.purgeAllRecords()">تطهير</button>
+            </div>
+            
+            <div class="audit-paper-tape" id="auditPaperTapeRenderBox">
+                <!-- Records stream dynamically here -->
+            </div>
+        </div>
+
+        <!-- WORKSPACE PANEL 6: Sovereign Configuration Control -->
+        <div class="workspace-panel" id="view-settings">
+            <div class="form-cluster-panel">
+                <div class="panel-cluster-title">تخصيص بنية الواجهات ونظام الحساب</div>
+                
+                <div class="input-group-wrapper">
+                    <label>النمط والمظهر اللوني الفاخر</label>
+                    <select class="premium-input-field" id="configTheme" onchange="CentralConfig.setTheme(this.value)">
+                        <option value="dark">النمط التجاري المعتم (Premium Dark)</option>
+                        <option value="light">نمط آبل المضيء الفاخر (Apple Light)</option>
+                        <option value="midnight">نمط بلومبرغ الملكي البنفسجي (Midnight Violet)</option>
+                        <option value="emerald">نمط الزمرد الاستثماري لمديري التكاليف (Emerald)</option>
+                    </select>
+                </div>
+
+                <div class="form-row-layout" style="margin-top: 10px;">
+                    <div class="input-group-wrapper">
+                        <label>رمز العملة النشط</label>
+                        <input type="text" class="premium-input-field" id="configCurrency" value="EGP" oninput="CentralConfig.setCurrency(this.value)">
+                    </div>
+                    <div class="input-group-wrapper">
+                        <label>دقة العرض والحساب</label>
+                        <select class="premium-input-field" id="configPrecision" onchange="CentralConfig.setPrecision(this.value)">
+                            <option value="2">خانتين (Default)</option>
+                            <option value="4">4 خانات التدقيق الكلي</option>
+                            <option value="8" selected>8 خانات الدقة المجهرية</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-cluster-panel">
+                <div class="panel-cluster-title">المؤثرات وهندسة النظام التفاعلي</div>
+                <div class="form-row-layout">
+                    <div class="input-group-wrapper">
+                        <label>التغذية الصوتية اللمسية</label>
+                        <select class="premium-input-field" id="configSounds">
+                            <option value="on">تفعيل النبرة السمعية</option>
+                            <option value="off">كتم الأصوات</option>
+                        </select>
+                    </div>
+                    <div class="input-group-wrapper">
+                        <label>محرك الاهتزاز الهابتك</label>
+                        <select class="premium-input-field" id="configVibe">
+                            <option value="on">تفعيل الاهتزاز الميكانيكي</option>
+                            <option value="off">إيقاف</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-cluster-panel">
+                <div class="panel-cluster-title">إدارة الهجرة واستيراد البيانات التكوينية</div>
+                <div class="form-row-layout">
+                    <button class="tactile-key key-fn action-utility-btn" onclick="CentralConfig.exportSystemState()">تصدير ملف الإعدادات</button>
+                    <button class="tactile-key key-fn action-utility-btn" onclick="CentralConfig.triggerImportDialog()">استيراد ملف الإعدادات</button>
+                </div>
+                <input type="file" id="hiddenStateImportFileTrigger" style="display:none;" onchange="CentralConfig.importSystemState(this)">
+            </div>
+
+            <button class="tactile-key key-op" style="width:100%; font-weight:700;" onclick="CentralConfig.wipeSystemToFactoryReset()">إعادة استعادة ضبط المصنع الشامل</button>
+        </div>
+
+    </main>
+
+    <!-- Sub-Millisecond Native Audio Feedback Engine -->
+    <script>
+        const SubSonicAudioSystem = {
+            audioContext: null,
+            triggerClickTone() {
+                if(document.getElementById("configSounds")?.value === "off") return;
+                try {
+                    if (!this.audioContext) this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = this.audioContext.createOscillator();
+                    const amp = this.audioContext.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1400, this.audioContext.currentTime);
+                    amp.gain.setValueAtTime(0.008, this.audioContext.currentTime);
+                    amp.gain.exponentialRampToValueAtTime(0.00001, this.audioContext.currentTime + 0.04);
+                    osc.connect(amp);
+                    amp.connect(this.audioContext.destination);
+                    osc.start();
+                    osc.stop(this.audioContext.currentTime + 0.04);
+                } catch(err) { /* Safeguarded silently */ }
+            }
+        };
+
+        const HapticResponseEngine = {
+            vibrateTactilePulse() {
+                if(document.getElementById("configVibe")?.value === "off") return;
+                if(navigator.vibrate) navigator.vibrate(8);
+            }
+        };
+    </script>
+
+    <!-- IEEE 754 Safe Absolute High-Precision Financial Arithmetic Core -->
+    <script>
+        const PreciseMath = {
+            add(a, b) { return parseFloat((parseFloat(a) + parseFloat(b)).toPrecision(14)); },
+            sub(a, b) { return parseFloat((parseFloat(a) - parseFloat(b)).toPrecision(14)); },
+            mul(a, b) { return parseFloat((parseFloat(a) * parseFloat(b)).toPrecision(14)); },
+            div(a, b) { 
+                if(parseFloat(b) === 0) return "Error";
+                return parseFloat((parseFloat(a) / parseFloat(b)).toPrecision(14)); 
+            },
+            cleanRender(num, decimalPositions = 8) {
+                if(isNaN(num) || !isFinite(num)) return "Error";
+                let rawStr = num.toString();
+                if(rawStr.includes('e') || rawStr.includes('E')) {
+                    return num.toFixed(decimalPositions).replace(/\.?0+$/, "");
+                }
+                if(!rawStr.includes('.')) return rawStr;
+                let splitted = rawStr.split('.');
+                if(splitted[1].length > decimalPositions) {
+                    return num.toFixed(decimalPositions);
+                }
+                return rawStr;
+            }
+        };
+    </script>
+
+    <!-- UI Core Navigation Router System and Interaction Animations -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tabs = document.querySelectorAll(".nav-tab-trigger");
+            const panels = document.querySelectorAll(".workspace-panel");
+
+            tabs.forEach(tab => {
+                tab.addEventListener("click", () => {
+                    SubSonicAudioSystem.triggerClickTone();
+                    HapticResponseEngine.vibrateTactilePulse();
+                    tabs.forEach(t => t.classList.remove("active"));
+                    panels.forEach(p => p.classList.remove("active"));
+                    
+                    tab.classList.add("active");
+                    const targetBox = document.getElementById(`view-${tab.dataset.target}`);
+                    if(targetBox) targetBox.classList.add("active");
+                    
+                    // Trigger live metrics updates upon switching panels
+                    LiveAnalyticsDashboard.refreshMetrics();
+                });
+            });
+
+            // Material Ripple Vector Injection
+            document.body.addEventListener("click", (event) => {
+                const triggerKey = event.target.closest(".tactile-key, .tax-interactive-card, .nav-tab-trigger");
+                if (!triggerKey) return;
+                
+                let rippleDot = document.createElement("span");
+                rippleDot.classList.add("ripple-layer");
+                let dimensions = triggerKey.getBoundingClientRect();
+                let cursorX = event.clientX - dimensions.left;
+                let cursorY = event.clientY - dimensions.top;
+                rippleDot.style.left = `${cursorX}px`;
+                rippleDot.style.top = `${cursorY}px`;
+                
+                triggerKey.appendChild(rippleDot);
+                setTimeout(() => rippleDot.remove(), 400);
+            });
+
+            // Absolute Real-time 1-Second Precision Clock Ticker Engine
+            setInterval(() => {
+                const dateInstance = new Date();
+                document.getElementById("clockDisplay").innerText = dateInstance.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            }, 1000);
+
+            // Launch Sequence Core Timer Controller
+            setTimeout(() => {
+                document.getElementById("bootSplashSystem").classList.add("fade-out");
+            }, 1500);
+
+            // Micro-initializations
+            CentralConfig.loadStateFromStorage();
+            TaxCardMatrixComponent.init();
+            CoreEngine.updateOledDisplayState();
+        });
+    </script>
+
+    <!-- AUTOMATION MATRIX ENGINE: Financial Calculator Logical System -->
+    <script>
+        const CoreEngine = {
+            currentNumericalString: "0",
+            currentExpressionString: "",
+            storedAccumulator: null,
+            activeOperationSymbol: null,
+            overrideModeFlag: false,
+            lastCalculatedOperand: null,
+            lastCalculatedOperator: null,
+
+            updateOledDisplayState() {
+                const displayNode = document.getElementById("oledNumericalMain");
+                const expressionNode = document.getElementById("oledExpression");
+                
+                displayNode.innerText = this.currentNumericalString;
+                expressionNode.innerText = this.currentExpressionString;
+
+                // Handle Indicator System visibility matrices
+                document.getElementById("indOp").classList.toggle("active", !!this.activeOperationSymbol);
+                document.getElementById("indTape").classList.toggle("active", AuditTapeSystem.ledgerRecordsStream.length > 0);
+
+                // No-Crop Auto-Scaling Typography Algorithm running on layout variables
+                let textLength = this.currentNumericalString.length;
+                if(textLength > 18) {
+                    displayNode.style.fontSize = "1.2rem";
+                } else if(textLength > 12) {
+                    displayNode.style.fontSize = "1.65rem";
+                } else if(textLength > 8) {
+                    displayNode.style.fontSize = "2.1rem";
+                } else {
+                    displayNode.style.fontSize = "2.6rem";
+                }
+            },
+
+            appendDigit(digit) {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if (this.overrideModeFlag || this.currentNumericalString === "0") {
+                    this.currentNumericalString = digit;
+                    this.overrideModeFlag = false;
+                } else {
+                    this.currentNumericalString += digit;
+                }
+                this.updateOledDisplayState();
+            },
+
+            appendDecimal() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if (this.overrideModeFlag) {
+                    this.currentNumericalString = "0.";
+                    this.overrideModeFlag = false;
+                    this.updateOledDisplayState();
+                    return;
+                }
+                if (!this.currentNumericalString.includes(".")) {
+                    this.currentNumericalString += ".";
+                }
+                this.updateOledDisplayState();
+            },
+
+            toggleInversion() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if(this.currentNumericalString === "0" || this.currentNumericalString === "Error") return;
+                this.currentNumericalString = this.currentNumericalString.startsWith("-") ? 
+                    this.currentNumericalString.substring(1) : "-" + this.currentNumericalString;
+                this.updateOledDisplayState();
+            },
+
+            backspace() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if(this.overrideModeFlag || this.currentNumericalString === "Error") return;
+                this.currentNumericalString = this.currentNumericalString.length > 1 ? 
+                    this.currentNumericalString.slice(0, -1) : "0";
+                this.updateOledDisplayState();
+            },
+
+            clearEntry() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                this.currentNumericalString = "0";
+                this.updateOledDisplayState();
+            },
+
+            allClear() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                this.currentNumericalString = "0";
+                this.currentExpressionString = "";
+                this.storedAccumulator = null;
+                this.activeOperationSymbol = null;
+                this.overrideModeFlag = false;
+                this.lastCalculatedOperand = null;
+                this.lastCalculatedOperator = null;
+                this.updateOledDisplayState();
+            },
+
+            setOperator(operator) {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if(this.currentNumericalString === "Error") return;
+
+                let parsedVal = parseFloat(this.currentNumericalString);
+
+                if(this.activeOperationSymbol && !this.overrideModeFlag) {
+                    let intermediateResult = this.computeInternalMath(this.storedAccumulator, parsedVal, this.activeOperationSymbol);
+                    if(intermediateResult === "Error") {
+                        this.allClear(); this.currentNumericalString = "Error"; this.updateOledDisplayState(); return;
+                    }
+                    this.storedAccumulator = intermediateResult;
+                    this.currentNumericalString = PreciseMath.cleanRender(intermediateResult, CentralConfig.precision);
+                } else {
+                    this.storedAccumulator = parsedVal;
+                }
+
+                this.activeOperationSymbol = operator;
+                this.currentExpressionString = `${PreciseMath.cleanRender(this.storedAccumulator, CentralConfig.precision)} ${operator}`;
+                this.overrideModeFlag = true;
+                this.lastCalculatedOperator = null;
+                this.lastCalculatedOperand = null;
+                this.updateOledDisplayState();
+            },
+
+            evaluate() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if(this.currentNumericalString === "Error") return;
+
+                let parsedVal = parseFloat(this.currentNumericalString);
+                let processingOutput;
+
+                if (this.activeOperationSymbol) {
+                    this.lastCalculatedOperator = this.activeOperationSymbol;
+                    this.lastCalculatedOperand = parsedVal;
+                    processingOutput = this.computeInternalMath(this.storedAccumulator, parsedVal, this.activeOperationSymbol);
+                    this.currentExpressionString = "";
+                    this.activeOperationSymbol = null;
+                } else if (this.lastCalculatedOperator) {
+                    processingOutput = this.computeInternalMath(parsedVal, this.lastCalculatedOperand, this.lastCalculatedOperator);
+                } else {
+                    return; 
+                }
+
+                if(processingOutput === "Error") {
+                    this.allClear(); this.currentNumericalString = "Error"; this.updateOledDisplayState(); return;
+                }
+
+                let finalFormattedOutput = PreciseMath.cleanRender(processingOutput, CentralConfig.precision);
+                let expressionLabel = this.lastCalculatedOperator ? `${parsedVal} ${this.lastCalculatedOperator} ${this.lastCalculatedOperand}` : parsedVal.toString();
+                
+                AuditTapeSystem.registerTransactionEntry(expressionLabel, finalFormattedOutput, "حسابات عامة");
+
+                this.currentNumericalString = finalFormattedOutput;
+                this.overrideModeFlag = true;
+                this.updateOledDisplayState();
+            },
+
+            computeInternalMath(a, b, op) {
+                switch(op) {
+                    case '+': return PreciseMath.add(a, b);
+                    case '-': return PreciseMath.sub(a, b);
+                    case '×': return PreciseMath.mul(a, b);
+                    case '÷': return PreciseMath.div(a, b);
+                }
+                return "Error";
+            },
+
+            execFunctional(functionalKey) {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if(this.currentNumericalString === "Error") return;
+                let parsed = parseFloat(this.currentNumericalString);
+                let result = "Error";
+                
+                switch(functionalKey) {
+                    case '1/x': if(parsed !== 0) result = 1 / parsed; break;
+                    case 'x²': result = parsed * parsed; break;
+                    case '√': if(parsed >= 0) result = Math.sqrt(parsed); break;
+                }
+
+                if(result === "Error") {
+                    this.allClear(); this.currentNumericalString = "Error";
+                } else {
+                    this.currentNumericalString = PreciseMath.cleanRender(result, CentralConfig.precision);
+                    AuditTapeSystem.registerTransactionEntry(`${functionalKey}(${parsed})`, this.currentNumericalString, "دوال متقدمة");
+                }
+                this.updateOledDisplayState();
+            },
+
+            injectTaxDirect(isForwardAdd) {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                let currentVal = parseFloat(this.currentNumericalString);
+                if(isNaN(currentVal)) return;
+                let taxPercentage = parseFloat(CentralConfig.defaultSystemTaxPercentage);
+                
+                if(isForwardAdd) {
+                    let taxValue = PreciseMath.mul(currentVal, taxPercentage / 100);
+                    let grossValue = PreciseMath.add(currentVal, taxValue);
+                    this.currentNumericalString = PreciseMath.cleanRender(grossValue, CentralConfig.precision);
+                    AuditTapeSystem.registerTransactionEntry(`Tax+ [${currentVal} + ${taxPercentage}%]`, this.currentNumericalString, "تعديل ضريبي");
+                } else {
+                    let netValue = PreciseMath.div(currentVal, PreciseMath.add(1, taxPercentage / 100));
+                    this.currentNumericalString = PreciseMath.cleanRender(netValue, CentralConfig.precision);
+                    AuditTapeSystem.registerTransactionEntry(`Tax- [${currentVal} Extracted ${taxPercentage}%]`, this.currentNumericalString, "تعديل ضريبي");
+                }
+                this.overrideModeFlag = true;
+                this.updateOledDisplayState();
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: High Performance Financial Memory Module Architecture -->
+    <script>
+        const MemoryModule = {
+            memoryBufferRegister: 0,
+            exec(command) {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                let numericInputValue = parseFloat(CoreEngine.currentNumericalString) || 0;
+                
+                switch(command) {
+                    case 'mc': this.memoryBufferRegister = 0; break;
+                    case 'mr': CoreEngine.currentNumericalString = PreciseMath.cleanRender(this.memoryBufferRegister, CentralConfig.precision); break;
+                    case 'ms': this.memoryBufferRegister = numericInputValue; break;
+                    case 'm+': this.memoryBufferRegister = PreciseMath.add(this.memoryBufferRegister, numericInputValue); break;
+                    case 'm-': this.memoryBufferRegister = PreciseMath.sub(this.memoryBufferRegister, numericInputValue); break;
+                }
+                document.getElementById("indMemory").classList.toggle("active", this.memoryBufferRegister !== 0);
+                CoreEngine.updateOledDisplayState();
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: Advanced Tax Profiling Management Component Grid -->
+    <script>
+        const TaxCardMatrixComponent = {
+            init() {
+                const matrixCards = document.querySelectorAll("#taxCardsMatrix .tax-interactive-card");
+                const expansionPanel = document.getElementById("taxCustomInputCollapse");
+                const customField = document.getElementById("taxCustomInputField");
+
+                matrixCards.forEach(card => {
+                    card.addEventListener("click", () => {
+                        SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                        matrixCards.forEach(c => c.classList.remove("active"));
+                        card.classList.add("active");
+
+                        let targetRate = card.dataset.rate;
+                        if(targetRate === "custom") {
+                            expansionPanel.classList.add("expanded");
+                            CentralConfig.updateSystemTaxRate(customField.value);
+                        } else {
+                            expansionPanel.classList.remove("expanded");
+                            CentralConfig.updateSystemTaxRate(targetRate);
+                        }
+                    });
+                });
+
+                customField.addEventListener("input", (e) => {
+                    CentralConfig.updateSystemTaxRate(e.target.value);
+                });
+            }
+        };
+
+        const TaxProcessingMatrix = {
+            executeForward() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                let sourceBaseVal = parseFloat(document.getElementById("taxProcessingInputSource").value) || 0;
+                let activeRate = parseFloat(CentralConfig.defaultSystemTaxPercentage);
+                
+                let dynamicTaxComputed = PreciseMath.mul(sourceBaseVal, activeRate / 100);
+                let absoluteGrossComputed = PreciseMath.add(sourceBaseVal, dynamicTaxComputed);
+
+                document.getElementById("taxOutNet").innerText = PreciseMath.cleanRender(sourceBaseVal, 2);
+                document.getElementById("taxOutTax").innerText = PreciseMath.cleanRender(dynamicTaxComputed, 2);
+                document.getElementById("taxOutGross").innerText = PreciseMath.cleanRender(absoluteGrossComputed, 2);
+
+                AuditTapeSystem.registerTransactionEntry(`معالجة ضريبية مضافة [Net: ${sourceBaseVal}]`, PreciseMath.cleanRender(absoluteGrossComputed, 2), "البيان الضريبي");
+            },
+            executeReverse() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                let grossAmountSource = parseFloat(document.getElementById("taxProcessingInputSource").value) || 0;
+                let activeRate = parseFloat(CentralConfig.defaultSystemTaxPercentage);
+
+                let isolatedNetVal = PreciseMath.div(grossAmountSource, PreciseMath.add(1, activeRate / 100));
+                let structuralTaxVal = PreciseMath.sub(grossAmountSource, isolatedNetVal);
+
+                document.getElementById("taxOutNet").innerText = PreciseMath.cleanRender(isolatedNetVal, 2);
+                document.getElementById("taxOutTax").innerText = PreciseMath.cleanRender(structuralTaxVal, 2);
+                document.getElementById("taxOutGross").innerText = PreciseMath.cleanRender(grossAmountSource, 2);
+
+                AuditTapeSystem.registerTransactionEntry(`تفكيك وفصل ضريبي [Gross: ${grossAmountSource}]`, PreciseMath.cleanRender(isolatedNetVal, 2), "البيان الضريبي");
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: High Fidelity Hospitality & Cost Control Analysis Module -->
+    <script>
+        const HospitalityEngine = {
+            processFullAnalysis() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                
+                let recipeCostInput = parseFloat(document.getElementById("hospRecipeCost").value) || 0;
+                let baseSalePriceInput = parseFloat(document.getElementById("hospSalePrice").value) || 0;
+                let structuralDiscount = parseFloat(document.getElementById("hospDiscount").value) || 0;
+                let hotelServiceChargePct = parseFloat(document.getElementById("hospServiceCharge").value) || 0;
+                let taxPercentageActive = parseFloat(CentralConfig.defaultSystemTaxPercentage);
+
+                if(baseSalePriceInput === 0 || recipeCostInput === 0) return;
+
+                // Executive Calculation Workflows
+                let discountValueCalculated = PreciseMath.mul(baseSalePriceInput, structuralDiscount / 100);
+                let transactionPriceAfterDiscount = PreciseMath.sub(baseSalePriceInput, discountValueCalculated);
+
+                let foodCostPercentageResult = PreciseMath.mul(PreciseMath.div(recipeCostInput, transactionPriceAfterDiscount), 100);
+                let grossProfitMarginPct = PreciseMath.mul(PreciseMath.div(PreciseMath.sub(transactionPriceAfterDiscount, recipeCostInput), transactionPriceAfterDiscount), 100);
+                let productionMarkupFactor = PreciseMath.div(transactionPriceAfterDiscount, recipeCostInput);
+                let contributionMarginAbsolute = PreciseMath.sub(transactionPriceAfterDiscount, recipeCostInput);
+
+                // Service & Tax Calculations over Subtotals
+                let compiledServiceChargeVal = PreciseMath.mul(transactionPriceAfterDiscount, hotelServiceChargePct / 100);
+                let transactionSubtotalWithService = PreciseMath.add(transactionPriceAfterDiscount, compiledServiceChargeVal);
+                let compiledVatAmount = PreciseMath.mul(transactionSubtotalWithService, taxPercentageActive / 100);
+                let absoluteGrandTotalBill = PreciseMath.add(transactionSubtotalWithService, compiledVatAmount);
+
+                // Sync UI Render Elements
+                document.getElementById("hospOutFcPct").innerText = foodCostPercentageResult.toFixed(2) + "%";
+                document.getElementById("hospOutMarginPct").innerText = grossProfitMarginPct.toFixed(2) + "%";
+                document.getElementById("hospOutMarkup").innerText = productionMarkupFactor.toFixed(2) + "x";
+                document.getElementById("hospOutContribution").innerText = PreciseMath.cleanRender(contributionMarginAbsolute, 2);
+                document.getElementById("hospOutGrandTotal").innerText = PreciseMath.cleanRender(absoluteGrandTotalBill, 2);
+
+                AuditTapeSystem.registerTransactionEntry(`تحليل تكلفة أغذية [Cost: ${recipeCostInput} / Net Price: ${transactionPriceAfterDiscount}]`, `${foodCostPercentageResult.toFixed(2)}% FC`, "رقابة الأغذية والمشروبات");
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: High Volume Commercial Transaction History Logger System -->
+    <script>
+        const AuditTapeSystem = {
+            ledgerRecordsStream: JSON.parse(localStorage.getItem("e2_pro_tape_stream")) || [],
+
+            registerTransactionEntry(expressionLineText, resolutionOutput, processProfileTag = "عام") {
+                const timestamp = new Date();
+                const structuredEntry = {
+                    expression: expressionLineText,
+                    result: resolutionOutput,
+                    profile: processProfileTag,
+                    date: timestamp.toLocaleDateString('ar-EG'),
+                    time: timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                    uuid: Date.now() + Math.random().toString(36).substr(2, 5)
+                };
+
+                this.ledgerRecordsStream.unshift(structuredEntry);
+                this.commitLedgerToPersistentStorage();
+                this.renderAuditTapeDOM();
+            },
+
+            removeSingleRecord(uuid) {
+                this.ledgerRecordsStream = this.ledgerRecordsStream.filter(record => record.uuid !== uuid);
+                this.commitLedgerToPersistentStorage();
+                this.renderAuditTapeDOM();
+            },
+
+            purgeAllRecords() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                this.ledgerRecordsStream = [];
+                this.commitLedgerToPersistentStorage();
+                this.renderAuditTapeDOM();
+            },
+
+            commitLedgerToPersistentStorage() {
+                localStorage.setItem("e2_pro_tape_stream", JSON.stringify(this.ledgerRecordsStream));
+                LiveAnalyticsDashboard.refreshMetrics();
+            },
+
+            renderAuditTapeDOM() {
+                const placementBox = document.getElementById("auditPaperTapeRenderBox");
+                placementBox.innerHTML = "";
+
+                if(this.ledgerRecordsStream.length === 0) {
+                    placementBox.innerHTML = `<div style="text-align:center; padding:32px 16px; color:var(--text-muted); font-size:0.85rem;">الشريط التدقيقي المالي فارغ بالكامل حالياً.</div>`;
+                    return;
+                }
+
+                this.ledgerRecordsStream.forEach(rec => {
+                    let recordRowNode = document.createElement("div");
+                    recordRowNode.classList.add("tape-receipt-item");
+                    recordRowNode.innerHTML = `
+                        <div class="receipt-timestamp-row">
+                            <span class="receipt-badge">${rec.profile}</span>
+                            <span>${rec.date} | ${rec.time}</span>
+                        </div>
+                        <div class="receipt-expression">${rec.expression}</div>
+                        <div class="receipt-conclusion-row">
+                            <div class="receipt-action-group">
+                                <button class="inline-action-trigger" onclick="AuditTapeSystem.injectBackToCalculator('${rec.result}')">سحب للقيمة</button>
+                                <button class="inline-action-trigger" onclick="AuditTapeSystem.removeSingleRecord('${rec.uuid}')">حذف</button>
+                            </div>
+                            <div class="receipt-final-val">${rec.result}</div>
+                        </div>
+                    `;
+                    placementBox.appendChild(recordRowNode);
+                });
+            },
+
+            injectBackToCalculator(extractedValue) {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                if(!isNaN(parseFloat(extractedValue))) {
+                    CoreEngine.currentNumericalString = extractedValue;
+                    CoreEngine.updateOledDisplayState();
+                }
+            },
+
+            copyAllStream() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                let outputPlainString = this.ledgerRecordsStream.map(r => `[${r.profile}] ${r.date} ${r.time} -> ${r.expression} = ${r.result}`).join("\n");
+                navigator.clipboard.writeText(outputPlainString);
+            },
+
+            exportCSVStream() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                let structuralCSVString = "data:text/csv;charset=utf-8,\uFEFF" + "الوحدة التكوينية,التاريخ,الوقت,المعادلة التحليلية,النتيجة الإجمالية\n" +
+                    this.ledgerRecordsStream.map(r => `"${r.profile}","${r.date}","${r.time}","${r.expression}","${r.result}"`).join("\n");
+                let encryptedUri = encodeURI(structuralCSVString);
+                let downloadAnchorNode = document.createElement("a");
+                downloadAnchorNode.setAttribute("href", encryptedUri);
+                downloadAnchorNode.setAttribute("download", `E2_SMART_PRO_TAPE_${Date.now()}.csv`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                document.body.removeChild(downloadAnchorNode);
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: Real-time Live Analytics Engine & Metric Visual Dashboard -->
+    <script>
+        const LiveAnalyticsDashboard = {
+            refreshMetrics() {
+                let currentRecords = AuditTapeSystem.ledgerRecordsStream;
+                let recordCount = currentRecords.length;
+                let aggregateVatTaxCollected = 0;
+                let calculationValueSum = 0;
+
+                currentRecords.forEach(rec => {
+                    let parsedVal = parseFloat(rec.result) || 0;
+                    calculationValueSum += parsedVal;
+                    if(rec.profile === "البيان الضريبي" || rec.profile === "تعديل ضريبي") {
+                        aggregateVatTaxCollected += (parsedVal * 0.14); // Statistical modeling approximation
+                    }
+                });
+
+                let dynamicAverageValue = recordCount > 0 ? (calculationValueSum / recordCount) : 0;
+
+                // Syncing Dashboard Elements with DOM without micro-reflow patterns
+                document.getElementById("dashTotalCount").innerText = recordCount;
+                document.getElementById("dashVatSum").innerText = PreciseMath.cleanRender(aggregateVatTaxCollected, 2);
+                document.getElementById("dashAvgValue").innerText = PreciseMath.cleanRender(dynamicAverageValue, 2);
+                document.getElementById("dashTapeSize").innerText = recordCount;
+                document.getElementById("dashMemValue").innerText = PreciseMath.cleanRender(MemoryModule.memoryBufferRegister, 2);
+                document.getElementById("dashFavTax").innerText = CentralConfig.defaultSystemTaxPercentage + "%";
+            }
+        };
+    </script>
+
+    <!-- CORE MODULE: Central Configuration, Lifecycle State and Security Preferences -->
+    <script>
+        const CentralConfig = {
+            theme: "dark",
+            currency: "EGP",
+            precision: 8,
+            defaultSystemTaxPercentage: 14,
+
+            loadStateFromStorage() {
+                this.theme = localStorage.getItem("e2_pro_theme") || "dark";
+                this.currency = localStorage.getItem("e2_pro_currency") || "EGP";
+                this.precision = parseInt(localStorage.getItem("e2_pro_precision")) || 8;
+                this.defaultSystemTaxPercentage = parseFloat(localStorage.getItem("e2_pro_tax_percentage")) || 14;
+
+                document.getElementById("configTheme").value = this.theme;
+                document.getElementById("configCurrency").value = this.currency;
+                document.getElementById("configPrecision").value = this.precision;
+
+                document.body.setAttribute("data-theme", this.theme);
+                this.refreshUIStatusBadges();
+                AuditTapeSystem.renderAuditTapeDOM();
+            },
+
+            refreshUIStatusBadges() {
+                document.getElementById("metaThemeBadge").innerText = `المظهر: ${this.theme.toUpperCase()}`;
+                document.getElementById("metaCurrencyBadge").innerText = `العملة: ${this.currency}`;
+                document.getElementById("metaPrecisionBadge").innerText = `الدقة: ${this.precision}D`;
+            },
+
+            setTheme(targetThemeValue) {
+                this.theme = targetThemeValue;
+                localStorage.setItem("e2_pro_theme", targetThemeValue);
+                document.body.setAttribute("data-theme", targetThemeValue);
+                this.refreshUIStatusBadges();
+            },
+
+            setCurrency(currencyCode) {
+                this.currency = currencyCode || "EGP";
+                localStorage.setItem("e2_pro_currency", this.currency);
+                this.refreshUIStatusBadges();
+            },
+
+            setPrecision(precisionValue) {
+                this.precision = parseInt(precisionValue) || 8;
+                localStorage.setItem("e2_pro_precision", this.precision);
+                this.refreshUIStatusBadges();
+                CoreEngine.updateOledDisplayState();
+            },
+
+            updateSystemTaxRate(taxRateValue) {
+                let parsedRate = parseFloat(taxRateValue);
+                if(!isNaN(parsedRate)) {
+                    this.defaultSystemTaxPercentage = parsedRate;
+                    localStorage.setItem("e2_pro_tax_percentage", taxRateValue);
+                    LiveAnalyticsDashboard.refreshMetrics();
+                }
+            },
+
+            exportSystemState() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                let payloadState = {
+                    theme: this.theme,
+                    currency: this.currency,
+                    precision: this.precision,
+                    tax: this.defaultSystemTaxPercentage,
+                    records: AuditTapeSystem.ledgerRecordsStream
+                };
+                let plainTextPayload = btoa(unescape(encodeURIComponent(JSON.stringify(payloadState))));
+                let linkAnchor = document.createElement("a");
+                linkAnchor.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(plainTextPayload));
+                linkAnchor.setAttribute("download", `E2_SMART_PRO_STATE_BACKUP.e2cfg`);
+                document.body.appendChild(linkAnchor);
+                linkAnchor.click();
+                document.body.removeChild(linkAnchor);
+            },
+
+            triggerImportDialog() {
+                SubSonicAudioSystem.triggerClickTone(); HapticResponseEngine.vibrateTactilePulse();
+                document.getElementById("hiddenStateImportFileTrigger").click();
+            },
+
+            importSystemState(inputContext) {
+                let fileTarget = inputContext.files[0];
+                if(!fileTarget) return;
+                let readerInstance = new FileReader();
+                readerInstance.onload = (e) => {
+                    try {
+                        let parsedDecryptedString = decodeURIComponent(escape(atob(e.target.result)));
+                        let hydraPayload = JSON.parse(parsedDecryptedString);
+                        
+                        if(hydraPayload.theme) localStorage.setItem("e2_pro_theme", hydraPayload.theme);
+                        if(hydraPayload.currency) localStorage.setItem("e2_pro_currency", hydraPayload.currency);
+                        if(hydraPayload.precision) localStorage.setItem("e2_pro_precision", hydraPayload.precision);
+                        if(hydraPayload.tax) localStorage.setItem("e2_pro_tax_percentage", hydraPayload.tax);
+                        if(hydraPayload.records) localStorage.setItem("e2_pro_tape_stream", JSON.stringify(hydraPayload.records));
+                        
+                        location.reload();
+                    } catch(err) { alert("فشل استيراد التكوين السيادي: ملف تالف أو غير صالح المعايير."); }
+                };
+                readerInstance.readAsText(fileTarget);
+            },
+
+            wipeSystemToFactoryReset() {
+                localStorage.clear();
+                location.reload();
+            }
+        };
+    </script>
+
+    <!-- NATIVE HARDWARE KEYBOARD INTELLIGENT HOOKING MATRIX ENGINE -->
+    <script>
+        document.addEventListener("keydown", (keyboardEvent) => {
+            if(document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "SELECT") return;
+
+            let keyChar = keyboardEvent.key;
+            if(keyChar >= "0" && keyChar <= "9") CoreEngine.appendDigit(keyChar);
+            else if(keyChar === ".") CoreEngine.appendDecimal();
+            else if(keyChar === "+") CoreEngine.setOperator("+");
+            else if(keyChar === "-") CoreEngine.setOperator("-");
+            else if(keyChar === "*") CoreEngine.setOperator("×");
+            else if(keyChar === "/") { keyboardEvent.preventDefault(); CoreEngine.setOperator("÷"); }
+            else if(keyChar === "Enter" || keyChar === "=") { keyboardEvent.preventDefault(); CoreEngine.evaluate(); }
+            else if(keyChar === "Backspace") CoreEngine.backspace();
+            else if(keyChar === "Escape") CoreEngine.allClear();
+            else if(keyChar === "Delete") CoreEngine.clearEntry();
+        });
+    </script>
+</body>
+</html>
