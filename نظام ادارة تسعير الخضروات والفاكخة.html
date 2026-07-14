@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>نظام E2 الذكي لإدارة وتسعير الخضروات والفاكهة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --bg:#0F172A;
+  --card:#1E293B;
+  --card-2:#243248;
+  --border:#334155;
+  --green:#22C55E;
+  --green-dim:#16321f;
+  --blue:#3B82F6;
+  --blue-dim:#152a4d;
+  --orange:#F59E0B;
+  --orange-dim:#3a2a0c;
+  --red:#EF4444;
+  --red-dim:#3a1414;
+  --text:#FFFFFF;
+  --text-dim:#94A3B8;
+  --text-dim2:#64748B;
+  --radius:14px;
+  --radius-sm:9px;
+  --shadow:0 10px 30px -10px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  background:
+    radial-gradient(1200px 600px at 90% -10%, rgba(59,130,246,.10), transparent 60%),
+    radial-gradient(1000px 500px at -10% 110%, rgba(34,197,94,.08), transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Cairo', 'Tajawal', sans-serif;
+  direction:rtl;
+  min-height:100vh;
+  font-variant-numeric: tabular-nums;
+}
+::selection{ background:var(--green); color:#04150b; }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:var(--card); }
+::-webkit-scrollbar-thumb{ background:var(--border); border-radius:10px; }
+::-webkit-scrollbar-thumb:hover{ background:var(--text-dim2); }
+
+button{ font-family:inherit; cursor:pointer; border:none; outline:none; }
+input, select, textarea{ font-family:inherit; outline:none; }
+a{ color:inherit; }
+
+/* ===================== TOPBAR ===================== */
+.topbar{
+  position:sticky; top:0; z-index:40;
+  background:rgba(15,23,42,.85);
+  backdrop-filter: blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:14px 22px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  flex-wrap:wrap;
+}
+.brand{ display:flex; align-items:center; gap:12px; }
+.brand-badge{
+  width:46px; height:46px; border-radius:12px;
+  background:linear-gradient(145deg, var(--green), #0ea968);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:20px; color:#052b17;
+  box-shadow:0 6px 18px -4px rgba(34,197,94,.55);
+  flex-shrink:0;
+}
+.brand-title{ display:flex; flex-direction:column; line-height:1.35; }
+.brand-title strong{ font-size:17px; font-weight:800; letter-spacing:.2px; }
+.brand-title span{ font-size:11.5px; color:var(--text-dim); font-weight:500; }
+
+.topbar-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.chip-stat{
+  display:flex; align-items:center; gap:8px;
+  background:var(--card); border:1px solid var(--border);
+  padding:8px 14px; border-radius:11px; font-size:12.5px; color:var(--text-dim);
+}
+.chip-stat b{ color:var(--text); font-size:14px; font-weight:800; }
+.chip-stat i{ font-size:13px; }
+.chip-stat.green i{ color:var(--green); }
+.chip-stat.blue i{ color:var(--blue); }
+.chip-stat.orange i{ color:var(--orange); }
+
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 16px; border-radius:10px;
+  font-size:13.5px; font-weight:700;
+  transition:.18s ease; white-space:nowrap;
+  border:1px solid transparent;
+}
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-green{ background:var(--green); color:#04170c; }
+.btn-green:hover{ background:#1eb355; box-shadow:0 6px 16px -6px rgba(34,197,94,.6); }
+.btn-blue{ background:var(--blue); color:#fff; }
+.btn-blue:hover{ background:#2f6fe0; box-shadow:0 6px 16px -6px rgba(59,130,246,.6); }
+.btn-orange{ background:var(--orange); color:#1a1000; }
+.btn-orange:hover{ background:#e0910a; }
+.btn-red{ background:var(--red); color:#fff; }
+.btn-red:hover{ background:#dc2f2f; }
+.btn-ghost{ background:var(--card); color:var(--text); border-color:var(--border); }
+.btn-ghost:hover{ background:var(--card-2); border-color:var(--text-dim2); }
+.btn-sm{ padding:7px 11px; font-size:12px; border-radius:8px; }
+.btn-icon{ padding:9px; width:38px; height:38px; justify-content:center; }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+/* ===================== LAYOUT ===================== */
+.layout{
+  display:grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap:18px;
+  padding:20px;
+  max-width:1600px;
+  margin:0 auto;
+  align-items:start;
+}
+@media (max-width: 980px){
+  .layout{ grid-template-columns:1fr; padding:14px; gap:14px; }
+}
+
+.panel{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.panel-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 18px; border-bottom:1px solid var(--border);
+  gap:10px; flex-wrap:wrap;
+}
+.panel-head h2{ font-size:15.5px; font-weight:800; display:flex; align-items:center; gap:9px; }
+.panel-head h2 i{ color:var(--green); font-size:14px; }
+.panel-body{ padding:18px; }
+
+/* ===================== FORM ===================== */
+.field{ margin-bottom:14px; }
+.field label{
+  display:block; font-size:12.5px; font-weight:700; color:var(--text-dim);
+  margin-bottom:7px;
+}
+.field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.control{
+  width:100%; background:#111c33; border:1px solid var(--border);
+  color:var(--text); padding:11px 12px; border-radius:10px; font-size:14px;
+  transition:.15s;
+}
+.control:focus{ border-color:var(--green); box-shadow:0 0 0 3px rgba(34,197,94,.15); }
+select.control{ appearance:none; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:left 12px center; padding-left:34px;
+}
+.search-wrap{ position:relative; }
+.search-wrap i{ position:absolute; right:13px; top:50%; transform:translateY(-50%); color:var(--text-dim2); }
+.search-wrap input{ padding-right:38px; }
+
+.price-chip{
+  display:flex; align-items:center; justify-content:space-between;
+  background:linear-gradient(135deg, var(--green-dim), #0d2216);
+  border:1px solid #1f4a2c; border-radius:10px; padding:10px 13px;
+  margin-top:8px; font-size:12.5px; color:#8be9a8;
+  transition:.25s;
+}
+.price-chip.flash{ box-shadow:0 0 0 3px rgba(34,197,94,.35); }
+.price-chip .val{ font-size:16px; font-weight:800; color:var(--green); }
+.price-chip .trend{ font-size:11px; display:flex; align-items:center; gap:4px; }
+.price-chip .trend.up{ color:var(--red); }
+.price-chip .trend.down{ color:var(--green); }
+
+.total-box{
+  background:linear-gradient(135deg, var(--blue-dim), #0d1b33);
+  border:1px solid #1e3a63; border-radius:12px; padding:16px;
+  display:flex; align-items:center; justify-content:space-between; margin-top:6px;
+}
+.total-box span{ font-size:13px; color:#a9c6f5; font-weight:700; }
+.total-box b{ font-size:24px; color:#fff; font-weight:900; }
+
+.quick-qty{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.qty-pill{
+  background:var(--card-2); border:1px solid var(--border); color:var(--text-dim);
+  padding:6px 12px; border-radius:20px; font-size:12px; font-weight:700; transition:.15s;
+}
+.qty-pill:hover{ border-color:var(--blue); color:#fff; background:var(--blue-dim); }
+
+.form-actions{ display:flex; gap:10px; margin-top:16px; }
+.form-actions .btn{ flex:1; justify-content:center; }
+
+/* chips row: categories */
+.cat-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+.cat-tab{
+  padding:7px 13px; border-radius:20px; font-size:12px; font-weight:700;
+  background:var(--card-2); color:var(--text-dim); border:1px solid var(--border);
+  transition:.15s;
+}
+.cat-tab.active{ background:var(--green); color:#052b17; border-color:var(--green); }
+
+/* items browse list */
+.item-list{ max-height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.item-row{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--card-2); border:1px solid var(--border); border-radius:10px;
+  padding:9px 12px; font-size:13px; transition:.15s; cursor:pointer;
+}
+.item-row:hover{ border-color:var(--green); background:#1a2a20; }
+.item-row .name{ font-weight:700; display:flex; align-items:center; gap:8px; }
+.item-row .name i.fav{ color:var(--orange); font-size:11px; }
+.item-row .meta{ color:var(--text-dim); font-size:11.5px; display:flex; gap:10px; align-items:center; }
+.item-row .price{ color:var(--green); font-weight:800; }
+.item-row .row-actions{ display:flex; gap:6px; }
+.icon-btn{
+  width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+  background:transparent; color:var(--text-dim); font-size:12px; transition:.15s;
+}
+.icon-btn:hover{ background:var(--card); color:var(--text); }
+.icon-btn.danger:hover{ background:var(--red-dim); color:var(--red); }
+.icon-btn.star:hover, .icon-btn.star.on{ color:var(--orange); }
+
+.empty-state{ text-align:center; padding:34px 16px; color:var(--text-dim2); }
+.empty-state i{ font-size:30px; margin-bottom:10px; display:block; color:var(--border); }
+.empty-state p{ font-size:13px; }
+
+/* ===================== INVOICE TABLE ===================== */
+.invoice-meta{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px 18px; border-bottom:1px solid var(--border); }
+@media (max-width:1200px){ .invoice-meta{ grid-template-columns:1fr 1fr; } }
+.invoice-meta .field{ margin-bottom:0; }
+
+.table-wrap{ overflow-x:auto; }
+table.invoice-table{ width:100%; border-collapse:collapse; font-size:13px; min-width:640px; }
+table.invoice-table thead th{
+  background:#16223a; color:var(--text-dim); font-size:11.5px; font-weight:800;
+  text-align:center; padding:11px 8px; border-bottom:1px solid var(--border); white-space:nowrap;
+}
+table.invoice-table tbody td{
+  text-align:center; padding:10px 8px; border-bottom:1px solid var(--border); color:var(--text);
+}
+table.invoice-table tbody tr{ transition:.15s; }
+table.invoice-table tbody tr:hover{ background:#182338; }
+table.invoice-table tbody tr.new-row{ animation:rowIn .4s ease; }
+@keyframes rowIn{ from{ background:var(--green-dim); opacity:0;} to{ opacity:1; } }
+table.invoice-table td.name-cell{ text-align:right; font-weight:700; }
+table.invoice-table td .cell-input{
+  width:72px; background:#0d1626; border:1px solid var(--border); color:var(--text);
+  padding:6px 4px; border-radius:7px; text-align:center; font-size:13px;
+}
+table.invoice-table td .cell-input:focus{ border-color:var(--blue); }
+table.invoice-table td.total-cell{ font-weight:800; color:var(--green); }
+table.invoice-table td.actions-cell{ display:flex; gap:6px; justify-content:center; }
+
+.invoice-footer{
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+  padding:16px 18px; border-top:1px solid var(--border);
+  background:linear-gradient(180deg, transparent, rgba(34,197,94,.03));
+}
+.grand-total{ display:flex; align-items:center; gap:12px; }
+.grand-total .label{ color:var(--text-dim); font-weight:700; font-size:14px; }
+.grand-total .amount{ font-size:28px; font-weight:900; color:var(--green); }
+.invoice-tools{ display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ===================== TOASTS ===================== */
+#toast-stack{ position:fixed; bottom:22px; left:22px; z-index:200; display:flex; flex-direction:column; gap:10px; }
+.toast{
+  background:var(--card); border:1px solid var(--border); border-right:4px solid var(--green);
+  padding:13px 16px; border-radius:10px; box-shadow:var(--shadow); min-width:260px;
+  display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600;
+  animation:toastIn .25s ease;
+}
+@keyframes toastIn{ from{ transform:translateY(12px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+.toast.err{ border-right-color:var(--red); }
+.toast.warn{ border-right-color:var(--orange); }
+.toast.info{ border-right-color:var(--blue); }
+.toast i{ font-size:16px; }
+.toast.green i{ color:var(--green); }
+.toast.err i{ color:var(--red); }
+.toast.warn i{ color:var(--orange); }
+.toast.info i{ color:var(--blue); }
+.toast .undo-link{ color:var(--blue); font-weight:800; margin-right:auto; cursor:pointer; }
+
+/* ===================== MODAL ===================== */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(2,6,15,.72); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:150; padding:16px;
+}
+.modal-overlay.show{ display:flex; }
+.modal{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  width:100%; max-width:460px; box-shadow:var(--shadow); animation:modalIn .2s ease;
+  max-height:88vh; display:flex; flex-direction:column;
+}
+.modal.wide{ max-width:640px; }
+@keyframes modalIn{ from{ transform:scale(.96) translateY(8px); opacity:0;} to{ transform:scale(1) translateY(0); opacity:1;} }
+.modal-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--border); }
+.modal-head h3{ font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.modal-head h3 i{ color:var(--green); }
+.modal-body{ padding:18px; overflow-y:auto; }
+.modal-foot{ display:flex; gap:10px; padding:16px 18px; border-top:1px solid var(--border); }
+.modal-foot .btn{ flex:1; justify-content:center; }
+.close-x{ width:32px; height:32px; border-radius:8px; background:var(--card-2); color:var(--text-dim); display:flex; align-items:center; justify-content:center; }
+.close-x:hover{ background:var(--red-dim); color:var(--red); }
+
+.history-list{ display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; }
+.history-item{ background:var(--card-2); border:1px solid var(--border); border-radius:9px; padding:10px 12px; font-size:12.5px; display:flex; justify-content:space-between; align-items:center;}
+.history-item .h-name{ font-weight:700; }
+.history-item .h-date{ color:var(--text-dim2); font-size:11px; }
+.history-item .h-change{ display:flex; align-items:center; gap:6px; font-weight:800; }
+.history-item .h-old{ color:var(--text-dim2); text-decoration:line-through; font-weight:500; }
+.history-item .h-up{ color:var(--red); }
+.history-item .h-down{ color:var(--green); }
+
+/* tabs inside settings modal */
+.mini-tabs{ display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px;}
+.mini-tab{ padding:8px 14px; border-radius:9px; font-size:12.5px; font-weight:700; color:var(--text-dim); background:var(--card-2); border:1px solid var(--border); }
+.mini-tab.active{ background:var(--blue); color:#fff; border-color:var(--blue); }
+.tab-pane{ display:none; }
+.tab-pane.active{ display:block; }
+.dropzone{
+  border:2px dashed var(--border); border-radius:12px; padding:26px; text-align:center; color:var(--text-dim);
+  cursor:pointer; transition:.15s;
+}
+.dropzone:hover{ border-color:var(--green); color:var(--text); background:var(--green-dim); }
+.dropzone i{ font-size:26px; margin-bottom:8px; display:block; color:var(--green); }
+
+.footer-note{ text-align:center; color:var(--text-dim2); font-size:11.5px; padding:20px 0 30px; }
+
+/* ===================== PRINT ===================== */
+@media print{
+  body *{ visibility:hidden; }
+  #print-area, #print-area *{ visibility:visible; }
+  #print-area{ position:absolute; top:0; right:0; left:0; width:100%; background:#fff; color:#000; padding:20px; }
+  .no-print{ display:none !important; }
+}
+#print-area{ display:none; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-stack"></div>
+<div id="print-area"></div>
+<script>
+/* ============================================================
+   نظام E2 الذكي لإدارة وتسعير الخضروات والفاكهة Pro
+   ملف منطق النظام بالكامل - بدون أي إطار عمل خارجي
+   ============================================================ */
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------
+   1) مفاتيح التخزين المحلي LocalStorage
+--------------------------------------------------------- */
+const LS = {
+  ITEMS:   "e2_items_v1",
+  LINES:   "e2_invoice_lines_v1",
+  META:    "e2_invoice_meta_v1",
+  HISTORY: "e2_price_history_v1",
+  RECENT:  "e2_recent_items_v1",
+  FAVS:    "e2_favorites_v1",
+  COUNTER: "e2_invoice_counter_v1"
+};
+
+const CATEGORIES = ["خضروات","فاكهة","ورقيات","أعشاب","أخرى"];
+const UNITS = ["كيلو","صندوق","قفص","جوال","كرتونة","ربطة","قطعة"];
+const CURRENCY = "ج.م";
+
+/* ---------------------------------------------------------
+   2) البيانات الافتراضية للأصناف
+--------------------------------------------------------- */
+const DEFAULT_ITEMS = [
+  ["طماطم","خضروات","كيلو",18.50],
+  ["بطاطس","خضروات","كيلو",15.75],
+  ["بصل","خضروات","كيلو",12.00],
+  ["ثوم","خضروات","كيلو",45.00],
+  ["خيار","خضروات","كيلو",14.00],
+  ["جزر","خضروات","كيلو",13.50],
+  ["فلفل أخضر","خضروات","كيلو",20.00],
+  ["فلفل ألوان","خضروات","كيلو",35.00],
+  ["كوسة","خضروات","كيلو",16.00],
+  ["باذنجان","خضروات","كيلو",15.00],
+  ["كرنب","خضروات","قطعة",10.00],
+  ["قرنبيط","خضروات","قطعة",12.00],
+  ["بروكلي","خضروات","كيلو",28.00],
+  ["ليمون","فاكهة","كيلو",17.00],
+  ["برتقال","فاكهة","كيلو",22.00],
+  ["يوسفي","فاكهة","كيلو",24.00],
+  ["موز","فاكهة","كيلو",26.00],
+  ["تفاح","فاكهة","كيلو",32.00],
+  ["مانجو","فاكهة","كيلو",38.00],
+  ["عنب","فاكهة","كيلو",30.00],
+  ["رمان","فاكهة","كيلو",34.00],
+  ["جوافة","فاكهة","كيلو",20.00],
+  ["خوخ","فاكهة","كيلو",27.00],
+  ["كمثرى","فاكهة","كيلو",29.00],
+  ["فراولة","فاكهة","كيلو",40.00],
+  ["كيوي","فاكهة","كيلو",42.00],
+  ["تمر","فاكهة","كيلو",55.00],
+  ["سبانخ","ورقيات","ربطة",6.00],
+  ["ملوخية","ورقيات","ربطة",7.00],
+  ["بقدونس","أعشاب","ربطة",3.00],
+  ["كزبرة","أعشاب","ربطة",3.00],
+  ["شبت","أعشاب","ربطة",3.00],
+  ["نعناع","أعشاب","ربطة",4.00],
+  ["خس","ورقيات","قطعة",5.00]
+];
+
+/* ---------------------------------------------------------
+   3) الحالة العامة State
+--------------------------------------------------------- */
+let state = {
+  items: [],
+  lines: [],
+  meta: { number: 1, date: todayStr(), supplier: "", notes: "" },
+  history: [],
+  recent: [],
+  favs: [],
+  search: "",
+  category: "all",
+  selectedItemId: null,
+  lastDeleted: null,       // للتراجع عن الحذف
+  editingItemId: null,     // لمودال تعديل الصنف
+  filterListOpen: false
+};
+
+function todayStr(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function uid(prefix){ return prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmtMoney(n){
+  n = Number(n) || 0;
+  // تنسيق بأرقام غربية (متوافقة مع حقول الإدخال) مع فواصل الآلاف
+  const parts = n.toFixed(2).split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ---------------------------------------------------------
+   4) طبقة التخزين Persistence
+--------------------------------------------------------- */
+function loadAll(){
+  try{
+    state.items   = JSON.parse(localStorage.getItem(LS.ITEMS))   || null;
+    state.lines   = JSON.parse(localStorage.getItem(LS.LINES))   || [];
+    state.meta    = JSON.parse(localStorage.getItem(LS.META))    || state.meta;
+    state.history = JSON.parse(localStorage.getItem(LS.HISTORY)) || [];
+    state.recent  = JSON.parse(localStorage.getItem(LS.RECENT))  || [];
+    state.favs    = JSON.parse(localStorage.getItem(LS.FAVS))    || [];
+  }catch(e){
+    console.error("خطأ في قراءة البيانات المحفوظة", e);
+  }
+  if(!state.items || !Array.isArray(state.items) || state.items.length === 0){
+    state.items = DEFAULT_ITEMS.map(([name,category,unit,price]) => ({
+      id: uid("it"),
+      name, category, unit, price,
+      updatedAt: Date.now()
+    }));
+    saveItems();
+  }
+}
+function saveItems(){ localStorage.setItem(LS.ITEMS, JSON.stringify(state.items)); }
+function saveLines(){ localStorage.setItem(LS.LINES, JSON.stringify(state.lines)); }
+function saveMeta(){ localStorage.setItem(LS.META, JSON.stringify(state.meta)); }
+function saveHistory(){ localStorage.setItem(LS.HISTORY, JSON.stringify(state.history.slice(0,200))); }
+function saveRecent(){ localStorage.setItem(LS.RECENT, JSON.stringify(state.recent.slice(0,12))); }
+function saveFavs(){ localStorage.setItem(LS.FAVS, JSON.stringify(state.favs)); }
+function nextInvoiceCounter(){
+  let c = Number(localStorage.getItem(LS.COUNTER) || "0") + 1;
+  localStorage.setItem(LS.COUNTER, String(c));
+  return c;
+}
+
+/* expose for debugging only (not required by UI) */
+window.__E2_STATE__ = state;
+
+document.addEventListener("DOMContentLoaded", init);
+
+function init(){
+  loadAll();
+  if(!localStorage.getItem(LS.COUNTER)){
+    localStorage.setItem(LS.COUNTER, "1000");
+  }
+  if(!state.meta.number){ state.meta.number = nextInvoiceCounter(); saveMeta(); }
+  render();
+}
+
+
+/* ---------------------------------------------------------
+   5) العرض الرئيسي Render
+--------------------------------------------------------- */
+function render(){
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    ${renderTopbar()}
+    <div class="layout">
+      ${renderRightPanel()}
+      ${renderLeftPanel()}
+    </div>
+    <div class="footer-note">نظام E2 الذكي &middot; يعمل بالكامل بدون إنترنت &middot; جميع البيانات محفوظة على هذا الجهاز فقط</div>
+    ${renderModals()}
+  `;
+  bindStaticEvents();
+  renderItemList();
+  renderInvoiceTable();
+  updateStats();
+  updateSelectedPriceChip();
+}
+
+function renderTopbar(){
+  return `
+  <div class="topbar no-print">
+    <div class="brand">
+      <div class="brand-badge"><i class="fa-solid fa-carrot"></i></div>
+      <div class="brand-title">
+        <strong>نظام E2 الذكي Pro</strong>
+        <span>إدارة وتسعير الخضروات والفاكهة</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="chip-stat green"><i class="fa-solid fa-boxes-stacked"></i> عدد الأصناف: <b id="statItems">0</b></div>
+      <div class="chip-stat blue"><i class="fa-solid fa-list-ol"></i> بنود الفاتورة: <b id="statLines">0</b></div>
+      <div class="chip-stat orange"><i class="fa-solid fa-sack-dollar"></i> إجمالي الفاتورة: <b id="statTotal">0.00</b></div>
+      <button class="btn btn-ghost btn-sm" onclick="E2.openSettings('backup')"><i class="fa-solid fa-database"></i> نسخ احتياطي</button>
+      <button class="btn btn-ghost btn-sm" onclick="E2.openSettings('history')"><i class="fa-solid fa-clock-rotate-left"></i> سجل الأسعار</button>
+    </div>
+  </div>`;
+}
+
+function renderRightPanel(){
+  const opts = state.items
+    .slice()
+    .sort((a,b)=>a.name.localeCompare(b.name,'ar'))
+    .map(it => `<option value="${it.id}">${esc(it.name)} — ${esc(it.unit)}</option>`).join("");
+
+  return `
+  <section class="panel" id="entryPanel">
+    <div class="panel-head">
+      <h2><i class="fa-solid fa-cart-plus"></i> إدخال بيانات الفاتورة</h2>
+      <button class="btn btn-ghost btn-sm" onclick="E2.openItemModal(null)"><i class="fa-solid fa-plus"></i> صنف جديد</button>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>اسم الصنف</label>
+        <select class="control" id="itemSelect" onchange="E2.onSelectItem(this.value)">
+          <option value="">— اختر صنفاً —</option>
+          ${opts}
+        </select>
+        <div class="price-chip" id="priceChip" style="display:none">
+          <span>آخر سعر محفوظ</span>
+          <span class="val" id="priceChipVal">0.00</span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>الوحدة</label>
+          <select class="control" id="unitSelect">
+            ${UNITS.map(u=>`<option value="${u}">${u}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label>الكمية</label>
+          <input class="control" id="qtyInput" type="number" min="0" step="0.01" value="1" inputmode="decimal" onkeydown="E2.handleEnter(event,'priceInput')">
+          <div class="quick-qty">
+            ${[1,2,5,10,25,50].map(n=>`<button type="button" class="qty-pill" onclick="E2.setQty(${n})">${n}</button>`).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>سعر الوحدة (${CURRENCY})</label>
+          <input class="control" id="priceInput" type="number" min="0" step="0.01" value="0" inputmode="decimal" oninput="E2.recalcEntry()" onkeydown="E2.handleEnter(event,'addLineBtn')">
+        </div>
+        <div class="field">
+          <label>الإجمالي</label>
+          <div class="total-box"><span>القيمة</span><b id="entryTotal">0.00</b></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-green" id="addLineBtn" onclick="E2.addLineToInvoice()"><i class="fa-solid fa-circle-plus"></i> إضافة للفاتورة</button>
+        <button class="btn btn-ghost" onclick="E2.resetEntry()"><i class="fa-solid fa-rotate-left"></i> تفريغ</button>
+      </div>
+    </div>
+
+    <div class="panel-head" style="border-top:1px solid var(--border)">
+      <h2><i class="fa-solid fa-layer-group"></i> قاعدة بيانات الأصناف</h2>
+      <span style="font-size:11.5px;color:var(--text-dim2)"><span id="itemCountLabel">0</span> صنف</span>
+    </div>
+    <div class="panel-body" style="padding-top:14px">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="control" id="searchInput" placeholder="ابحث عن صنف..." oninput="E2.onSearch(this.value)">
+      </div>
+      <div class="cat-tabs" id="catTabs">
+        ${["all",...CATEGORIES].map(c => `<button type="button" class="cat-tab ${state.category===c?'active':''}" data-cat="${c}" onclick="E2.setCategory('${c}')">${c==='all'?'الكل':c}</button>`).join("")}
+      </div>
+      <div class="item-list" id="itemListBody"></div>
+    </div>
+  </section>`;
+}
+
+function renderLeftPanel(){
+  return `
+  <section class="panel" id="invoicePanel">
+    <div class="panel-head">
+      <h2><i class="fa-solid fa-file-invoice"></i> فاتورة المشتريات</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="E2.duplicateInvoice()"><i class="fa-solid fa-copy"></i> تكرار</button>
+        <button class="btn btn-ghost btn-sm" onclick="E2.confirmClearInvoice()"><i class="fa-solid fa-eraser"></i> مسح</button>
+      </div>
+    </div>
+
+    <div class="invoice-meta no-print">
+      <div class="field">
+        <label>رقم الفاتورة</label>
+        <input class="control" value="${state.meta.number}" disabled>
+      </div>
+      <div class="field">
+        <label>تاريخ الفاتورة</label>
+        <input class="control" type="date" id="metaDate" value="${state.meta.date}" onchange="E2.updateMeta('date',this.value)">
+      </div>
+      <div class="field">
+        <label>اسم المورد</label>
+        <input class="control" id="metaSupplier" placeholder="اسم المورد" value="${esc(state.meta.supplier)}" onchange="E2.updateMeta('supplier',this.value)">
+      </div>
+      <div class="field">
+        <label>ملاحظات</label>
+        <input class="control" id="metaNotes" placeholder="ملاحظات إضافية" value="${esc(state.meta.notes)}" onchange="E2.updateMeta('notes',this.value)">
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>#</th><th>الصنف</th><th>الوحدة</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th class="no-print">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceTBody"></tbody>
+      </table>
+    </div>
+
+    <div class="invoice-footer">
+      <div class="grand-total">
+        <span class="label">إجمالي الفاتورة</span>
+        <span class="amount" id="grandTotal">0.00</span>
+        <span style="color:var(--text-dim);font-size:12px">${CURRENCY}</span>
+      </div>
+      <div class="invoice-tools no-print">
+        <button class="btn btn-ghost" onclick="E2.exportExcel()"><i class="fa-solid fa-file-excel"></i> تصدير Excel</button>
+        <button class="btn btn-ghost" onclick="E2.exportPDF()"><i class="fa-solid fa-file-pdf"></i> تصدير PDF</button>
+        <button class="btn btn-blue" onclick="E2.printInvoice()"><i class="fa-solid fa-print"></i> طباعة</button>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ---------------------------------------------------------
+   6) المودالات (إضافة/تعديل صنف - الإعدادات: نسخ احتياطي/استيراد/سجل)
+--------------------------------------------------------- */
+function renderModals(){
+  return `
+  <!-- مودال إضافة / تعديل صنف -->
+  <div class="modal-overlay no-print" id="itemModalOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-tag"></i> <span id="itemModalTitle">إضافة صنف جديد</span></h3>
+        <button class="close-x" onclick="E2.closeItemModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>اسم الصنف</label>
+          <input class="control" id="itemNameInput" placeholder="مثال: طماطم">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>التصنيف</label>
+            <select class="control" id="itemCatInput">
+              ${CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join("")}
+            </select>
+          </div>
+          <div class="field">
+            <label>وحدة القياس</label>
+            <select class="control" id="itemUnitInput">
+              ${UNITS.map(u=>`<option value="${u}">${u}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>آخر سعر (${CURRENCY})</label>
+          <input class="control" id="itemPriceInput" type="number" min="0" step="0.01" value="0">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="E2.closeItemModal()">إلغاء</button>
+        <button class="btn btn-green" onclick="E2.saveItemModal()"><i class="fa-solid fa-check"></i> حفظ الصنف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال الإعدادات: نسخ احتياطي / استيراد-تصدير / سجل الأسعار -->
+  <div class="modal-overlay no-print" id="settingsModalOverlay">
+    <div class="modal wide">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-gear"></i> الإعدادات والبيانات</h3>
+        <button class="close-x" onclick="E2.closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="mini-tabs">
+          <button class="mini-tab" data-tab="backup" onclick="E2.switchTab('backup')"><i class="fa-solid fa-database"></i> نسخ احتياطي</button>
+          <button class="mini-tab" data-tab="import" onclick="E2.switchTab('import')"><i class="fa-solid fa-file-import"></i> استيراد Excel</button>
+          <button class="mini-tab" data-tab="history" onclick="E2.switchTab('history')"><i class="fa-solid fa-clock-rotate-left"></i> سجل تغير الأسعار</button>
+        </div>
+
+        <div class="tab-pane" id="tab-backup">
+          <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">احفظ نسخة احتياطية كاملة من الأصناف والأسعار وسجل التغييرات بصيغة JSON، أو استعد نسخة سابقة.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-green" onclick="E2.exportBackup()"><i class="fa-solid fa-download"></i> تنزيل نسخة احتياطية</button>
+            <button class="btn btn-blue" onclick="document.getElementById('restoreFileInput').click()"><i class="fa-solid fa-upload"></i> استعادة نسخة</button>
+            <input type="file" id="restoreFileInput" accept="application/json" style="display:none" onchange="E2.restoreBackup(this.files[0])">
+          </div>
+        </div>
+
+        <div class="tab-pane" id="tab-import">
+          <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">استورد ملف Excel يحتوي على أعمدة: اسم الصنف، التصنيف، الوحدة، السعر. سيتم تحديث الأصناف الموجودة وإضافة الجديدة تلقائياً.</p>
+          <div class="dropzone" onclick="document.getElementById('importFileInput').click()">
+            <i class="fa-solid fa-file-excel"></i>
+            <div>اضغط لاختيار ملف Excel (.xlsx)</div>
+          </div>
+          <input type="file" id="importFileInput" accept=".xlsx,.xls" style="display:none" onchange="E2.importExcel(this.files[0])">
+        </div>
+
+        <div class="tab-pane" id="tab-history">
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="E2.closeSettings()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال تأكيد عام -->
+  <div class="modal-overlay no-print" id="confirmModalOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-triangle-exclamation" style="color:var(--orange)"></i> تأكيد الإجراء</h3>
+        <button class="close-x" onclick="E2.closeConfirm()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body"><p id="confirmMessage" style="font-size:14px;line-height:1.8"></p></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="E2.closeConfirm()">إلغاء</button>
+        <button class="btn btn-red" id="confirmActionBtn">تأكيد</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function bindStaticEvents(){
+  document.addEventListener("keydown", escCloser);
+}
+function escCloser(e){
+  if(e.key === "Escape"){
+    E2.closeItemModal(); E2.closeSettings(); E2.closeConfirm();
+  }
+}
+
+/* ---------------------------------------------------------
+   7) عرض قائمة الأصناف (بحث + تصنيف + مفضلة + حديثة الاستخدام)
+--------------------------------------------------------- */
+function renderItemList(){
+  const body = document.getElementById("itemListBody");
+  if(!body) return;
+  let list = state.items.slice();
+
+  if(state.category !== "all"){
+    list = list.filter(it => it.category === state.category);
+  }
+  if(state.search.trim()){
+    const q = state.search.trim().toLowerCase();
+    list = list.filter(it => it.name.toLowerCase().includes(q));
+  }
+  list.sort((a,b)=>{
+    const aFav = state.favs.includes(a.id), bFav = state.favs.includes(b.id);
+    if(aFav !== bFav) return aFav ? -1 : 1;
+    return a.name.localeCompare(b.name,'ar');
+  });
+
+  document.getElementById("itemCountLabel").textContent = state.items.length;
+
+  if(list.length === 0){
+    body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i><p>لا توجد أصناف مطابقة للبحث</p></div>`;
+    return;
+  }
+
+  body.innerHTML = list.map(it => {
+    const isFav = state.favs.includes(it.id);
+    return `
+    <div class="item-row" onclick="E2.pickItemFromList('${it.id}')">
+      <div>
+        <div class="name">${isFav?'<i class="fa-solid fa-star fav"></i>':''}${esc(it.name)}</div>
+        <div class="meta"><span>${esc(it.category)}</span><span>&middot;</span><span>${esc(it.unit)}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="price">${fmtMoney(it.price)}</span>
+        <div class="row-actions">
+          <button class="icon-btn star ${isFav?'on':''}" title="مفضلة" onclick="event.stopPropagation();E2.toggleFav('${it.id}')"><i class="fa-solid fa-star"></i></button>
+          <button class="icon-btn" title="تعديل" onclick="event.stopPropagation();E2.openItemModal('${it.id}')"><i class="fa-solid fa-pen"></i></button>
+          <button class="icon-btn danger" title="حذف" onclick="event.stopPropagation();E2.deleteItem('${it.id}')"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ---------------------------------------------------------
+   8) عرض جدول الفاتورة
+--------------------------------------------------------- */
+function renderInvoiceTable(justAddedId){
+  const tbody = document.getElementById("invoiceTBody");
+  if(!tbody) return;
+
+  if(state.lines.length === 0){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-file-invoice"></i><p>لا توجد بنود بعد — ابدأ بإضافة صنف من اللوحة اليمنى</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = state.lines.map((ln,idx) => `
+      <tr id="row-${ln.id}" class="${ln.id===justAddedId?'new-row':''}">
+        <td>${idx+1}</td>
+        <td class="name-cell">${esc(ln.name)}</td>
+        <td>${esc(ln.unit)}</td>
+        <td><input class="cell-input" type="number" min="0" step="0.01" value="${ln.qty}"
+              oninput="E2.liveLineUpdate('${ln.id}')" onchange="E2.commitLineEdit('${ln.id}')" id="qty-${ln.id}"></td>
+        <td><input class="cell-input" type="number" min="0" step="0.01" value="${ln.price}"
+              oninput="E2.liveLineUpdate('${ln.id}')" onchange="E2.commitLineEdit('${ln.id}')" id="price-${ln.id}"></td>
+        <td class="total-cell" id="total-${ln.id}">${fmtMoney(ln.qty*ln.price)}</td>
+        <td class="actions-cell no-print">
+          <button class="icon-btn danger" title="حذف" onclick="E2.deleteLine('${ln.id}')"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+    `).join("");
+  }
+  updateGrandTotal();
+}
+
+function updateGrandTotal(){
+  const total = state.lines.reduce((s,l)=> s + (Number(l.qty)||0)*(Number(l.price)||0), 0);
+  const el = document.getElementById("grandTotal");
+  if(el) el.textContent = fmtMoney(total);
+  const stat = document.getElementById("statTotal");
+  if(stat) stat.textContent = fmtMoney(total);
+  return total;
+}
+
+function updateStats(){
+  const si = document.getElementById("statItems");
+  const sl = document.getElementById("statLines");
+  if(si) si.textContent = state.items.length;
+  if(sl) sl.textContent = state.lines.length;
+  updateGrandTotal();
+}
+
+function updateSelectedPriceChip(){
+  const chip = document.getElementById("priceChip");
+  if(!chip) return;
+  if(!state.selectedItemId){ chip.style.display = "none"; return; }
+  const it = state.items.find(i=>i.id===state.selectedItemId);
+  if(!it){ chip.style.display = "none"; return; }
+  chip.style.display = "flex";
+  document.getElementById("priceChipVal").textContent = fmtMoney(it.price) + " " + CURRENCY;
+}
+
+/* ---------------------------------------------------------
+   9) التنبيهات Toasts
+--------------------------------------------------------- */
+function toast(msg, type="green", icon="fa-circle-check", undoFn=null){
+  const stack = document.getElementById("toast-stack");
+  const el = document.createElement("div");
+  el.className = "toast " + type;
+  el.innerHTML = `<i class="fa-solid ${icon}"></i><span>${esc(msg)}</span>${undoFn?'<span class="undo-link">تراجع</span>':''}`;
+  if(undoFn){
+    el.querySelector(".undo-link").onclick = () => { undoFn(); el.remove(); };
+  }
+  stack.appendChild(el);
+  setTimeout(()=>{ el.style.transition="opacity .3s"; el.style.opacity="0"; setTimeout(()=>el.remove(),300); }, undoFn?5000:2800);
+}
+
+/* ---------------------------------------------------------
+   10) واجهة برمجية عامة E2 (كل معالجات النقر مربوطة هنا)
+--------------------------------------------------------- */
+const E2 = {
+
+  /* ---------- اختيار صنف ---------- */
+  onSelectItem(itemId){
+    state.selectedItemId = itemId || null;
+    if(itemId){
+      const it = state.items.find(i=>i.id===itemId);
+      if(it){
+        document.getElementById("unitSelect").value = it.unit;
+        document.getElementById("priceInput").value = it.price;
+        this._pushRecent(itemId);
+      }
+    }
+    updateSelectedPriceChip();
+    this.recalcEntry();
+  },
+
+  pickItemFromList(itemId){
+    document.getElementById("itemSelect").value = itemId;
+    this.onSelectItem(itemId);
+    toast("تم اختيار الصنف: " + (state.items.find(i=>i.id===itemId)||{}).name, "info", "fa-hand-pointer");
+    document.getElementById("qtyInput").focus();
+  },
+
+  _pushRecent(itemId){
+    state.recent = [itemId, ...state.recent.filter(id=>id!==itemId)].slice(0,12);
+    saveRecent();
+  },
+
+  toggleFav(itemId){
+    if(state.favs.includes(itemId)){
+      state.favs = state.favs.filter(id=>id!==itemId);
+    } else {
+      state.favs.push(itemId);
+    }
+    saveFavs();
+    renderItemList();
+  },
+
+  setQty(n){
+    document.getElementById("qtyInput").value = n;
+    this.recalcEntry();
+  },
+
+  handleEnter(ev, nextId){
+    if(ev.key === "Enter"){
+      ev.preventDefault();
+      const nextEl = document.getElementById(nextId);
+      if(nextEl){
+        if(nextEl.tagName === "BUTTON"){ nextEl.click(); }
+        else { nextEl.focus(); nextEl.select && nextEl.select(); }
+      }
+    }
+  },
+
+  recalcEntry(){
+    const qty = Number(document.getElementById("qtyInput").value) || 0;
+    const price = Number(document.getElementById("priceInput").value) || 0;
+    document.getElementById("entryTotal").textContent = fmtMoney(qty*price);
+  },
+
+  resetEntry(){
+    document.getElementById("itemSelect").value = "";
+    document.getElementById("qtyInput").value = 1;
+    document.getElementById("priceInput").value = 0;
+    state.selectedItemId = null;
+    updateSelectedPriceChip();
+    this.recalcEntry();
+  },
+
+  addLineToInvoice(){
+    const itemId = document.getElementById("itemSelect").value;
+    if(!itemId){ toast("الرجاء اختيار صنف أولاً", "warn", "fa-triangle-exclamation"); return; }
+    const it = state.items.find(i=>i.id===itemId);
+    if(!it){ toast("الصنف غير موجود", "err", "fa-circle-xmark"); return; }
+
+    const unit = document.getElementById("unitSelect").value;
+    const qty = Number(document.getElementById("qtyInput").value) || 0;
+    const price = Number(document.getElementById("priceInput").value) || 0;
+
+    if(qty <= 0){ toast("الكمية يجب أن تكون أكبر من صفر", "warn", "fa-triangle-exclamation"); return; }
+
+    // تحديث آخر سعر في قاعدة البيانات إذا تغيّر
+    if(price !== it.price){
+      this._recordPriceChange(it, price);
+      it.price = price;
+      it.updatedAt = Date.now();
+      saveItems();
+    }
+
+    const line = { id: uid("ln"), itemId: it.id, name: it.name, unit, qty, price };
+    state.lines.push(line);
+    saveLines();
+    this._pushRecent(itemId);
+
+    renderInvoiceTable(line.id);
+    renderItemList();
+    updateStats();
+    toast(`تمت إضافة "${it.name}" إلى الفاتورة`, "green", "fa-circle-check");
+
+    this.resetEntry();
+    document.getElementById("itemSelect").focus();
+  },
+
+  _recordPriceChange(item, newPrice){
+    state.history.unshift({
+      id: uid("h"), itemId: item.id, itemName: item.name,
+      oldPrice: item.price, newPrice, date: new Date().toISOString()
+    });
+    saveHistory();
+  },
+
+  /* ---------- البحث والتصنيف ---------- */
+  onSearch(v){ state.search = v; renderItemList(); },
+  setCategory(c){
+    state.category = c;
+    document.querySelectorAll(".cat-tab").forEach(el=>{
+      el.classList.toggle("active", el.dataset.cat === c);
+    });
+    renderItemList();
+  },
+
+  /* ---------- إدارة الأصناف (مودال) ---------- */
+  openItemModal(itemId){
+    state.editingItemId = itemId;
+    const overlay = document.getElementById("itemModalOverlay");
+    const title = document.getElementById("itemModalTitle");
+    if(itemId){
+      const it = state.items.find(i=>i.id===itemId);
+      title.textContent = "تعديل الصنف";
+      document.getElementById("itemNameInput").value = it.name;
+      document.getElementById("itemCatInput").value = it.category;
+      document.getElementById("itemUnitInput").value = it.unit;
+      document.getElementById("itemPriceInput").value = it.price;
+    } else {
+      title.textContent = "إضافة صنف جديد";
+      document.getElementById("itemNameInput").value = "";
+      document.getElementById("itemCatInput").value = CATEGORIES[0];
+      document.getElementById("itemUnitInput").value = UNITS[0];
+      document.getElementById("itemPriceInput").value = 0;
+    }
+    overlay.classList.add("show");
+    setTimeout(()=>document.getElementById("itemNameInput").focus(), 60);
+  },
+  closeItemModal(){
+    document.getElementById("itemModalOverlay").classList.remove("show");
+    state.editingItemId = null;
+  },
+  saveItemModal(){
+    const name = document.getElementById("itemNameInput").value.trim();
+    const category = document.getElementById("itemCatInput").value;
+    const unit = document.getElementById("itemUnitInput").value;
+    const price = Number(document.getElementById("itemPriceInput").value) || 0;
+
+    if(!name){ toast("الرجاء إدخال اسم الصنف", "warn", "fa-triangle-exclamation"); return; }
+
+    const dup = state.items.find(i => i.name.trim() === name && i.id !== state.editingItemId);
+    if(dup){ toast("هذا الصنف موجود بالفعل، لا يمكن التكرار", "err", "fa-circle-xmark"); return; }
+
+    if(state.editingItemId){
+      const it = state.items.find(i=>i.id===state.editingItemId);
+      if(price !== it.price){ this._recordPriceChange(it, price); }
+      it.name = name; it.category = category; it.unit = unit; it.price = price; it.updatedAt = Date.now();
+      toast("تم تحديث بيانات الصنف", "green", "fa-circle-check");
+    } else {
+      state.items.push({ id: uid("it"), name, category, unit, price, updatedAt: Date.now() });
+      toast("تمت إضافة الصنف الجديد", "green", "fa-circle-check");
+    }
+    saveItems();
+    this.closeItemModal();
+    render();
+  },
+  deleteItem(itemId){
+    const it = state.items.find(i=>i.id===itemId);
+    if(!it) return;
+    this.openConfirm(`هل تريد حذف الصنف "${it.name}" نهائياً؟`, () => {
+      const idx = state.items.findIndex(i=>i.id===itemId);
+      const removed = state.items.splice(idx,1)[0];
+      saveItems();
+      state.lastDeleted = { type:"item", data: removed, index: idx };
+      render();
+      toast(`تم حذف "${removed.name}"`, "err", "fa-trash", () => E2.undoDelete());
+    });
+  },
+
+  /* ---------- تعديل بنود الفاتورة داخل الجدول ---------- */
+  liveLineUpdate(lineId){
+    const qty = Number(document.getElementById("qty-"+lineId).value) || 0;
+    const price = Number(document.getElementById("price-"+lineId).value) || 0;
+    document.getElementById("total-"+lineId).textContent = fmtMoney(qty*price);
+    updateGrandTotal();
+  },
+  commitLineEdit(lineId){
+    const line = state.lines.find(l=>l.id===lineId);
+    if(!line) return;
+    const qty = Number(document.getElementById("qty-"+lineId).value) || 0;
+    const price = Number(document.getElementById("price-"+lineId).value) || 0;
+    line.qty = qty;
+    if(price !== line.price){
+      const it = state.items.find(i=>i.id===line.itemId);
+      if(it){
+        this._recordPriceChange(it, price);
+        it.price = price; it.updatedAt = Date.now();
+        saveItems();
+      }
+      line.price = price;
+      toast(`تم تحديث سعر "${line.name}" وحفظه تلقائياً`, "info", "fa-floppy-disk");
+    }
+    saveLines();
+    document.getElementById("total-"+lineId).textContent = fmtMoney(qty*price);
+    updateGrandTotal();
+    renderItemList();
+  },
+  deleteLine(lineId){
+    const idx = state.lines.findIndex(l=>l.id===lineId);
+    if(idx === -1) return;
+    const removed = state.lines.splice(idx,1)[0];
+    saveLines();
+    state.lastDeleted = { type:"line", data: removed, index: idx };
+    renderInvoiceTable();
+    updateStats();
+    toast(`تم حذف البند "${removed.name}"`, "err", "fa-trash", () => E2.undoDelete());
+  },
+  undoDelete(){
+    if(!state.lastDeleted) return;
+    const { type, data, index } = state.lastDeleted;
+    if(type === "line"){
+      state.lines.splice(Math.min(index, state.lines.length), 0, data);
+      saveLines(); renderInvoiceTable(); updateStats();
+    } else if(type === "item"){
+      state.items.splice(Math.min(index, state.items.length), 0, data);
+      saveItems(); render();
+    }
+    state.lastDeleted = null;
+    toast("تم التراجع عن الحذف", "info", "fa-rotate-left");
+  },
+
+  /* ---------- بيانات الفاتورة ---------- */
+  updateMeta(field, value){
+    state.meta[field] = value;
+    saveMeta();
+  },
+  duplicateInvoice(){
+    if(state.lines.length === 0){ toast("لا توجد بنود لتكرارها", "warn", "fa-triangle-exclamation"); return; }
+    state.lines = state.lines.map(l => ({...l, id: uid("ln")}));
+    saveLines();
+    renderInvoiceTable();
+    updateStats();
+    toast("تم تكرار بنود الفاتورة", "info", "fa-copy");
+  },
+  confirmClearInvoice(){
+    if(state.lines.length === 0){ toast("الفاتورة فارغة بالفعل", "warn", "fa-triangle-exclamation"); return; }
+    this.openConfirm("هل تريد مسح جميع بنود الفاتورة الحالية؟ لا يمكن التراجع عن هذا الإجراء.", () => {
+      state.lines = [];
+      saveLines();
+      renderInvoiceTable();
+      updateStats();
+      toast("تم مسح الفاتورة", "err", "fa-eraser");
+    });
+  },
+
+  /* ---------- تأكيد عام ---------- */
+  openConfirm(message, onConfirm){
+    document.getElementById("confirmMessage").textContent = message;
+    const btn = document.getElementById("confirmActionBtn");
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener("click", () => { onConfirm(); E2.closeConfirm(); });
+    document.getElementById("confirmModalOverlay").classList.add("show");
+  },
+  closeConfirm(){ document.getElementById("confirmModalOverlay").classList.remove("show"); },
+
+  /* ---------- الإعدادات: نسخ احتياطي / استيراد / سجل ---------- */
+  openSettings(tab){
+    document.getElementById("settingsModalOverlay").classList.add("show");
+    this.switchTab(tab || "backup");
+  },
+  closeSettings(){ document.getElementById("settingsModalOverlay").classList.remove("show"); },
+  switchTab(tab){
+    document.querySelectorAll(".mini-tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
+    document.querySelectorAll(".tab-pane").forEach(p=>p.classList.toggle("active", p.id === "tab-"+tab));
+    if(tab === "history") this._renderHistory();
+  },
+  _renderHistory(){
+    const box = document.getElementById("historyList");
+    if(!state.history.length){
+      box.innerHTML = `<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><p>لا يوجد سجل تغييرات أسعار بعد</p></div>`;
+      return;
+    }
+    box.innerHTML = state.history.slice(0,80).map(h => {
+      const up = h.newPrice > h.oldPrice;
+      const d = new Date(h.date);
+      const pad = n => String(n).padStart(2,"0");
+      const dateLabel = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      return `<div class="history-item">
+        <div><div class="h-name">${esc(h.itemName)}</div><div class="h-date">${dateLabel}</div></div>
+        <div class="h-change">
+          <span class="h-old">${fmtMoney(h.oldPrice)}</span>
+          <i class="fa-solid fa-arrow-left-long" style="color:var(--text-dim2);font-size:10px"></i>
+          <span class="${up?'h-up':'h-down'}">${fmtMoney(h.newPrice)}</span>
+        </div>
+      </div>`;
+    }).join("");
+  },
+
+  /* ---------- طباعة ---------- */
+  printInvoice(){
+    const total = updateGrandTotal();
+    const rows = state.lines.map((l,i)=>`
+      <tr>
+        <td style="text-align:center">${i+1}</td>
+        <td>${esc(l.name)}</td>
+        <td style="text-align:center">${esc(l.unit)}</td>
+        <td style="text-align:center">${l.qty}</td>
+        <td style="text-align:center">${fmtMoney(l.price)}</td>
+        <td style="text-align:center">${fmtMoney(l.qty*l.price)}</td>
+      </tr>`).join("");
+    const area = document.getElementById("print-area");
+    area.innerHTML = `
+      <div style="font-family:'Cairo',sans-serif;direction:rtl">
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #16a34a;padding-bottom:14px;margin-bottom:18px">
+          <div>
+            <h1 style="font-size:22px;margin:0">نظام E2 الذكي</h1>
+            <div style="color:#555;font-size:12px">فاتورة مشتريات خضروات وفاكهة</div>
+          </div>
+          <div style="text-align:left;font-size:12.5px;color:#333">
+            <div><b>رقم الفاتورة:</b> ${state.meta.number}</div>
+            <div><b>التاريخ:</b> ${esc(state.meta.date)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:30px;font-size:13px;margin-bottom:16px">
+          <div><b>المورد:</b> ${esc(state.meta.supplier || "—")}</div>
+          <div><b>ملاحظات:</b> ${esc(state.meta.notes || "—")}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:#f1f5f9">
+              <th style="border:1px solid #ccc;padding:8px">#</th>
+              <th style="border:1px solid #ccc;padding:8px">الصنف</th>
+              <th style="border:1px solid #ccc;padding:8px">الوحدة</th>
+              <th style="border:1px solid #ccc;padding:8px">الكمية</th>
+              <th style="border:1px solid #ccc;padding:8px">سعر الوحدة</th>
+              <th style="border:1px solid #ccc;padding:8px">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>${rows || `<tr><td colspan="6" style="text-align:center;padding:14px">لا توجد بنود</td></tr>`}</tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <div style="font-size:16px;font-weight:800;border-top:2px solid #16a34a;padding-top:10px;min-width:240px;display:flex;justify-content:space-between">
+            <span>إجمالي الفاتورة</span><span>${fmtMoney(total)} ${CURRENCY}</span>
+          </div>
+        </div>
+      </div>`;
+    window.print();
+  },
+
+  /* ---------- تصدير Excel ---------- */
+  exportExcel(){
+    if(typeof XLSX === "undefined"){ toast("تعذر تحميل مكتبة Excel", "err", "fa-circle-xmark"); return; }
+    const rows = state.lines.map((l,i)=>({
+      "#": i+1, "الصنف": l.name, "الوحدة": l.unit, "الكمية": l.qty,
+      "سعر الوحدة": l.price, "الإجمالي": +(l.qty*l.price).toFixed(2)
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "الفاتورة");
+    XLSX.writeFile(wb, `فاتورة-${state.meta.number}.xlsx`);
+    toast("تم تصدير الفاتورة إلى Excel", "green", "fa-file-excel");
+  },
+
+  /* ---------- تصدير PDF ---------- */
+  exportPDF(){
+    if(typeof window.jspdf === "undefined"){ toast("تعذر تحميل مكتبة PDF", "err", "fa-circle-xmark"); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const total = updateGrandTotal();
+    doc.setFontSize(14);
+    doc.text(`Invoice #${state.meta.number}  -  Date: ${state.meta.date}`, 14, 16);
+    doc.setFontSize(10);
+    doc.text(`Supplier: ${state.meta.supplier || "-"}`, 14, 24);
+    const body = state.lines.map((l,i)=>[i+1, l.name, l.unit, l.qty, fmtMoney(l.price), fmtMoney(l.qty*l.price)]);
+    if(doc.autoTable){
+      doc.autoTable({
+        head: [["#","Item","Unit","Qty","Unit Price","Total"]],
+        body, startY: 30, styles:{ font:"helvetica", fontSize:9 }
+      });
+      const y = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(12);
+      doc.text(`Grand Total: ${fmtMoney(total)} ${CURRENCY}`, 14, y);
+    }
+    doc.save(`فاتورة-${state.meta.number}.pdf`);
+    toast("تم تصدير الفاتورة إلى PDF", "green", "fa-file-pdf");
+  },
+
+  /* ---------- نسخ احتياطي / استعادة ---------- */
+  exportBackup(){
+    const backup = {
+      version: 1, exportedAt: new Date().toISOString(),
+      items: state.items, lines: state.lines, meta: state.meta,
+      history: state.history, recent: state.recent, favs: state.favs
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `e2-backup-${todayStr()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast("تم تنزيل النسخة الاحتياطية", "green", "fa-database");
+  },
+  restoreBackup(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try{
+        const data = JSON.parse(e.target.result);
+        if(!data.items || !Array.isArray(data.items)) throw new Error("bad format");
+        state.items = data.items;
+        state.lines = data.lines || [];
+        state.meta = data.meta || state.meta;
+        state.history = data.history || [];
+        state.recent = data.recent || [];
+        state.favs = data.favs || [];
+        saveItems(); saveLines(); saveMeta(); saveHistory(); saveRecent(); saveFavs();
+        render();
+        E2.closeSettings();
+        toast("تم استعادة النسخة الاحتياطية بنجاح", "green", "fa-circle-check");
+      }catch(err){
+        toast("ملف النسخة الاحتياطية غير صالح", "err", "fa-circle-xmark");
+      }
+    };
+    reader.readAsText(file);
+  },
+
+  /* ---------- استيراد Excel ---------- */
+  importExcel(file){
+    if(!file) return;
+    if(typeof XLSX === "undefined"){ toast("تعذر تحميل مكتبة Excel", "err", "fa-circle-xmark"); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try{
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:"array"});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
+        let added = 0, updated = 0;
+        rows.forEach(r => {
+          const name = String(r["اسم الصنف"] || r["الصنف"] || r["name"] || "").trim();
+          if(!name) return;
+          const category = String(r["التصنيف"] || r["category"] || "أخرى").trim() || "أخرى";
+          const unit = String(r["الوحدة"] || r["unit"] || "كيلو").trim() || "كيلو";
+          const price = Number(r["السعر"] || r["price"] || 0) || 0;
+          const existing = state.items.find(i => i.name.trim() === name);
+          if(existing){
+            if(price && price !== existing.price) E2._recordPriceChange(existing, price);
+            existing.category = category; existing.unit = unit;
+            if(price) existing.price = price;
+            existing.updatedAt = Date.now();
+            updated++;
+          } else {
+            state.items.push({ id: uid("it"), name, category, unit, price, updatedAt: Date.now() });
+            added++;
+          }
+        });
+        saveItems();
+        render();
+        toast(`تم الاستيراد: ${added} صنف جديد، ${updated} صنف محدث`, "green", "fa-file-import");
+      }catch(err){
+        toast("تعذر قراءة ملف Excel، تأكد من التنسيق", "err", "fa-circle-xmark");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+};
+
+window.E2 = E2;
+})();
+
+</script>
+</body>
+</html>
