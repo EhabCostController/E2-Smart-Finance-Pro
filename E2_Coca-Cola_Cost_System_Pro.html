@@ -136,7 +136,6 @@
             overflow-x: auto;
         }
 
-        /* ===== جدول إذن الاستلام - نفس ألوان السيستم الداكنة ===== */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -189,7 +188,6 @@
             display: none;
         }
 
-        /* الطباعة: نرجع للأبيض والأسود عشان توفير الحبر عند الطباعة الفعلية على ورق */
         @media print {
             body { background: white; color: black; padding: 0; }
             .cashier-panel, .btn-print, .delete-btn, th:last-child, td:last-child { display: none !important; }
@@ -214,6 +212,8 @@
             <div class="form-group">
                 <label>اسم الصنف</label>
                 <select id="prodName" class="input-style" onchange="autoSelectPack()">
+                    <!-- خيار افتراضي فارغ -->
+                    <option value="" data-pack="0" data-price="0.000" selected disabled>-- اختر الصنف من هنا --</option>
                     <option value="كولا كانز" data-pack="24" data-price="279.650">كولا كانز (24 قطعة)</option>
                     <option value="كولا دايت كانز" data-pack="24" data-price="279.650">كولا دايت كانز (24 قطعة)</option>
                     <option value="اسبرايت كانز" data-pack="24" data-price="279.650">اسبرايت كانز (24 قطعة)</option>
@@ -231,32 +231,32 @@
 
             <div class="form-group">
                 <label>عدد الوحدات في الكرتونة</label>
-                <input type="number" id="packSize" class="input-style" value="12" min="1">
+                <input type="number" id="packSize" class="input-style" value="0" min="1">
             </div>
 
             <div class="form-group">
                 <label>الكمية المستلمة (الكراتين)</label>
-                <input type="number" id="qty" class="input-style" value="400" min="1">
+                <input type="number" id="qty" class="input-style" value="0" min="1">
             </div>
 
             <div class="form-group">
                 <label>السعر الأساسي للكرتونة (قبل الخصم والضريبة)</label>
-                <input type="number" id="price" class="input-style" value="93.860" step="0.001">
+                <input type="number" id="price" class="input-style" value="0" step="0.001">
             </div>
 
             <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
                 <label>إجمالي الخصم للصنف بالكامل</label>
-                <input type="number" id="totalDiscount" class="input-style" value="10524.000" step="0.001">
+                <input type="number" id="totalDiscount" class="input-style" value="0" step="0.001">
             </div>
 
             <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
                 <label>إجمالي ضريبة 8%</label>
-                <input type="number" id="tax8" class="input-style" value="0.000" step="0.001">
+                <input type="number" id="tax8" class="input-style" value="0" step="0.001">
             </div>
 
             <div class="form-group">
                 <label style="color: #60a5fa;">إجمالي ضريبة 14% للصنف</label>
-                <input type="number" id="tax14" class="input-style" value="3782.800" step="0.001" style="border-color: #3b82f6;">
+                <input type="number" id="tax14" class="input-style" value="0" step="0.001" style="border-color: #3b82f6;">
             </div>
 
             <div id="warningBox" class="warning-text"></div>
@@ -312,6 +312,9 @@
 
         function autoSelectPack() {
             const selectElement = document.getElementById('prodName');
+            // إذا لم يتم اختيار صنف حقيقي، لا تفعل شيئاً
+            if (selectElement.value === "") return;
+
             const pack = parseInt(selectElement.options[selectElement.selectedIndex].getAttribute('data-pack'));
             const price = parseFloat(selectElement.options[selectElement.selectedIndex].getAttribute('data-price'));
             
@@ -331,7 +334,6 @@
             box.style.display = 'none';
         }
 
-        // تقريب آمن لأسفل لخانتين عشريتين (يتجنب مشاكل دقة الأعداد العشرية الثنائية)
         function floorTo2(value) {
             return Math.floor(value * 100 + 1e-9) / 100;
         }
@@ -340,6 +342,8 @@
             clearWarning();
 
             const prodName = document.getElementById('prodName').value;
+            if (prodName === "") { alert('الرجاء اختيار صنف أولاً'); return; }
+
             const packSize = parseInt(document.getElementById('packSize').value) || 1;
             const qty = parseFloat(document.getElementById('qty').value) || 0;
             const price = parseFloat(document.getElementById('price').value) || 0;
@@ -351,7 +355,6 @@
             if (qty <= 0) { alert('الرجاء إدخال كمية صحيحة'); return; }
             if (packSize <= 0) { alert('عدد الوحدات في الكرتونة يجب أن يكون أكبر من صفر'); return; }
 
-            // 1. حساب إجمالي الصافي بدون الـ 14%
             const discountPerCarton = totalDiscount / qty;
             const tax8PerCarton = tax8 / qty;
             const netCartonPrice = price - discountPerCarton + tax8PerCarton;
@@ -361,17 +364,12 @@
                 showWarning('تنبيه: الخصم أكبر من سعر الكرتونة، السعر الصافي أصبح سالباً. تأكد من صحة الأرقام.');
             }
 
-            // 2. حساب إجمالي عدد الوحدات الفردية المستلمة
             const totalUnits = qty * packSize;
             if (totalUnits <= 0) { alert('لا يمكن حساب عدد الوحدات، تأكد من الكمية وعدد الوحدات بالكرتونة'); return; }
 
-            // 3. حساب سعر الوحدة الخام
             const rawUnitPrice = totalNetVal / totalUnits;
-
-            // 4. تقريب سعر الوحدة لخانتين عشريتين (القرش) بأمان
             const roundedUnitPrice = floorTo2(rawUnitPrice);
 
-            // 5 و 6. توزيع الفرق الناتج عن التقريب على آخر وحدة، بحيث يطابق الإجمالي تماماً
             const qtyRow1 = totalUnits - 1;
             const rows = [];
 
@@ -382,7 +380,6 @@
                 rows.push({ qty: qtyRow1, price: priceRow1, total: totalRow1 });
                 rows.push({ qty: 1, price: totalRow2, total: totalRow2 });
             } else {
-                // وحدة واحدة فقط بالكامل: لا داعي لصف "فارغ" بكمية صفر
                 rows.push({ qty: totalUnits, price: totalNetVal, total: totalNetVal });
             }
 
@@ -394,6 +391,15 @@
             });
 
             renderReceipt();
+            
+            // إعادة تعيين القائمة للافتراضي بعد الإضافة
+            document.getElementById('prodName').selectedIndex = 0;
+            document.getElementById('packSize').value = 0;
+            document.getElementById('price').value = 0;
+            document.getElementById('qty').value = 0;
+            document.getElementById('totalDiscount').value = 0;
+            document.getElementById('tax8').value = "0.000";
+            document.getElementById('tax14').value = 0;
         }
 
         function deleteItem(index) {
