@@ -34,12 +34,12 @@
         .section-title { font-size: 1.4rem; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
         .section-card p { line-height: 1.7; color: rgba(255,255,255,0.85); font-size: 1rem; }
 
-        .versions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .versions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-top: 15px; }
         .version-box { background: var(--oled-bg); border: 1px solid var(--card-border); padding: 20px; border-radius: 12px; text-align: center; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
         .version-box:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,212,255,0.1); }
         .version-title { font-size: 1.2rem; font-weight: bold; color: var(--text-main); }
-        .version-desc { font-size: 0.8rem; color: var(--text-muted); }
-        .version-btn { background: var(--primary); color: var(--oled-bg); text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
+        .version-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+        .version-btn { background: var(--primary); color: var(--oled-bg); text-decoration: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
         .version-btn:hover { background: #00b4d8; }
 
         .contact-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 15px; }
@@ -72,59 +72,29 @@
             </p>
         </section>
 
-        <!-- اختيار الإصدارات -->
+        <!-- اختيار الإصدارات المحددة -->
         <section class="section-card">
-            <h3 class="section-title">أرشيف الإصدارات والنسخ المتوفرة</h3>
-            <p style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-muted);">يمكنك استعراض ومقارنة مراحل تطور المنظومة واختيار الإصدار الذي يناسب احتياجاتك المباشرة:</p>
+            <h3 class="section-title">المشروعات والنسخ المتوفرة</h3>
+            <p style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-muted);">يمكنك استعراض وتشغيل الأنظمة والنسخ المحددة مباشرة من هنا:</p>
             
             <div class="versions-grid">
-                <!-- نسخة 1 -->
+                <!-- المشروع الأول -->
                 <div class="version-box">
-                    <div class="version-title">إصدار v.1</div>
-                    <div class="version-desc">النواة الحسابية الأولى والعمليات الأساسية.</div>
-                    <a href="v.1.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
+                    <div class="version-title">E2 Smart Pricing</div>
+                    <div class="version-desc">نظام إدارة وتسعير الخضروات والفاكهة وخامات المطابخ الذكي الذاتي.</div>
+                    <a href="E2 Smart Pricing.html" class="version-btn" target="_blank">تشغيل النظام</a>
                 </div>
-                <!-- نسخة 2 -->
+                <!-- المشروع الثاني -->
                 <div class="version-box">
-                    <div class="version-title">إصدار v.2</div>
-                    <div class="version-desc">تحسين الواجهة وإضافة شريط المراجعة الأولي.</div>
-                    <a href="v.2.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
+                    <div class="version-title">E2 Coca-Cola Cost System Pro</div>
+                    <div class="version-desc">المنظومة الاحترافية المخصصة لمراقبة وتدقيق فواتير شركة كولا.</div>
+                    <a href="E2_Coca-Cola_Cost_System_Pro.html" class="version-btn" target="_blank">تشغيل النظام</a>
                 </div>
-                <!-- نسخة 3 -->
+                <!-- مشروع الآلة الحاسبة -->
                 <div class="version-box">
-                    <div class="version-title">إصدار v.3</div>
-                    <div class="version-desc">إدخال محرك التوهج والتحسينات البصرية.</div>
-                    <a href="v.3.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
-                </div>
-                <!-- نسخة 4 -->
-                <div class="version-box">
-                    <div class="version-title">إصدار v.4</div>
-                    <div class="version-desc">تطوير منظومة تفقيط العملات المبدئية.</div>
-                    <a href="v.4.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
-                </div>
-                <!-- نسخة 5 -->
-                <div class="version-box">
-                    <div class="version-title">إصدار v.5</div>
-                    <div class="version-desc">دمج التوزيع الشرائحي للضرائب المتقدمة.</div>
-                    <a href="v.5.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
-                </div>
-                <!-- نسخة 6 -->
-                <div class="version-box">
-                    <div class="version-title">إصدار v.6</div>
-                    <div class="version-desc">إضافة لوحة التحليلات ومؤشرات الأداء.</div>
-                    <a href="v.6.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
-                </div>
-                <!-- نسخة 7 -->
-                <div class="version-box">
-                    <div class="version-title">إصدار v.7</div>
-                    <div class="version-desc">ربط محول العملات اللحظي عبر API خارجي.</div>
-                    <a href="v.7.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
-                </div>
-                <!-- نسخة 8 -->
-                <div class="version-box">
-                    <div class="version-title">إصدار v.8</div>
-                    <div class="version-desc">إضافة منظومة الـ 6 أنماط بصرية متكاملة ودعم الكيبورد.</div>
-                    <a href="v.8.html" class="version-btn" target="_blank">تشغيل الإصدار</a>
+                    <div class="version-title">الآلة الحاسبة الذكية v.8</div>
+                    <div class="version-desc">النسخة المتكاملة التي تضم 6 أنماط بصرية ودعم لوحة المفاتيح وتغيير العملات المحدث لحظة بلحظة وجميع انواع الضرائب.</div>
+                    <a href="v.8.html" class="version-btn" target="_blank">تشغيل النظام</a>
                 </div>
             </div>
         </section>
@@ -142,7 +112,7 @@
                     </div>
                 </div>
                 <!-- البريد الإلكتروني -->
-                <a href="mailto:ehab.enal.gad@gmail.com" class="contact-item" target="_blank">
+                <a href="mailto:controlcost627@gmail.com" class="contact-item" target="_blank">
                     <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
                     <div class="contact-info">
                         <h4>البريد الإلكتروني المهني</h4>
@@ -193,14 +163,7 @@
                         <p>ehab.enal.gad</p>
                     </div>
                 </a>
-                <!-- تليجرام الخدمي -->
-                <a href="https://t.me/e2_services" class="contact-item" target="_blank">
-                    <div class="contact-icon"><i class="fa-brands fa-telegram"></i></div>
-                    <div class="contact-info">
-                        <h4>قناة التليجرام العامة</h4>
-                        <p>e2_services</p>
-                    </div>
-                </a>
+                
                 <!-- تويتر -->
                 <a href="https://mobile.twitter.com/EhabEnal" class="contact-item" target="_blank">
                     <div class="contact-icon"><i class="fa-brands fa-x-twitter"></i></div>
