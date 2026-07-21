@@ -70,9 +70,10 @@
         .btn-danger { background-color: var(--danger); color: #fff; border: none; }
 
         .search-container { position: relative; width: 100%; }
-        .search-results { position: absolute; top: 100%; left: 0; right: 0; background-color: #1e293b; border: 1px solid var(--border); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.6); display: none; }
+        .search-results { position: absolute; top: 100%; left: 0; right: 0; background-color: #1e293b; border: 1px solid var(--border); border-radius: 6px; max-height: 250px; overflow-y: auto; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.6); display: none; }
         .search-results.active { display: block; }
-        .search-row { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .search-row { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+        .search-row:hover, .search-row.selected-row { background-color: var(--active-row) !important; color: #fff; }
 
         .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
         .summary-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center; }
@@ -80,10 +81,10 @@
         .summary-card .lbl { font-size: 11px; color: var(--text-muted); }
 
         .table-responsive { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; flex: 1; overflow: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: right; min-width: 600px; }
+        table { width: 100%; border-collapse: collapse; text-align: right; min-width: 650px; }
         th { background-color: #111827; color: var(--text-muted); padding: 10px; font-size: 12px; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
         td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
-        .table-input { background-color: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 4px; border-radius: 4px; width: 70px; font-size: 13px; text-align: center; }
+        .table-input { background-color: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 4px; border-radius: 4px; width: 70px; font-size: 13px; text-align: center; font-weight: bold; }
 
         .db-layout { display: grid; grid-template-columns: 320px 1fr; gap: 12px; flex: 1; overflow: hidden; }
         .sync-badge { font-size: 11px; padding: 4px 8px; border-radius: 20px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
@@ -154,24 +155,31 @@
     <!-- ================= صفحة التسعير والمبيعات ================= -->
     <div id="pricing-tab" class="tab-content active">
         <div class="card" style="padding: 12px; display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap;">
+            <input type="hidden" id="editingInvoiceId" value="">
             <div class="form-group" style="flex: 2; min-width: 200px;">
                 <input type="text" id="invoiceClient" class="input-control" placeholder="اسم العميل / المورد أو الجهة المستلمة" autocomplete="off">
             </div>
             <button class="btn btn-primary" onclick="document.getElementById('invoiceExcelFileInput').click()">📥 استيراد Excel</button>
             <input type="file" id="invoiceExcelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="importInvoiceFromExcel(event)">
             <button class="btn" onclick="exportInvoiceToExcel()" style="border-color: var(--accent); color: var(--accent);">📤 تصدير الفاتورة</button>
-            <button class="btn btn-success" onclick="saveInvoiceToCloud()">💾 حفظ وأرشفة الفاتورة سحابياً</button>
+            <button class="btn btn-success" id="btnSaveInvoice" onclick="saveInvoiceToCloud()">💾 حفظ وأرشفة الفاتورة سحابياً</button>
         </div>
 
         <div class="summary-bar">
             <div class="summary-card"><span class="lbl">أصناف القائمة</span><div id="sumUniqueItems" class="val">0</div></div>
             <div class="summary-card"><span class="lbl">إجمالي الكمية</span><div id="sumTotalQuantities" class="val">0</div></div>
+            
+            <div class="summary-card" style="border-color: var(--warning);">
+                <span class="lbl" style="color: var(--warning);">المعامل / النسبة (%)</span>
+                <input type="number" id="invoiceMultiplier" class="input-control" value="0" step="0.5" style="text-align: center; font-weight: bold; color: var(--warning); margin-top: 4px; padding: 2px;" oninput="renderInvoiceTableSilent()">
+            </div>
+
             <div class="summary-card" style="border-color: var(--accent);"><span class="lbl" style="color: var(--accent);">إجمالي الحساب (ج.م)</span><div id="sumTotalPrice" class="val" style="color: var(--accent);">0.00</div></div>
         </div>
 
         <div class="card" style="padding: 10px;">
             <div class="search-container">
-                <input type="text" id="searchInput" class="input-control" style="width:100%; padding:12px;" placeholder="🔍 ابدأ بكتابة اسم الصنف للبحث الفوري..." autocomplete="off">
+                <input type="text" id="searchInput" class="input-control" style="width:100%; padding:12px;" placeholder="🔍 ابدأ بكتابة اسم الصنف... (استخدم الأسهم ↑ ↓ ثم Enter)" autocomplete="off">
                 <div id="searchResults" class="search-results"></div>
             </div>
         </div>
@@ -180,11 +188,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 35%;">اسم الصنف</th>
-                        <th style="width: 15%;">الوحدة</th>
-                        <th style="width: 15%;">السعر</th>
-                        <th style="width: 15%;">الكمية المطلوبة</th>
-                        <th style="width: 15%;">الإجمالي</th>
+                        <th style="width: 30%;">اسم الصنف</th>
+                        <th style="width: 10%;">الوحدة</th>
+                        <th style="width: 15%;">السعر الأساسي</th>
+                        <th style="width: 15%;">السعر + المعامل</th>
+                        <th style="width: 12%;">الكمية المطلوب</th>
+                        <th style="width: 13%;">الإجمالي</th>
                         <th style="width: 5%;">حذف</th>
                     </tr>
                 </thead>
@@ -224,7 +233,7 @@
                             <tr>
                                 <th>اسم الصنف</th>
                                 <th>الوحدة</th>
-                                <th>السعر وقت الحفظ</th>
+                                <th>السعر الأساسي</th>
                                 <th>الكمية</th>
                                 <th>الإجمالي</th>
                             </tr>
@@ -257,10 +266,16 @@
                 </form>
             </div>
             <div style="display:flex; flex-direction:column; gap:10px; overflow:hidden;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                     <span style="font-weight:700; color:var(--accent)">📦 جميع الأصناف المسجلة في السحابة:</span>
-                    <span style="font-size:12px; color:var(--text-muted)">عدد الأصناف: <strong id="dbCount">0</strong></span>
+                    <span style="font-size:12px; color:var(--text-muted)">المعروض: <strong id="dbCount" style="color:var(--accent)">0</strong></span>
                 </div>
+                
+                <!-- خانة البحث المضافة في صفحة الأصناف -->
+                <div class="card" style="padding: 8px;">
+                    <input type="text" id="dbSearchInput" class="input-control" placeholder="🔍 تصفية الأصناف بالاسم، التصنيف، أو الوحدة..." oninput="filterDatabaseTable()" autocomplete="off">
+                </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -375,6 +390,7 @@
         let firebaseDb = null;
         let currentSelectedArchivedInvoice = null;
         let systemUsersCached = []; 
+        let currentFocusIndex = -1;
 
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -413,8 +429,7 @@
                     const cloudItems = [];
                     snapshot.forEach(doc => cloudItems.push(doc.data()));
                     allItemsCached = cloudItems;
-                    document.getElementById("dbCount").innerText = allItemsCached.length;
-                    renderDatabaseTable();
+                    filterDatabaseTable(); // إعادة التصفية وعرض البيانات
                 });
 
             } catch (err) {
@@ -468,7 +483,6 @@
             });
         }
 
-        // ================= [دالة إصلاح وتعديل الأصناف السحابية] =================
         function saveItemToDb(event) {
             event.preventDefault();
             if (currentUser.role !== 'admin') return showToast("عفواً، لا تمتلك صلاحية تعديل الأصناف", "error");
@@ -482,7 +496,6 @@
 
             const product = { name, category, unit, price };
 
-            // إذا كان هناك تعديل في السعر، يتم توثيقه في سجل المراقبة
             if (editOldName && editOldPrice !== price) {
                 firebaseDb.collection("price_history").add({
                     itemName: name,
@@ -493,12 +506,10 @@
                 });
             }
 
-            // إذا تغير اسم الصنف بالكامل، نقوم بحذف الاسم القديم لمنع تكراره
             if (editOldName && editOldName !== name) {
                 firebaseDb.collection("products").doc(editOldName).delete();
             }
 
-            // حفظ التعديلات الجديدة على السحابة فوراً
             firebaseDb.collection("products").doc(name).set(product).then(() => {
                 showToast("تم حفظ وتحديث الصنف بنجاح!");
                 resetItemForm();
@@ -609,15 +620,126 @@
             document.getElementById("btnCancelUserEdit").style.display = "none";
         }
 
+        function exportInvoiceToExcel() {
+            if (activeInvoiceItems.length === 0) return showToast("لا توجد أصناف في الفاتورة الحالية لتصديرها!", "error");
+            const client = document.getElementById("invoiceClient").value.trim() || "فاتورة غير معنونة";
+            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
+
+            const excelRows = activeInvoiceItems.map(item => {
+                const finalPrice = item.price * (1 + multiplier / 100);
+                return {
+                    'اسم الصنف': item.name,
+                    'الوحدة': item.unit,
+                    'السعر الأساسي': item.price,
+                    'السعر بعد المعامل': finalPrice,
+                    'الكمية المطلوبة': item.quantity,
+                    'الإجمالي': finalPrice * item.quantity
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "الفاتورة الحالية");
+            XLSX.writeFile(workbook, `فاتورة_${client}_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
+            showToast("تم تصدير الفاتورة الحالية إلى إكسل بنجاح!");
+        }
+
+        function importInvoiceFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                if (jsonData.length === 0) {
+                    showToast("الملف الذي تم رفعه فارغ!", "error");
+                    return;
+                }
+
+                let importedCount = 0;
+                jsonData.forEach(row => {
+                    const name = row['اسم الصنف'] || row['name'] || row['الصنف'];
+                    if (name) {
+                        const cleanName = name.toString().trim();
+                        const unit = row['الوحدة'] || row['unit'] || 'قطعة';
+                        const price = parseFloat(row['السعر الأساسي'] || row['السعر'] || row['price'] || 0);
+                        const quantity = parseFloat(row['الكمية المطلوبة'] || row['الكمية'] || row['quantity'] || 1);
+
+                        const existingIndex = activeInvoiceItems.findIndex(i => i.name === cleanName);
+                        if (existingIndex !== -1) {
+                            activeInvoiceItems[existingIndex].quantity += quantity;
+                            if (price > 0) activeInvoiceItems[existingIndex].price = price;
+                        } else {
+                            activeInvoiceItems.push({
+                                name: cleanName,
+                                unit: unit,
+                                price: price,
+                                quantity: quantity
+                            });
+                        }
+                        importedCount++;
+                    }
+                });
+
+                renderInvoiceTable();
+                showToast(`🚀 تم استيراد ${importedCount} صنف إلى الفاتورة الحالية!`);
+                event.target.value = '';
+            };
+            reader.readAsBuffer(file);
+        }
+
         function saveInvoiceToCloud() {
             if (activeInvoiceItems.length === 0) return showToast("الفاتورة فارغة، لا يمكن أرشفتها!", "error");
+            
+            const priceChanges = [];
+            activeInvoiceItems.forEach(item => {
+                const dbProduct = allItemsCached.find(p => p.name === item.name);
+                if (dbProduct && dbProduct.price !== item.price) {
+                    priceChanges.push({
+                        name: item.name,
+                        oldPrice: dbProduct.price,
+                        newPrice: item.price
+                    });
+                }
+            });
+
+            if (priceChanges.length > 0) {
+                let msg = "توجد أسعار تم تعديلها داخل الفاتورة:\n";
+                priceChanges.forEach(pc => {
+                    msg += `- ${pc.name}: من ${pc.oldPrice} إلى ${pc.newPrice} ج.م\n`;
+                });
+                msg += "\nهل تريد تطبيق وتحديث هذه الأسعار الجديدة في قاعدة البيانات الأساسية وسجل المراقبة؟";
+
+                if (confirm(msg)) {
+                    priceChanges.forEach(pc => {
+                        firebaseDb.collection("products").doc(pc.name).update({ price: pc.newPrice });
+                        firebaseDb.collection("price_history").add({
+                            itemName: pc.name,
+                            oldPrice: pc.oldPrice,
+                            newPrice: pc.newPrice,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                            dateStr: new Date().toLocaleString('ar-EG')
+                        });
+                    });
+                    showToast("تم تحديث أسعار الأصناف في قاعدة البيانات بنجاح!");
+                }
+            }
+
             const client = document.getElementById("invoiceClient").value.trim() || "عميل افتراضي / غير محدد";
+            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
             const total = parseFloat(document.getElementById("sumTotalPrice").innerText) || 0;
-            const invoiceId = "INV-" + Math.floor(100000 + Math.random() * 900000);
+            
+            const editingId = document.getElementById("editingInvoiceId").value;
+            const invoiceId = editingId ? editingId : ("INV-" + Math.floor(100000 + Math.random() * 900000));
 
             const invoiceData = {
                 invoiceId: invoiceId,
                 client: client,
+                multiplier: multiplier,
                 items: activeInvoiceItems,
                 totalAmount: total,
                 savedBy: currentUser.displayName,
@@ -626,9 +748,13 @@
             };
 
             firebaseDb.collection("invoices").doc(invoiceId).set(invoiceData).then(() => {
-                showToast(`🚀 تم أرشفة وحفظ الفاتورة برقم ${invoiceId} بنجاح!`);
+                showToast(`🚀 تم ${editingId ? 'تحديث وتعديل' : 'أرشفة'} الفاتورة برقم ${invoiceId} بنجاح!`);
+                
                 activeInvoiceItems = [];
                 document.getElementById("invoiceClient").value = "";
+                document.getElementById("invoiceMultiplier").value = "0";
+                document.getElementById("editingInvoiceId").value = "";
+                document.getElementById("btnSaveInvoice").innerText = "💾 حفظ وأرشفة الفاتورة سحابياً";
                 renderInvoiceTable();
             }).catch(err => showToast("حدث خطأ أثناء الأرشفة السحابية", "error"));
         }
@@ -655,7 +781,7 @@
                         <div style="font-size:12px; color:var(--text-main); margin-top:4px;">👤 الجهة: ${inv.client}</div>
                         <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px;">
                             <span>✍️ بواسطة: ${inv.savedBy || 'غير مسجل'}</span>
-                            <span>📅 ${inv.dateStr.split(' ')[0]}</span>
+                            <span>📅 ${inv.dateStr ? inv.dateStr.split(' ')[0] : ''}</span>
                         </div>
                     `;
                     itemDiv.onclick = () => showInvoiceDetails(inv);
@@ -673,11 +799,13 @@
             document.getElementById("archiveDetailTitle").innerText = `📄 تفاصيل فاتورة رقم: ${inv.invoiceId}`;
             document.getElementById("archiveActions").style.display = "flex";
             
+            const mult = inv.multiplier || 0;
             const metaDiv = document.getElementById("archiveDetailMeta");
             metaDiv.innerHTML = `
                 <div><strong>رقم الفاتورة:</strong> ${inv.invoiceId}</div>
                 <div><strong>المورد/العميل:</strong> ${inv.client}</div>
                 <div><strong>بواسطة المستخدم:</strong> <span style="color:var(--accent); font-weight:bold;">${inv.savedBy || 'غير مسجل'}</span></div>
+                <div><strong>المعامل المطبق:</strong> <span style="color:var(--warning); font-weight:bold;">${mult}%</span></div>
                 <div><strong>التاريخ والوقت:</strong> ${inv.dateStr}</div>
                 <div style="color:var(--success); font-weight:700; grid-column: span 2; font-size:15px; border-top: 1px dashed var(--border); padding-top: 5px;">الإجمالي الكلي: ${inv.totalAmount.toFixed(2)} ج.م</div>
             `;
@@ -685,13 +813,14 @@
             const tbody = document.getElementById("archiveItemsBody");
             tbody.innerHTML = "";
             inv.items.forEach(item => {
+                const finalPrice = item.price * (1 + mult / 100);
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${item.name}</td>
                     <td>${item.unit}</td>
                     <td>${item.price.toFixed(2)} ج.م</td>
                     <td>${item.quantity}</td>
-                    <td style="font-weight:700; color:var(--accent)">${(item.price * item.quantity).toFixed(2)} ج.م</td>
+                    <td style="font-weight:700; color:var(--accent)">${(finalPrice * item.quantity).toFixed(2)} ج.م</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -700,13 +829,19 @@
         function exportArchivedInvoiceToExcel() {
             if(!currentSelectedArchivedInvoice) return;
             const inv = currentSelectedArchivedInvoice;
-            const excelRows = inv.items.map(item => ({
-                'اسم الصنف': item.name,
-                'الوحدة': item.unit,
-                'السعر وقت الحفظ': item.price,
-                'الكمية': item.quantity,
-                'الإجمالي': item.price * item.quantity
-            }));
+            const mult = inv.multiplier || 0;
+
+            const excelRows = inv.items.map(item => {
+                const finalPrice = item.price * (1 + mult / 100);
+                return {
+                    'اسم الصنف': item.name,
+                    'الوحدة': item.unit,
+                    'السعر الأساسي': item.price,
+                    'السعر بعد المعامل': finalPrice,
+                    'الكمية': item.quantity,
+                    'الإجمالي': finalPrice * item.quantity
+                };
+            });
             const worksheet = XLSX.utils.json_to_sheet(excelRows);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "تفاصيل الفاتورة");
@@ -716,13 +851,18 @@
 
         function loadInvoiceToWorkspace() {
             if(!currentSelectedArchivedInvoice) return;
-            if(confirm("هل تريد استدعاء هذه الفاتورة إلى شاشة العمل؟")) {
+            if(confirm(`هل تريد تعديل الفاتورة رقم (${currentSelectedArchivedInvoice.invoiceId})؟`)) {
                 activeInvoiceItems = JSON.parse(JSON.stringify(currentSelectedArchivedInvoice.items));
                 document.getElementById("invoiceClient").value = currentSelectedArchivedInvoice.client;
+                document.getElementById("invoiceMultiplier").value = currentSelectedArchivedInvoice.multiplier || 0;
+                
+                document.getElementById("editingInvoiceId").value = currentSelectedArchivedInvoice.invoiceId;
+                document.getElementById("btnSaveInvoice").innerText = `💾 تحديث الفاتورة المعدلة (${currentSelectedArchivedInvoice.invoiceId})`;
+
                 const pricingTabBtn = document.querySelector(".nav-tabs .tab-btn:first-child");
                 switchTab('pricing-tab', pricingTabBtn);
                 renderInvoiceTable();
-                showToast("تم تحميل الفاتورة بنجاح في ساحة العمل");
+                showToast("تم استدعاء الفاتورة في مساحة العمل للتعديل");
             }
         }
 
@@ -743,22 +883,63 @@
 
         function setupSearchEngine() {
             const searchInput = document.getElementById("searchInput");
+            const resultsContainer = document.getElementById("searchResults");
             if(!searchInput) return;
+
             searchInput.addEventListener("input", (e) => {
                 const query = cleanArabicText(e.target.value.trim());
                 if (!query) { closeSearch(); return; }
                 const filtered = allItemsCached.filter(item => cleanArabicText(item.name).includes(query));
                 renderSearchResults(filtered);
             });
+
+            searchInput.addEventListener("keydown", (e) => {
+                const rows = resultsContainer.querySelectorAll(".search-row");
+                if (!resultsContainer.classList.contains("active") || rows.length === 0) return;
+
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    currentFocusIndex++;
+                    if (currentFocusIndex >= rows.length) currentFocusIndex = 0;
+                    updateActiveSearchRow(rows);
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    currentFocusIndex--;
+                    if (currentFocusIndex < 0) currentFocusIndex = rows.length - 1;
+                    updateActiveSearchRow(rows);
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (currentFocusIndex > -1 && rows[currentFocusIndex]) {
+                        rows[currentFocusIndex].click();
+                    } else if (rows.length > 0) {
+                        rows[0].click();
+                    }
+                } else if (e.key === "Escape") {
+                    closeSearch();
+                }
+            });
+        }
+
+        function updateActiveSearchRow(rows) {
+            rows.forEach((row, index) => {
+                if (index === currentFocusIndex) {
+                    row.classList.add("selected-row");
+                    row.scrollIntoView({ block: "nearest" });
+                } else {
+                    row.classList.remove("selected-row");
+                }
+            });
         }
 
         function cleanArabicText(text) {
-            return text.replace(/[أإآا]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").toLowerCase();
+            return text ? text.toString().replace(/[أإآا]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").toLowerCase() : "";
         }
 
         function renderSearchResults(results) {
             const resultsContainer = document.getElementById("searchResults");
             resultsContainer.innerHTML = "";
+            currentFocusIndex = -1;
+
             if (results.length === 0) {
                 resultsContainer.innerHTML = `<div class="search-row" style="color:var(--text-muted)">لا توجد نتائج مطابقة</div>`;
                 resultsContainer.classList.add("active");
@@ -780,29 +961,58 @@
         function closeSearch() {
             document.getElementById("searchResults").classList.remove("active");
             document.getElementById("searchInput").value = "";
+            currentFocusIndex = -1;
         }
 
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".search-container")) {
+                closeSearch();
+            }
+        });
+
         function addItemToWorkspace(item) {
-            const existingItem = activeInvoiceItems.find(i => i.name === item.name);
-            if (existingItem) { existingItem.quantity += 1; } else { activeInvoiceItems.push({ name: item.name, unit: item.unit, price: item.price, quantity: 1 }); }
+            const existingIndex = activeInvoiceItems.findIndex(i => i.name === item.name);
+            let targetIndex = 0;
+
+            if (existingIndex !== -1) {
+                activeInvoiceItems[existingIndex].quantity += 1;
+                targetIndex = existingIndex;
+            } else {
+                activeInvoiceItems.push({ name: item.name, unit: item.unit, price: item.price, quantity: 1 });
+                targetIndex = activeInvoiceItems.length - 1;
+            }
+
             renderInvoiceTable();
+
+            setTimeout(() => {
+                const qtyInputs = document.querySelectorAll(".qty-input");
+                if (qtyInputs[targetIndex]) {
+                    qtyInputs[targetIndex].focus();
+                    qtyInputs[targetIndex].select();
+                }
+            }, 50);
         }
 
         function renderInvoiceTable() {
             const tbody = document.getElementById("invoiceBody");
             tbody.innerHTML = "";
             let totalUnique = activeInvoiceItems.length, totalQty = 0, grandTotal = 0;
+            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
 
             activeInvoiceItems.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                totalQty += item.quantity; grandTotal += itemTotal;
+                const priceWithMult = item.price * (1 + multiplier / 100);
+                const itemTotal = priceWithMult * item.quantity;
+                totalQty += item.quantity; 
+                grandTotal += itemTotal;
+
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td style="font-weight:600">${item.name}</td>
                     <td>${item.unit}</td>
                     <td><input type="number" step="0.01" class="table-input price-input" data-index="${index}" value="${item.price}"></td>
+                    <td style="font-weight:bold; color:var(--warning)" class="mult-price-td">${priceWithMult.toFixed(2)}</td>
                     <td><input type="number" step="1" class="table-input qty-input" data-index="${index}" value="${item.quantity}"></td>
-                    <td style="font-weight:700; color:var(--accent)">${itemTotal.toFixed(2)}</td>
+                    <td style="font-weight:700; color:var(--accent)" class="item-total-td">${itemTotal.toFixed(2)}</td>
                     <td><button class="btn" style="color:var(--danger); border:none; background:none" onclick="removeItemFromWorkspace(${index})">✕</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -821,22 +1031,40 @@
                     renderInvoiceTableSilent();
                 });
             });
+
             document.querySelectorAll(".qty-input").forEach(input => {
                 input.addEventListener("input", (e) => {
                     const idx = parseInt(e.target.dataset.index);
                     activeInvoiceItems[idx].quantity = parseFloat(e.target.value) || 0;
                     renderInvoiceTableSilent();
                 });
+
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        const searchInput = document.getElementById("searchInput");
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                });
             });
         }
 
         function renderInvoiceTableSilent() {
             let totalQty = 0, grandTotal = 0;
+            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
             const rows = document.getElementById("invoiceBody").querySelectorAll("tr");
+
             activeInvoiceItems.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                totalQty += item.quantity; grandTotal += itemTotal;
-                if(rows[index]) rows[index].querySelectorAll("td")[4].innerText = itemTotal.toFixed(2);
+                const priceWithMult = item.price * (1 + multiplier / 100);
+                const itemTotal = priceWithMult * item.quantity;
+                totalQty += item.quantity; 
+                grandTotal += itemTotal;
+
+                if(rows[index]) {
+                    rows[index].querySelector(".mult-price-td").innerText = priceWithMult.toFixed(2);
+                    rows[index].querySelector(".item-total-td").innerText = itemTotal.toFixed(2);
+                }
             });
             document.getElementById("sumTotalQuantities").innerText = totalQty;
             document.getElementById("sumTotalPrice").innerText = grandTotal.toFixed(2);
@@ -844,10 +1072,27 @@
 
         function removeItemFromWorkspace(index) { activeInvoiceItems.splice(index, 1); renderInvoiceTable(); }
 
-        function renderDatabaseTable() {
+        // تصفية وتحديث جدول الأصناف بناءً على كلمة البحث
+        function filterDatabaseTable() {
+            const query = cleanArabicText(document.getElementById("dbSearchInput") ? document.getElementById("dbSearchInput").value.trim() : "");
+            const filtered = allItemsCached.filter(item => {
+                return cleanArabicText(item.name).includes(query) ||
+                       cleanArabicText(item.category).includes(query) ||
+                       cleanArabicText(item.unit).includes(query);
+            });
+            
+            renderDatabaseTable(filtered);
+            document.getElementById("dbCount").innerText = filtered.length;
+        }
+
+        function renderDatabaseTable(itemsToRender = allItemsCached) {
             const tbody = document.getElementById("databaseItemsBody");
             tbody.innerHTML = "";
-            allItemsCached.forEach(item => {
+            if(itemsToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:15px;">لا توجد أصناف مطابقة للبحث</td></tr>`;
+                return;
+            }
+            itemsToRender.forEach(item => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td style="font-weight:600">${item.name}</td>
