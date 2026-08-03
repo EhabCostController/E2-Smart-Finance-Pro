@@ -2,16 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>نظام E2 السحابي المطور لإدارة التكاليف والأسعار</title>
-    
-    <!-- مكتبات الدعم والخطوط -->
+
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- مكتبات Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -31,101 +29,546 @@
             --warning: #f59e0b;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; padding: 10px; overflow: hidden; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 10000; }
-        .login-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 35px; width: 90%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); text-align: center; }
+        body { 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 10px; 
+            overflow: hidden; 
+        }
+
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #loginOverlay { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh; 
+            background-color: var(--bg-main); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 10000; 
+            transition: opacity 0.4s ease;
+        }
+        .login-card { 
+            background-color: var(--bg-card); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            padding: 35px; 
+            width: 90%; 
+            max-width: 400px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); 
+            text-align: center; 
+        }
         .login-card h2 { color: var(--accent); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
         .login-card p { color: var(--text-muted); font-size: 13px; margin-bottom: 25px; }
 
         #toastContainer { position: fixed; top: 15px; left: 15px; z-index: 9999; }
-        .toast { background-color: var(--bg-card); border-right: 5px solid var(--accent); color: var(--text-main); padding: 12px 20px; margin-bottom: 8px; border-radius: 6px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); font-size: 13px; font-weight: 600; animation: slideIn 0.2s ease-out forwards; }
+        .toast { 
+            background-color: var(--bg-card); 
+            border-right: 5px solid var(--accent); 
+            color: var(--text-main); 
+            padding: 12px 20px; 
+            margin-bottom: 8px; 
+            border-radius: 6px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); 
+            font-size: 13px; 
+            font-weight: 600; 
+            animation: slideIn 0.2s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+        }
+        .toast.error { border-right-color: var(--danger); }
+        .toast.success { border-right-color: var(--success); }
+        .toast.warning { border-right-color: var(--warning); }
+        .toast-progress {
+            position: absolute;
+            bottom: 0; left: 0; height: 3px;
+            background: var(--accent);
+            animation: toastProgress 3s linear forwards;
+        }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
 
-        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding-bottom: 10px; 
+            border-bottom: 1px solid var(--border); 
+            margin-bottom: 10px; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+        }
         .logo-section h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
         .logo-section span { font-size: 11px; color: var(--text-muted); }
 
-        .nav-tabs { display: flex; gap: 8px; background-color: var(--bg-card); padding: 4px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; }
-        .tab-btn { background: none; border: none; color: var(--text-muted); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .nav-tabs { 
+            display: flex; 
+            gap: 4px; 
+            background-color: var(--bg-card); 
+            padding: 4px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { 
+            background: none; 
+            border: none; 
+            color: var(--text-muted); 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 13px; 
+            transition: all 0.2s; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            white-space: nowrap; 
+            user-select: none;
+            min-height: 40px;
+        }
         .tab-btn.active { background-color: var(--accent); color: #000; }
+        .tab-btn .unsaved-dot {
+            width: 6px; height: 6px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: none;
+        }
+        .tab-btn.has-unsaved .unsaved-dot { display: inline-block; }
 
         .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; gap: 12px; }
         .tab-content.active { display: flex; }
 
-        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .card-title { font-size: 15px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 4px; }
+        .card { 
+            background-color: var(--bg-card); 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
+        .card-title { 
+            font-size: 15px; 
+            font-weight: 700; 
+            color: var(--accent); 
+            border-bottom: 1px solid var(--border); 
+            padding-bottom: 6px; 
+            margin-bottom: 4px; 
+        }
 
         .form-group { display: flex; flex-direction: column; gap: 4px; }
         .form-group label { font-size: 12px; color: var(--text-muted); }
-        .input-control { background-color: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 6px; font-size: 14px; outline: none; }
+        .input-control { 
+            background-color: var(--bg-input); 
+            border: 1px solid var(--border); 
+            color: var(--text-main); 
+            padding: 10px 12px; 
+            border-radius: 6px; 
+            font-size: 14px; 
+            outline: none; 
+            width: 100%;
+            min-height: 40px;
+        }
         .input-control:focus { border-color: var(--accent); }
+        select.input-control { cursor: pointer; }
 
-        .btn { background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border); padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: all 0.2s ease; }
-        .btn:hover { background-color: var(--border); }
+        .btn { 
+            background-color: var(--bg-input); 
+            color: var(--text-main); 
+            border: 1px solid var(--border); 
+            padding: 10px 16px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+            font-size: 14px; 
+            transition: all 0.2s ease; 
+            user-select: none;
+            min-height: 40px;
+            position: relative;
+        }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { background-color: var(--border); }
         .btn-primary { background-color: var(--accent); color: #000; border: none; }
-        .btn-primary:hover { background-color: var(--accent-hover); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); }
         .btn-success { background-color: var(--success); color: #fff; border: none; }
         .btn-danger { background-color: var(--danger); color: #fff; border: none; }
+        .btn-sm { padding: 6px 10px; font-size: 12px; min-height: 32px; }
 
         .search-container { position: relative; width: 100%; }
-        .search-results { position: absolute; top: 100%; left: 0; right: 0; background-color: #1e293b; border: 1px solid var(--border); border-radius: 6px; max-height: 250px; overflow-y: auto; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.6); display: none; }
+        .search-results { 
+            position: absolute; 
+            top: calc(100% + 4px); 
+            left: 0; right: 0; 
+            background-color: var(--bg-card); 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            max-height: 250px; 
+            overflow-y: auto; 
+            z-index: 1000; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
+            display: none; 
+        }
         .search-results.active { display: block; }
-        .search-row { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
-        .search-row:hover, .search-row.selected-row { background-color: var(--active-row) !important; color: #fff; }
+        .search-row { 
+            padding: 10px 15px; 
+            cursor: pointer; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            transition: background 0.15s; 
+        }
+        .search-row:hover, .search-row.selected-row { 
+            background-color: var(--active-row) !important; 
+            color: #fff; 
+        }
 
-        .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
-        .summary-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center; }
+        .summary-bar { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+            gap: 8px; 
+        }
+        .summary-card { 
+            background: linear-gradient(135deg, #1e293b, #0f172a); 
+            border: 1px solid var(--border); 
+            padding: 10px; 
+            border-radius: 8px; 
+            text-align: center; 
+        }
         .summary-card .val { font-size: 20px; font-weight: 700; color: var(--accent); }
         .summary-card .lbl { font-size: 11px; color: var(--text-muted); }
 
-        .table-responsive { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; flex: 1; overflow: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: right; min-width: 650px; }
-        th { background-color: #111827; color: var(--text-muted); padding: 10px; font-size: 12px; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); }
-        td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
-        .table-input { background-color: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 4px; border-radius: 4px; width: 70px; font-size: 13px; text-align: center; font-weight: bold; }
+        .table-responsive { 
+            background-color: var(--bg-card); 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            flex: 1; 
+            overflow: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: right; 
+            min-width: 650px; 
+        }
+        th { 
+            background-color: #111827; 
+            color: var(--text-muted); 
+            padding: 10px; 
+            font-size: 12px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            border-bottom: 1px solid var(--border); 
+            white-space: nowrap;
+        }
+        td { 
+            padding: 8px 10px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            font-size: 13px; 
+            white-space: nowrap;
+        }
+        tr.selected-item { background: rgba(56, 189, 248, 0.1); }
+        .table-input { 
+            background-color: var(--bg-input); 
+            border: 1px solid var(--border); 
+            color: var(--text-main); 
+            padding: 6px; 
+            border-radius: 4px; 
+            width: 80px; 
+            font-size: 13px; 
+            text-align: center; 
+            font-weight: bold;
+            min-height: 32px;
+        }
 
-        .db-layout { display: grid; grid-template-columns: 320px 1fr; gap: 12px; flex: 1; overflow: hidden; }
-        .sync-badge { font-size: 11px; padding: 4px 8px; border-radius: 20px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+        .db-layout { 
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            gap: 12px; 
+            flex: 1; 
+            overflow: hidden; 
+        }
+        .sync-badge { 
+            font-size: 11px; 
+            padding: 4px 8px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 5px; 
+            white-space: nowrap;
+        }
         .sync-online { background-color: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); }
         .sync-offline { background-color: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        .sync-syncing { background-color: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
 
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: inline-flex !important; }
         body.is-admin div.admin-only { display: flex !important; }
+        body.is-supervisor .supervisor-only { display: inline-flex !important; }
+        body.is-supervisor div.supervisor-only { display: flex !important; }
+        body.is-supervisor span.supervisor-only { display: inline-flex !important; }
+        body.is-admin span.admin-only { display: inline-flex !important; }
 
-        .archive-layout { display: grid; grid-template-columns: 380px 1fr; gap: 12px; flex: 1; overflow: hidden; }
-        .archive-item { background: var(--bg-input); border: 1px solid var(--border); padding: 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; position: relative; }
+        .archive-layout { 
+            display: grid; 
+            grid-template-columns: 380px 1fr; 
+            gap: 12px; 
+            flex: 1; 
+            overflow: hidden; 
+            position: relative;
+        }
+        .archive-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+        .archive-detail { display: flex; flex-direction: column; overflow: hidden; }
+        .archive-item { 
+            background: var(--bg-input); 
+            border: 1px solid var(--border); 
+            padding: 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            position: relative; 
+        }
         .archive-item:hover { border-color: var(--accent); }
-        .archive-item.selected { border-color: var(--accent); background: #1e293b; box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.1); }
+        .archive-item.selected { 
+            border-color: var(--accent); 
+            background: #1e293b; 
+            box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.1); 
+        }
+        .mobile-back-btn {
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border-top: 1px solid var(--border);
+        }
+        .pagination-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            min-height: 32px;
+        }
+        .pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination-info { font-size: 12px; color: var(--text-muted); }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .loading-overlay.active { display: flex; }
+        .loading-text { color: var(--accent); font-weight: 600; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9997;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+        .modal-card h3 { color: var(--accent); margin-bottom: 12px; }
+        .modal-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+        @media print {
+            body { background: white; color: black; overflow: visible; height: auto; }
+            #loginOverlay, header, .nav-tabs, .search-container, 
+            .btn:not(.print-only), .summary-card input, 
+            #toastContainer, .loading-overlay, .modal-overlay { 
+                display: none !important; 
+            }
+            .tab-content { display: none !important; }
+            .tab-content.print-target { 
+                display: block !important; 
+                position: static; 
+                overflow: visible;
+            }
+            .table-responsive { border: none; overflow: visible; }
+            table { min-width: 100% !important; font-size: 11px; }
+            th { background: #eee !important; color: #333 !important; }
+            td, th { border: 1px solid #ccc !important; }
+            .card { border: 1px solid #ccc; break-inside: avoid; }
+            .summary-bar { grid-template-columns: repeat(4, 1fr) !important; }
+            .summary-card { border: 1px solid #ccc; }
+        }
 
         @media (max-width: 768px) {
-            body { overflow-y: auto; height: auto; }
-            .db-layout, .archive-layout { grid-template-columns: 1fr; overflow: visible; }
-            .table-responsive { max-height: 400px; }
-            header { flex-direction: column; align-items: stretch; }
+            body { overflow-y: auto; height: auto; padding: 8px; }
+            .login-card { padding: 24px 20px; width: 95%; }
+            .login-card h2 { font-size: 18px; }
+
+            header { flex-direction: column; align-items: stretch; gap: 8px; }
+            .logo-section { text-align: center; }
+            .nav-tabs { padding: 3px; gap: 2px; }
+            .tab-btn { padding: 6px 10px; font-size: 12px; min-height: 36px; flex: 1; justify-content: center; }
+
+            .db-layout, .archive-layout { 
+                grid-template-columns: 1fr; 
+                overflow: visible; 
+            }
+
+            .archive-layout.mobile-detail-active .archive-list { display: none; }
+            .archive-layout.mobile-detail-active .archive-detail { display: flex; }
+            .mobile-back-btn { display: inline-flex; }
+
+            .table-responsive { max-height: 50vh; }
+            table { min-width: 600px; }
+
+            .summary-bar { grid-template-columns: repeat(2, 1fr); }
+            .summary-card .val { font-size: 16px; }
+
+            .card { padding: 12px; gap: 10px; }
+            .input-control { padding: 8px 10px; font-size: 16px; }
+            .table-input { width: 65px; padding: 4px; }
+
+            .btn { padding: 8px 12px; font-size: 13px; min-height: 44px; }
+            .btn-sm { min-height: 36px; }
+
+            .search-results { 
+                position: fixed; 
+                top: auto; 
+                bottom: 0; 
+                left: 0; right: 0;
+                max-height: 50vh;
+                border-radius: 12px 12px 0 0;
+                z-index: 1001;
+            }
+
+            .modal-card { padding: 20px 16px; }
+        }
+
+        @media (max-width: 480px) {
+            .summary-bar { grid-template-columns: repeat(2, 1fr); }
+            .logo-section h1 { font-size: 16px; }
+        }
+
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 8px; }
+        .flex-wrap { flex-wrap: wrap; }
+        .gap-2 { gap: 8px; }
+        .w-full { width: 100%; }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+
+        .mobile-save-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0; right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 10px;
+            z-index: 100;
+            gap: 8px;
+        }
+        @media (max-width: 768px) {
+            .mobile-save-bar { display: flex; }
+            body { padding-bottom: 70px; }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول السحابية الذكية -->
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner" style="width: 40px; height: 40px; border-width: 3px;"></div>
+        <div class="loading-text" id="loadingText">جاري المعالجة...</div>
+    </div>
+
+    <!-- Custom Modal -->
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 id="modalTitle">تأكيد</h3>
+            <p id="modalMessage">هل أنت متأكد؟</p>
+            <div class="modal-actions">
+                <button class="btn" id="modalCancel" onclick="closeModal()">إلغاء</button>
+                <button class="btn btn-primary" id="modalConfirm">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Overlay -->
     <div id="loginOverlay">
         <div class="login-card">
             <h2>🔑 تسجيل الدخول للسيستم</h2>
             <p>مجموعة E2 لخدمات وبرمجيات وإدارة الانظمة</p>
-            
+
             <form onsubmit="handleMultiUserLogin(event)">
                 <div class="form-group" style="margin-bottom: 12px; text-align: right;">
                     <label>اسم المستخدم (بالإنجليزي)</label>
-                    <input type="text" id="loginUsername" class="input-control" placeholder="مثال: Ehab" required style="text-align: center;">
+                    <input type="text" id="loginUsername" class="input-control" placeholder="مثال: Ehab" required style="text-align: center;" autocomplete="username">
                 </div>
                 <div class="form-group" style="margin-bottom: 20px; text-align: right;">
                     <label>كلمة المرور</label>
-                    <input type="password" id="loginPassword" class="input-control" placeholder="••••••" required style="text-align: center; letter-spacing: 2px;">
+                    <input type="password" id="loginPassword" class="input-control" placeholder="••••••" required style="text-align: center; letter-spacing: 2px;" autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">دخول النظام</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;" id="loginBtn">
+                    <span id="loginBtnText">دخول النظام</span>
+                </button>
             </form>
             <div id="loginError" style="color: var(--danger); font-size: 12px; margin-top: 10px; font-weight: bold; display: none;">❌ اسم المستخدم أو كلمة المرور خاطئة!</div>
         </div>
@@ -135,20 +578,23 @@
 
     <header>
         <div class="logo-section">
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <h1>نظام E2 الذكي</h1>
                 <span id="cloudStatus" class="sync-badge sync-offline">🔌 جاري الاتصال...</span>
                 <span id="userBadge" style="background:#334155; padding: 2px 10px; border-radius:4px; font-size:11px; font-weight:bold; color:var(--accent)">-</span>
+                <span id="unsavedBadge" style="background:var(--danger); padding: 2px 8px; border-radius:4px; font-size:10px; font-weight:bold; color:#fff; display:none;">غير محفوظ</span>
             </div>
             <span>إدارة تكاليف، أرشفة سحابية، ومراقبة تغير الأسعار</span>
         </div>
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('pricing-tab', this)">📊 تسعير ومبيعات</button>
-            <button class="tab-btn" onclick="switchTab('archive-tab', this)">🗄️ أرشيف الفواتير</button>
-            <button class="tab-btn admin-only" onclick="switchTab('items-tab', this)">📦 إدارة الأصناف</button>
-            <button class="tab-btn admin-only" onclick="switchTab('history-tab', this)">📈 تقرير تغير الأسعار</button>
-            <button class="tab-btn admin-only" onclick="switchTab('users-tab', this)">👥 إدارة المستخدمين</button>
-            <button class="tab-btn admin-only" onclick="switchTab('settings-tab', this)">⚙️ الإعدادات</button>
+            <button class="tab-btn active" onclick="switchTab('pricing-tab', this)">
+                📊 تسعير <span class="unsaved-dot"></span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('archive-tab', this)">🗄️ أرشيف</button>
+            <button class="tab-btn supervisor-only" onclick="switchTab('items-tab', this)">📦 الأصناف</button>
+            <button class="tab-btn supervisor-only" onclick="switchTab('history-tab', this)">📈 الأسعار</button>
+            <button class="tab-btn admin-only" onclick="switchTab('users-tab', this)">👥 المستخدمين</button>
+            <button class="tab-btn admin-only" onclick="switchTab('settings-tab', this)">⚙️ إعدادات</button>
         </div>
     </header>
 
@@ -161,25 +607,30 @@
             </div>
             <button class="btn btn-primary" onclick="document.getElementById('invoiceExcelFileInput').click()">📥 استيراد Excel</button>
             <input type="file" id="invoiceExcelFileInput" accept=".xlsx, .xls" style="display: none;" onchange="importInvoiceFromExcel(event)">
-            <button class="btn" onclick="exportInvoiceToExcel()" style="border-color: var(--accent); color: var(--accent);">📤 تصدير الفاتورة</button>
-            <button class="btn btn-success" id="btnSaveInvoice" onclick="saveInvoiceToCloud()">💾 حفظ وأرشفة الفاتورة سحابياً</button>
+            <button class="btn" onclick="exportInvoiceToExcel()" style="border-color: var(--accent); color: var(--accent);">📤 تصدير Excel</button>
+            <button class="btn" onclick="printInvoice()" style="border-color: var(--success); color: var(--success);">🖨️ طباعة</button>
+            <button class="btn" onclick="clearInvoice()" style="border-color: var(--danger); color: var(--danger);">🗑️ مسح</button>
+            <button class="btn btn-success" id="btnSaveInvoice" onclick="saveInvoiceToCloud()">💾 حفظ وأرشفة</button>
         </div>
 
         <div class="summary-bar">
             <div class="summary-card"><span class="lbl">أصناف القائمة</span><div id="sumUniqueItems" class="val">0</div></div>
             <div class="summary-card"><span class="lbl">إجمالي الكمية</span><div id="sumTotalQuantities" class="val">0</div></div>
-            
+
             <div class="summary-card" style="border-color: var(--warning);">
                 <span class="lbl" style="color: var(--warning);">المعامل / النسبة (%)</span>
-                <input type="number" id="invoiceMultiplier" class="input-control" value="0" step="0.5" style="text-align: center; font-weight: bold; color: var(--warning); margin-top: 4px; padding: 2px;" oninput="renderInvoiceTableSilent()">
+                <input type="number" id="invoiceMultiplier" class="input-control" value="0" step="0.5" inputmode="decimal" style="text-align: center; font-weight: bold; color: var(--warning); margin-top: 4px; padding: 2px;" oninput="handleMultiplierChange()">
             </div>
 
-            <div class="summary-card" style="border-color: var(--accent);"><span class="lbl" style="color: var(--accent);">إجمالي الحساب (ج.م)</span><div id="sumTotalPrice" class="val" style="color: var(--accent);">0.00</div></div>
+            <div class="summary-card" style="border-color: var(--accent);">
+                <span class="lbl" style="color: var(--accent);">إجمالي الحساب (ج.م)</span>
+                <div id="sumTotalPrice" class="val" style="color: var(--accent);">0.00</div>
+            </div>
         </div>
 
         <div class="card" style="padding: 10px;">
             <div class="search-container">
-                <input type="text" id="searchInput" class="input-control" style="width:100%; padding:12px;" placeholder="🔍 ابدأ بكتابة اسم الصنف... (استخدم الأسهم ↑ ↓ ثم Enter)" autocomplete="off">
+                <input type="text" id="searchInput" class="input-control" style="width:100%; padding:12px;" placeholder="🔍 ابدأ بكتابة اسم الصنف... (استخدم الأسهم ↑ ↓ ثم Enter)" autocomplete="off" autocorrect="off" spellcheck="false">
                 <div id="searchResults" class="search-results"></div>
             </div>
         </div>
@@ -204,20 +655,24 @@
 
     <!-- ================= صفحة أرشيف الفواتير ================= -->
     <div id="archive-tab" class="tab-content">
-        <div class="archive-layout">
-            <div class="card" style="overflow-y: auto;">
+        <div class="archive-layout" id="archiveLayout">
+            <div class="card archive-list" style="overflow-y: auto;">
                 <div class="card-title">🗄️ قائمة الفواتير المؤرشفة</div>
                 <div id="archiveList" style="display:flex; flex-direction:column; gap:8px;">
-                    <div style="text-align:center; color:var(--text-muted); padding:20px;">جاري تحميل الأرشيف...</div>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>جاري تحميل الأرشيف...</div>
+                    </div>
                 </div>
             </div>
-            <div class="card" style="overflow:hidden; display:flex; flex-direction:column;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 4px;">
+            <div class="card archive-detail" style="overflow:hidden; display:flex; flex-direction:column;">
+                <button class="btn mobile-back-btn" onclick="closeArchiveDetail()">⬅️ رجوع للقائمة</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 4px; flex-wrap: wrap; gap: 8px;">
                     <div class="card-title" id="archiveDetailTitle" style="border:none; margin:0; padding:0;">تفاصيل الفاتورة المحددة</div>
-                    <div id="archiveActions" style="display: none; gap: 8px;">
-                        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 12px;" onclick="exportArchivedInvoiceToExcel()">📤 تصدير لإكسل</button>
-                        <button class="btn" style="padding: 5px 12px; font-size: 12px; border-color: var(--warning); color: var(--warning);" onclick="loadInvoiceToWorkspace()">✏️ تعديل الفاتورة</button>
-                        <button class="btn btn-danger admin-only" style="padding: 5px 12px; font-size: 12px;" onclick="deleteInvoiceFromArchive()">✕ حذف نهائي</button>
+                    <div id="archiveActions" style="display: none; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="exportArchivedInvoiceToExcel()">📤 تصدير Excel</button>
+                        <button class="btn btn-sm" style="border-color: var(--warning); color: var(--warning);" onclick="loadInvoiceToWorkspace()">✏️ تعديل</button>
+                        <button class="btn btn-danger btn-sm admin-only" onclick="deleteInvoiceFromArchive()">✕ حذف</button>
                     </div>
                 </div>
                 <div id="archiveDetailMeta" style="font-size:13px; color:var(--text-muted); margin-bottom:10px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -239,7 +694,7 @@
                             </tr>
                         </thead>
                         <tbody id="archiveItemsBody">
-                            <tr><td colspan="5" style="text-align:center; color:var(--text-muted)">اختر فاتورة من القائمة اليمنى لعرض محتوياتها</td></tr>
+                            <tr><td colspan="5" style="text-align:center; color:var(--text-muted)">اختر فاتورة من القائمة لعرض محتوياتها</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -258,9 +713,9 @@
                     <div class="form-group" style="margin-bottom:8px"><label>اسم الصنف *</label><input type="text" id="item_name" class="input-control" required autocomplete="off"></div>
                     <div class="form-group" style="margin-bottom:8px"><label>التصنيف</label><input type="text" id="item_category" class="input-control" placeholder="مشروبات، مجمدات..." autocomplete="off"></div>
                     <div class="form-group" style="margin-bottom:8px"><label>الوحدة</label><input type="text" id="item_unit" class="input-control" placeholder="قطعة، كيلو..." autocomplete="off"></div>
-                    <div class="form-group" style="margin-bottom:12px"><label>السعر الأساسي *</label><input type="number" id="item_price" step="0.01" class="input-control" required autocomplete="off"></div>
+                    <div class="form-group" style="margin-bottom:12px"><label>السعر الأساسي *</label><input type="number" id="item_price" step="0.01" class="input-control" required inputmode="decimal" autocomplete="off"></div>
                     <div style="display:flex; gap:8px;">
-                        <button type="submit" class="btn btn-primary" style="flex:1">حفظ سحابياً</button>
+                        <button type="submit" class="btn btn-primary" style="flex:1" id="btnSaveItem">حفظ سحابياً</button>
                         <button type="button" id="btnCancelEdit" class="btn" style="display:none;" onclick="resetItemForm()">إلغاء</button>
                     </div>
                 </form>
@@ -270,10 +725,9 @@
                     <span style="font-weight:700; color:var(--accent)">📦 جميع الأصناف المسجلة في السحابة:</span>
                     <span style="font-size:12px; color:var(--text-muted)">المعروض: <strong id="dbCount" style="color:var(--accent)">0</strong></span>
                 </div>
-                
-                <!-- خانة البحث المضافة في صفحة الأصناف -->
+
                 <div class="card" style="padding: 8px;">
-                    <input type="text" id="dbSearchInput" class="input-control" placeholder="🔍 تصفية الأصناف بالاسم، التصنيف، أو الوحدة..." oninput="filterDatabaseTable()" autocomplete="off">
+                    <input type="text" id="dbSearchInput" class="input-control" placeholder="🔍 تصفية الأصناف بالاسم، التصنيف، أو الوحدة..." oninput="debouncedFilterDb()" autocomplete="off">
                 </div>
 
                 <div class="table-responsive">
@@ -289,6 +743,11 @@
                         </thead>
                         <tbody id="databaseItemsBody"></tbody>
                     </table>
+                </div>
+                <div class="pagination" id="dbPagination" style="display:none;">
+                    <button class="pagination-btn" id="dbPrevBtn" onclick="changeDbPage(-1)">السابق</button>
+                    <span class="pagination-info" id="dbPageInfo">1 / 1</span>
+                    <button class="pagination-btn" id="dbNextBtn" onclick="changeDbPage(1)">التالي</button>
                 </div>
             </div>
         </div>
@@ -317,7 +776,7 @@
         </div>
     </div>
 
-    <!-- ================= 👥 صفحة إدارة المستخدمين (Admin Only) ================= -->
+    <!-- ================= صفحة إدارة المستخدمين ================= -->
     <div id="users-tab" class="tab-content">
         <div class="db-layout">
             <div class="card" style="height: fit-content;">
@@ -339,12 +798,13 @@
                     <div class="form-group" style="margin-bottom:12px">
                         <label>الصلاحية</label>
                         <select id="user_role" class="input-control">
-                            <option value="staff">مستخدم عادي (Staff - قراءة وأرشفة فقط)</option>
-                            <option value="admin">مدير عام (Admin - تحكم كامل وحذف)</option>
+                            <option value="staff">موظف (Staff - قراءة وأرشفة فقط)</option>
+                            <option value="supervisor">مشرف (Supervisor - إدارة أصناف + أرشفة)</option>
+                            <option value="admin">مدير عام (Admin - تحكم كامل)</option>
                         </select>
                     </div>
                     <div style="display:flex; gap:8px;">
-                        <button type="submit" class="btn btn-primary" style="flex:1">حفظ المستخدم بالسحابة</button>
+                        <button type="submit" class="btn btn-primary" style="flex:1" id="btnSaveUser">حفظ المستخدم بالسحابة</button>
                         <button type="button" id="btnCancelUserEdit" class="btn" style="display:none;" onclick="resetUserForm()">إلغاء</button>
                     </div>
                 </form>
@@ -384,6 +844,8 @@
     </div>
 
     <script>
+
+        // ==================== STATE & CONFIG ====================
         let currentUser = { username: '', displayName: '', role: 'staff' };
         let allItemsCached = [];
         let activeInvoiceItems = [];
@@ -391,19 +853,190 @@
         let currentSelectedArchivedInvoice = null;
         let systemUsersCached = []; 
         let currentFocusIndex = -1;
+        let hasUnsavedChanges = false;
+        let dbCurrentPage = 0;
+        const dbPageSize = 50;
+        let dbFilteredItems = [];
+        let modalCallback = null;
 
+        const unsubscribers = {
+            products: null,
+            invoices: null,
+            users: null,
+            history: null
+        };
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function setLoading(show, text = 'جاري المعالجة...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const txt = document.getElementById('loadingText');
+            if (show) {
+                txt.innerText = text;
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        function showModal(title, message, onConfirm) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            modalCallback = onConfirm;
+            const confirmBtn = document.getElementById('modalConfirm');
+            confirmBtn.onclick = () => {
+                const cb = modalCallback;
+                closeModal();
+                if (cb) cb();
+            };
+            document.getElementById('customModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.remove('active');
+            modalCallback = null;
+        }
+
+        function showToast(msg, type = "success") {
+            const container = document.getElementById("toastContainer"); 
+            const toast = document.createElement("div"); 
+            toast.className = "toast " + type; 
+            toast.innerText = msg;
+
+            const progress = document.createElement('div');
+            progress.className = 'toast-progress';
+            if (type === 'error') progress.style.background = 'var(--danger)';
+            else if (type === 'warning') progress.style.background = 'var(--warning)';
+            toast.appendChild(progress);
+
+            container.appendChild(toast); 
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-100%)';
+                toast.style.transition = 'all 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000); 
+        }
+
+        function updateUnsavedIndicator() {
+            const badge = document.getElementById('unsavedBadge');
+            const tabBtn = document.querySelector('.tab-btn[onclick*="pricing-tab"]');
+            if (activeInvoiceItems.length > 0) {
+                badge.style.display = 'inline-block';
+                tabBtn.classList.add('has-unsaved');
+            } else {
+                badge.style.display = 'none';
+                tabBtn.classList.remove('has-unsaved');
+            }
+        }
+
+        // ==================== LOCAL STORAGE ====================
+        function saveInvoiceToLocal() {
+            const data = {
+                items: activeInvoiceItems,
+                client: document.getElementById("invoiceClient").value,
+                multiplier: document.getElementById("invoiceMultiplier").value,
+                editingId: document.getElementById("editingInvoiceId").value,
+                savedAt: new Date().toISOString()
+            };
+            localStorage.setItem('e2_active_invoice', JSON.stringify(data));
+        }
+
+        function loadLocalInvoice() {
+            try {
+                const saved = localStorage.getItem('e2_active_invoice');
+                if (!saved) return false;
+                const data = JSON.parse(saved);
+                if (data.items && data.items.length > 0) {
+                    activeInvoiceItems = data.items;
+                    document.getElementById("invoiceClient").value = data.client || '';
+                    document.getElementById("invoiceMultiplier").value = data.multiplier || '0';
+                    document.getElementById("editingInvoiceId").value = data.editingId || '';
+                    if (data.editingId) {
+                        document.getElementById("btnSaveInvoice").innerText = `💾 تحديث الفاتورة (${data.editingId})`;
+                    }
+                    renderInvoiceTable();
+                    return true;
+                }
+            } catch(e) { console.error('Local load error', e); }
+            return false;
+        }
+
+        function clearLocalInvoice() {
+            localStorage.removeItem('e2_active_invoice');
+        }
+
+        // ==================== TAB SWITCHING ====================
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btnElement.classList.add('active');
+
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
+
+            if (btnElement && btnElement.classList) {
+                btnElement.classList.add('active');
+            } else {
+                // Fallback: find button by onclick attribute
+                const fallbackBtn = document.querySelector('.tab-btn[onclick*="' + tabId + '"], .tab-btn[onclick*="' + tabId.split('-')[0] + '-tab"]');
+                if (fallbackBtn) fallbackBtn.classList.add('active');
+            }
+
             if (tabId === 'archive-tab') loadInvoicesArchive();
             if (tabId === 'history-tab') loadPriceHistory();
             if (tabId === 'users-tab') loadSystemUsers();
+            if (tabId === 'items-tab') filterDatabaseTable();
         }
 
+        // ==================== FIREBASE INIT ====================
         window.onload = function() {
             tryConnectFirebaseOnLoad();
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    if (activeInvoiceItems.length > 0) saveInvoiceToCloud();
+                }
+                if (e.ctrlKey && e.key === 'f') {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                }
+            });
+
+            // Before unload warning
+            window.addEventListener('beforeunload', (e) => {
+                if (activeInvoiceItems.length > 0) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            // Online/offline detection
+            window.addEventListener('online', () => {
+                if (firebaseDb) {
+                    document.getElementById("cloudStatus").className = "sync-badge sync-online";
+                    document.getElementById("cloudStatus").innerText = "☁️ متصل";
+                }
+            });
+            window.addEventListener('offline', () => {
+                document.getElementById("cloudStatus").className = "sync-badge sync-offline";
+                document.getElementById("cloudStatus").innerText = "❌ غير متصل";
+            });
         };
 
         function tryConnectFirebaseOnLoad() {
@@ -419,73 +1052,108 @@
             try {
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 firebaseDb = firebase.firestore();
-                
+
+                // Enable offline persistence
+                firebaseDb.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
                 document.getElementById("cloudStatus").className = "sync-badge sync-online";
                 document.getElementById("cloudStatus").innerText = "☁️ السحابة متصلة";
-                
+
                 seedInitialUsersData();
 
-                firebaseDb.collection("products").onSnapshot((snapshot) => {
+                if (unsubscribers.products) unsubscribers.products();
+                unsubscribers.products = firebaseDb.collection("products").onSnapshot((snapshot) => {
                     const cloudItems = [];
                     snapshot.forEach(doc => cloudItems.push(doc.data()));
                     allItemsCached = cloudItems;
-                    filterDatabaseTable(); // إعادة التصفية وعرض البيانات
+                    filterDatabaseTable();
+                }, (err) => {
+                    console.error('Products sync error:', err);
                 });
 
             } catch (err) {
+                console.error('Firebase init error:', err);
                 document.getElementById("cloudStatus").className = "sync-badge sync-offline";
                 document.getElementById("cloudStatus").innerText = "❌ فشل الاتصال بالسحابة";
+
+                // Retry after 5 seconds
+                setTimeout(tryConnectFirebaseOnLoad, 5000);
             }
         }
 
         function seedInitialUsersData() {
+            if (!firebaseDb) return;
             firebaseDb.collection("users").get().then(snap => {
                 if(snap.empty) {
                     firebaseDb.collection("users").doc("Ehab").set({ username: "Ehab", displayName: "إيهاب", password: "123456", role: "admin" });
+                    firebaseDb.collection("users").doc("Supervisor").set({ username: "Supervisor", displayName: "مشرف النظام", password: "super123", role: "supervisor" });
                     firebaseDb.collection("users").doc("Keroles").set({ username: "Keroles", displayName: "كيرلس", password: "7890", role: "staff" });
                 }
-            });
+            }).catch(() => {});
         }
 
+        // ==================== LOGIN ====================
         function handleMultiUserLogin(event) {
             event.preventDefault();
             const userInp = document.getElementById("loginUsername").value.trim();
             const passInp = document.getElementById("loginPassword").value;
             const errorDiv = document.getElementById("loginError");
+            const loginBtn = document.getElementById("loginBtn");
+            const loginBtnText = document.getElementById("loginBtnText");
 
             if(!firebaseDb) {
-                alert("السحابة غير متصلة بعد، انتظر ثانية أو تحقق من الإنترنت");
+                showToast("السحابة غير متصلة بعد، انتظر ثانية أو تحقق من الإنترنت", "error");
                 return;
             }
+
+            loginBtn.disabled = true;
+            loginBtnText.innerText = "جاري الدخول...";
 
             firebaseDb.collection("users").doc(userInp).get().then(doc => {
                 if(doc.exists && doc.data().password === passInp) {
                     const userData = doc.data();
                     currentUser = { username: userData.username, displayName: userData.displayName, role: userData.role };
-                    
+
+                    document.body.classList.remove('is-admin', 'is-supervisor');
                     if(userData.role === 'admin') {
                         document.body.classList.add('is-admin');
-                    } else {
-                        document.body.classList.remove('is-admin');
+                    } else if(userData.role === 'supervisor') {
+                        document.body.classList.add('is-supervisor');
                     }
-                    
-                    document.getElementById("userBadge").innerText = `👤 ${currentUser.displayName} (${currentUser.role === 'admin' ? 'مدير عام' : 'مستخدم'})`;
+
+                    const roleLabel = currentUser.role === 'admin' ? 'مدير عام' : currentUser.role === 'supervisor' ? 'مشرف' : 'موظف';
+                    document.getElementById("userBadge").innerText = `👤 ${currentUser.displayName} (${roleLabel})`;
                     document.getElementById("loginOverlay").style.opacity = 0;
                     setTimeout(() => { document.getElementById("loginOverlay").style.display = "none"; }, 400);
                     showToast(`مرحباً بك: ${currentUser.displayName}`);
                     setupSearchEngine();
+
+                    // Try load local invoice
+                    const hasLocal = loadLocalInvoice();
+                    if (hasLocal) {
+                        showToast("تم استرجاع الفاتورة المحفوظة محلياً", "warning");
+                    }
                 } else {
                     errorDiv.style.display = "block";
+                    loginBtn.disabled = false;
+                    loginBtnText.innerText = "دخول النظام";
                 }
             }).catch(() => {
                 errorDiv.innerText = "حدث خطأ في الشبكة السحابية";
                 errorDiv.style.display = "block";
+                loginBtn.disabled = false;
+                loginBtnText.innerText = "دخول النظام";
             });
         }
 
+        // ==================== ITEMS / PRODUCTS ====================
         function saveItemToDb(event) {
             event.preventDefault();
-            if (currentUser.role !== 'admin') return showToast("عفواً، لا تمتلك صلاحية تعديل الأصناف", "error");
+            if (currentUser.role !== 'admin' && currentUser.role !== 'supervisor') return showToast("عفواً، لا تمتلك صلاحية تعديل الأصناف", "error");
+
+            const btn = document.getElementById('btnSaveItem');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> جاري الحفظ...';
 
             const name = document.getElementById("item_name").value.trim();
             const category = document.getElementById("item_category").value.trim() || "عام";
@@ -506,63 +1174,84 @@
                 });
             }
 
+            let promiseChain = Promise.resolve();
             if (editOldName && editOldName !== name) {
-                firebaseDb.collection("products").doc(editOldName).delete();
+                promiseChain = firebaseDb.collection("products").doc(editOldName).delete();
             }
 
-            firebaseDb.collection("products").doc(name).set(product).then(() => {
+            promiseChain.then(() => {
+                return firebaseDb.collection("products").doc(name).set(product);
+            }).then(() => {
                 showToast("تم حفظ وتحديث الصنف بنجاح!");
                 resetItemForm();
-            }).catch(() => showToast("حدث خطأ أثناء حفظ التعديلات", "error"));
+            }).catch(() => showToast("حدث خطأ أثناء حفظ التعديلات", "error"))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = 'حفظ سحابياً';
+            });
         }
 
         function loadPriceHistory() {
             if (!firebaseDb) return;
-            firebaseDb.collection("price_history").orderBy("timestamp", "desc").get().then(snapshot => {
-                const tbody = document.getElementById("priceHistoryBody");
-                tbody.innerHTML = "";
-                if(snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">لا توجد تعديلات أسعار مسجلة حتى الآن.</td></tr>`;
-                    return;
-                }
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const diff = data.newPrice - data.oldPrice;
-                    const diffColor = diff > 0 ? getComputedStyle(document.documentElement).getPropertyValue('--danger').trim() : getComputedStyle(document.documentElement).getPropertyValue('--success').trim();
-                    const diffSign = diff > 0 ? `▲ +${diff.toFixed(2)}` : `▼ ${diff.toFixed(2)}`;
-                    
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td style="font-weight:600">${data.itemName}</td>
-                        <td>${data.oldPrice.toFixed(2)} ج.م</td>
-                        <td style="font-weight:700; color:var(--accent)">${data.newPrice.toFixed(2)} ج.م</td>
-                        <td style="font-weight:700; color:${diffColor}">${diffSign}</td>
-                        <td style="color:var(--text-muted); font-size:12px;">${data.dateStr || ''}</td>
-                    `;
-                    tbody.appendChild(tr);
+
+            if (unsubscribers.history) unsubscribers.history();
+
+            setLoading(true, 'جاري تحميل سجل الأسعار...');
+
+            unsubscribers.history = firebaseDb.collection("price_history")
+                .orderBy("timestamp", "desc")
+                .onSnapshot(snapshot => {
+                    setLoading(false);
+                    const tbody = document.getElementById("priceHistoryBody");
+                    tbody.innerHTML = "";
+                    if(snapshot.empty) {
+                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">لا توجد تعديلات أسعار مسجلة حتى الآن.</td></tr>`;
+                        return;
+                    }
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const diff = data.newPrice - data.oldPrice;
+                        const diffColor = diff > 0 ? 'var(--danger)' : 'var(--success)';
+                        const diffSign = diff > 0 ? `▲ +${diff.toFixed(2)}` : `▼ ${diff.toFixed(2)}`;
+
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td style="font-weight:600">${escapeHtml(data.itemName)}</td>
+                            <td>${data.oldPrice.toFixed(2)} ج.م</td>
+                            <td style="font-weight:700; color:var(--accent)">${data.newPrice.toFixed(2)} ج.م</td>
+                            <td style="font-weight:700; color:${diffColor}">${diffSign}</td>
+                            <td style="color:var(--text-muted); font-size:12px;">${escapeHtml(data.dateStr || '')}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }, () => {
+                    setLoading(false);
                 });
-            });
         }
 
+        // ==================== USERS ====================
         function loadSystemUsers() {
             if (!firebaseDb) return;
-            firebaseDb.collection("users").onSnapshot(snapshot => {
+
+            if (unsubscribers.users) unsubscribers.users();
+
+            unsubscribers.users = firebaseDb.collection("users").onSnapshot(snapshot => {
                 systemUsersCached = [];
                 const tbody = document.getElementById("usersTableBody");
                 tbody.innerHTML = "";
-                
+
                 snapshot.forEach(doc => {
                     const u = doc.data();
                     systemUsersCached.push(u);
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-                        <td style="font-weight:600; font-family:monospace;">${u.username}</td>
-                        <td>${u.displayName}</td>
-                        <td style="font-family:monospace; color:var(--text-muted);">${u.password}</td>
-                        <td><span style="color:${u.role==='admin'?'var(--accent)':'var(--text-main)'}">${u.role==='admin'?'مدير عام (Admin)':'مستخدم عادي (Staff)'}</span></td>
+                        <td style="font-weight:600; font-family:monospace;">${escapeHtml(u.username)}</td>
+                        <td>${escapeHtml(u.displayName)}</td>
+                        <td style="font-family:monospace; color:var(--text-muted);">${escapeHtml(u.password)}</td>
+                        <td><span style="color:${u.role==='admin'?'var(--accent)':u.role==='supervisor'?'var(--warning)':'var(--text-main)'}">${u.role==='admin'?'مدير عام':u.role==='supervisor'?'مشرف':'موظف'}</span></td>
                         <td>
-                            <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent);" onclick="editUserFields('${u.username}')">✏️ تعديل / كلمة المرور</button>
-                            <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--danger); ${u.username==='Ehab'?'display:none':''}" onclick="deleteUserFromDb('${u.username}')">✕ حذف</button>
+                            <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent);" onclick="editUserFields('${escapeHtml(u.username)}')">✏️ تعديل</button>
+                            <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--danger); ${u.username==='Ehab'?'display:none':''}" onclick="deleteUserFromDb('${escapeHtml(u.username)}')">✕ حذف</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -572,7 +1261,11 @@
 
         function saveUserToDb(event) {
             event.preventDefault();
-            if (currentUser.role !== 'admin') return showToast("عفواً، لا تمتلك صلاحية إدارة الحسابات", "error");
+            if (currentUser.role !== 'admin') return showToast("عفواً، إدارة الحسابات متاحة للمدير فقط", "error");
+
+            const btn = document.getElementById('btnSaveUser');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> جاري الحفظ...';
 
             const username = document.getElementById("user_username").value.trim();
             const displayName = document.getElementById("user_displayName").value.trim();
@@ -585,31 +1278,38 @@
             }).then(() => {
                 showToast(isEdit ? "تم تحديث بيانات الحساب وكلمة المرور بنجاح!" : "تم إضافة المستخدم الجديد للسيستم سحابياً!");
                 resetUserForm();
-            }).catch(() => showToast("حدث خطأ أثناء حفظ بيانات المستخدم", "error"));
+            }).catch(() => showToast("حدث خطأ أثناء حفظ بيانات المستخدم", "error"))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerText = 'حفظ المستخدم بالسحابة';
+            });
         }
 
         function editUserFields(username) {
             const u = systemUsersCached.find(user => user.username === username);
             if(!u) return;
-            
+
             document.getElementById("user_username").value = u.username;
             document.getElementById("user_username").disabled = true;
             document.getElementById("user_displayName").value = u.displayName;
             document.getElementById("user_password").value = u.password;
             document.getElementById("user_role").value = u.role;
-            
+
             document.getElementById("user_is_edit").value = "true";
             document.getElementById("userFormActionTitle").innerText = "✏️ تعديل بيانات الحساب: " + u.username;
             document.getElementById("btnCancelUserEdit").style.display = "inline-flex";
         }
 
         function deleteUserFromDb(username) {
-            if(username === "Ehab") return alert("لا يمكن حذف حساب الأدمن الرئيسي للمنظومة!");
-            if(confirm(`هل أنت متأكد من حذف صلاحية دخول المستخدم (${username}) نهائياً؟`)) {
+            if (currentUser.role !== 'admin') return showToast("عفواً، الحذف متاح للمدير فقط", "error");
+            if(username === "Ehab") return showToast("لا يمكن حذف حساب الأدمن الرئيسي!", "error");
+            showModal('تأكيد الحذف', `هل أنت متأكد من حذف صلاحية دخول المستخدم (${username}) نهائياً؟`, () => {
+                setLoading(true, 'جاري الحذف...');
                 firebaseDb.collection("users").doc(username).delete().then(() => {
                     showToast("تم إقصاء وحذف المستخدم من قاعدة البيانات");
-                });
-            }
+                }).catch(() => showToast("حدث خطأ أثناء الحذف", "error"))
+                .finally(() => setLoading(false));
+            });
         }
 
         function resetUserForm() {
@@ -620,6 +1320,7 @@
             document.getElementById("btnCancelUserEdit").style.display = "none";
         }
 
+        // ==================== INVOICE EXPORT/IMPORT ====================
         function exportInvoiceToExcel() {
             if (activeInvoiceItems.length === 0) return showToast("لا توجد أصناف في الفاتورة الحالية لتصديرها!", "error");
             const client = document.getElementById("invoiceClient").value.trim() || "فاتورة غير معنونة";
@@ -648,53 +1349,67 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            setLoading(true, 'جاري استيراد البيانات...');
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-                if (jsonData.length === 0) {
-                    showToast("الملف الذي تم رفعه فارغ!", "error");
-                    return;
-                }
-
-                let importedCount = 0;
-                jsonData.forEach(row => {
-                    const name = row['اسم الصنف'] || row['name'] || row['الصنف'];
-                    if (name) {
-                        const cleanName = name.toString().trim();
-                        const unit = row['الوحدة'] || row['unit'] || 'قطعة';
-                        const price = parseFloat(row['السعر الأساسي'] || row['السعر'] || row['price'] || 0);
-                        const quantity = parseFloat(row['الكمية المطلوبة'] || row['الكمية'] || row['quantity'] || 1);
-
-                        const existingIndex = activeInvoiceItems.findIndex(i => i.name === cleanName);
-                        if (existingIndex !== -1) {
-                            activeInvoiceItems[existingIndex].quantity += quantity;
-                            if (price > 0) activeInvoiceItems[existingIndex].price = price;
-                        } else {
-                            activeInvoiceItems.push({
-                                name: cleanName,
-                                unit: unit,
-                                price: price,
-                                quantity: quantity
-                            });
-                        }
-                        importedCount++;
+                    if (jsonData.length === 0) {
+                        showToast("الملف الذي تم رفعه فارغ!", "error");
+                        setLoading(false);
+                        return;
                     }
-                });
 
-                renderInvoiceTable();
-                showToast(`🚀 تم استيراد ${importedCount} صنف إلى الفاتورة الحالية!`);
+                    let importedCount = 0;
+                    jsonData.forEach(row => {
+                        const name = row['اسم الصنف'] || row['name'] || row['الصنف'];
+                        if (name) {
+                            const cleanName = name.toString().trim();
+                            const unit = row['الوحدة'] || row['unit'] || 'قطعة';
+                            const price = parseFloat(row['السعر الأساسي'] || row['السعر'] || row['price'] || 0);
+                            const quantity = parseFloat(row['الكمية المطلوبة'] || row['الكمية'] || row['quantity'] || 1);
+
+                            const existingIndex = activeInvoiceItems.findIndex(i => i.name === cleanName);
+                            if (existingIndex !== -1) {
+                                activeInvoiceItems[existingIndex].quantity += quantity;
+                                if (price > 0) activeInvoiceItems[existingIndex].price = price;
+                            } else {
+                                activeInvoiceItems.push({
+                                    name: cleanName,
+                                    unit: unit,
+                                    price: price,
+                                    quantity: quantity
+                                });
+                            }
+                            importedCount++;
+                        }
+                    });
+
+                    renderInvoiceTable();
+                    saveInvoiceToLocal();
+                    showToast(`🚀 تم استيراد ${importedCount} صنف إلى الفاتورة الحالية!`);
+                } catch(err) {
+                    showToast("حدث خطأ أثناء قراءة الملف", "error");
+                    console.error(err);
+                }
                 event.target.value = '';
+                setLoading(false);
             };
-            reader.readAsBuffer(file);
+            reader.onerror = () => {
+                showToast("حدث خطأ أثناء قراءة الملف", "error");
+                setLoading(false);
+            };
+            reader.readAsArrayBuffer(file);
         }
 
+        // ==================== SAVE INVOICE ====================
         function saveInvoiceToCloud() {
             if (activeInvoiceItems.length === 0) return showToast("الفاتورة فارغة، لا يمكن أرشفتها!", "error");
-            
+
             const priceChanges = [];
             activeInvoiceItems.forEach(item => {
                 const dbProduct = allItemsCached.find(p => p.name === item.name);
@@ -707,6 +1422,44 @@
                 }
             });
 
+            const doSave = () => {
+                setLoading(true, 'جاري الأرشفة السحابية...');
+
+                const client = document.getElementById("invoiceClient").value.trim() || "عميل افتراضي / غير محدد";
+                const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
+                const total = parseFloat(document.getElementById("sumTotalPrice").innerText) || 0;
+
+                const editingId = document.getElementById("editingInvoiceId").value;
+                const invoiceId = editingId ? editingId : firebaseDb.collection("invoices").doc().id;
+
+                const invoiceData = {
+                    invoiceId: invoiceId,
+                    client: client,
+                    multiplier: multiplier,
+                    items: activeInvoiceItems,
+                    totalAmount: total,
+                    savedBy: currentUser.displayName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    dateStr: new Date().toLocaleString('ar-EG')
+                };
+
+                firebaseDb.collection("invoices").doc(invoiceId).set(invoiceData).then(() => {
+                    showToast(`🚀 تم ${editingId ? 'تحديث وتعديل' : 'أرشفة'} الفاتورة برقم ${invoiceId} بنجاح!`);
+
+                    activeInvoiceItems = [];
+                    document.getElementById("invoiceClient").value = "";
+                    document.getElementById("invoiceMultiplier").value = "0";
+                    document.getElementById("editingInvoiceId").value = "";
+                    document.getElementById("btnSaveInvoice").innerText = "💾 حفظ وأرشفة الفاتورة سحابياً";
+                    clearLocalInvoice();
+                    renderInvoiceTable();
+                    updateUnsavedIndicator();
+                }).catch(err => {
+                    showToast("حدث خطأ أثناء الأرشفة السحابية", "error");
+                    console.error(err);
+                }).finally(() => setLoading(false));
+            };
+
             if (priceChanges.length > 0) {
                 let msg = "توجد أسعار تم تعديلها داخل الفاتورة:\n";
                 priceChanges.forEach(pc => {
@@ -714,7 +1467,7 @@
                 });
                 msg += "\nهل تريد تطبيق وتحديث هذه الأسعار الجديدة في قاعدة البيانات الأساسية وسجل المراقبة؟";
 
-                if (confirm(msg)) {
+                showModal('تأكيد تحديث الأسعار', msg, () => {
                     priceChanges.forEach(pc => {
                         firebaseDb.collection("products").doc(pc.name).update({ price: pc.newPrice });
                         firebaseDb.collection("price_history").add({
@@ -726,68 +1479,68 @@
                         });
                     });
                     showToast("تم تحديث أسعار الأصناف في قاعدة البيانات بنجاح!");
-                }
+                    doSave();
+                });
+            } else {
+                doSave();
             }
-
-            const client = document.getElementById("invoiceClient").value.trim() || "عميل افتراضي / غير محدد";
-            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
-            const total = parseFloat(document.getElementById("sumTotalPrice").innerText) || 0;
-            
-            const editingId = document.getElementById("editingInvoiceId").value;
-            const invoiceId = editingId ? editingId : ("INV-" + Math.floor(100000 + Math.random() * 900000));
-
-            const invoiceData = {
-                invoiceId: invoiceId,
-                client: client,
-                multiplier: multiplier,
-                items: activeInvoiceItems,
-                totalAmount: total,
-                savedBy: currentUser.displayName,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                dateStr: new Date().toLocaleString('ar-EG')
-            };
-
-            firebaseDb.collection("invoices").doc(invoiceId).set(invoiceData).then(() => {
-                showToast(`🚀 تم ${editingId ? 'تحديث وتعديل' : 'أرشفة'} الفاتورة برقم ${invoiceId} بنجاح!`);
-                
-                activeInvoiceItems = [];
-                document.getElementById("invoiceClient").value = "";
-                document.getElementById("invoiceMultiplier").value = "0";
-                document.getElementById("editingInvoiceId").value = "";
-                document.getElementById("btnSaveInvoice").innerText = "💾 حفظ وأرشفة الفاتورة سحابياً";
-                renderInvoiceTable();
-            }).catch(err => showToast("حدث خطأ أثناء الأرشفة السحابية", "error"));
         }
 
+        // ==================== ARCHIVE ====================
         function loadInvoicesArchive() {
             if (!firebaseDb) return;
-            firebaseDb.collection("invoices").orderBy("timestamp", "desc").get().then(snapshot => {
-                const listDiv = document.getElementById("archiveList");
-                listDiv.innerHTML = "";
-                if (snapshot.empty) {
-                    listDiv.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px;">لا توجد فواتير مؤرشفة حتى الآن.</div>`;
-                    return;
-                }
-                snapshot.forEach(doc => {
-                    const inv = doc.data();
-                    const itemDiv = document.createElement("div");
-                    itemDiv.className = "archive-item";
-                    itemDiv.id = `arch-${inv.invoiceId}`;
-                    itemDiv.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; font-weight:700;">
-                            <span style="color:var(--accent)">${inv.invoiceId}</span>
-                            <span style="color:var(--success)">${inv.totalAmount.toFixed(2)} ج.م</span>
-                        </div>
-                        <div style="font-size:12px; color:var(--text-main); margin-top:4px;">👤 الجهة: ${inv.client}</div>
-                        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px;">
-                            <span>✍️ بواسطة: ${inv.savedBy || 'غير مسجل'}</span>
-                            <span>📅 ${inv.dateStr ? inv.dateStr.split(' ')[0] : ''}</span>
+
+            if (unsubscribers.invoices) unsubscribers.invoices();
+
+            const listDiv = document.getElementById("archiveList");
+            listDiv.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <div>جاري تحميل الأرشيف...</div>
+                </div>
+            `;
+
+            unsubscribers.invoices = firebaseDb.collection("invoices")
+                .orderBy("timestamp", "desc")
+                .onSnapshot(snapshot => {
+                    listDiv.innerHTML = "";
+                    if (snapshot.empty) {
+                        listDiv.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📭</div>
+                                <div>لا توجد فواتير مؤرشفة حتى الآن.</div>
+                            </div>
+                        `;
+                        return;
+                    }
+                    snapshot.forEach(doc => {
+                        const inv = doc.data();
+                        const itemDiv = document.createElement("div");
+                        itemDiv.className = "archive-item";
+                        itemDiv.id = `arch-${inv.invoiceId}`;
+                        itemDiv.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; font-weight:700;">
+                                <span style="color:var(--accent)">${escapeHtml(inv.invoiceId)}</span>
+                                <span style="color:var(--success)">${inv.totalAmount.toFixed(2)} ج.م</span>
+                            </div>
+                            <div style="font-size:12px; color:var(--text-main); margin-top:4px;">👤 الجهة: ${escapeHtml(inv.client)}</div>
+                            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px;">
+                                <span>✍️ بواسطة: ${escapeHtml(inv.savedBy || 'غير مسجل')}</span>
+                                <span>📅 ${inv.dateStr ? inv.dateStr.split(' ')[0] : ''}</span>
+                            </div>
+                        `;
+                        itemDiv.onclick = () => showInvoiceDetails(inv);
+                        listDiv.appendChild(itemDiv);
+                    });
+                }, (err) => {
+                    console.error('Archive error:', err);
+                    listDiv.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <div>حدث خطأ في تحميل الأرشيف</div>
                         </div>
                     `;
-                    itemDiv.onclick = () => showInvoiceDetails(inv);
-                    listDiv.appendChild(itemDiv);
                 });
-            });
         }
 
         function showInvoiceDetails(inv) {
@@ -796,17 +1549,22 @@
             const selectedElement = document.getElementById(`arch-${inv.invoiceId}`);
             if(selectedElement) selectedElement.classList.add('selected');
 
-            document.getElementById("archiveDetailTitle").innerText = `📄 تفاصيل فاتورة رقم: ${inv.invoiceId}`;
+            // Mobile: show detail view
+            if (window.innerWidth <= 768) {
+                document.getElementById('archiveLayout').classList.add('mobile-detail-active');
+            }
+
+            document.getElementById("archiveDetailTitle").innerText = `📄 تفاصيل فاتورة رقم: ${escapeHtml(inv.invoiceId)}`;
             document.getElementById("archiveActions").style.display = "flex";
-            
+
             const mult = inv.multiplier || 0;
             const metaDiv = document.getElementById("archiveDetailMeta");
             metaDiv.innerHTML = `
-                <div><strong>رقم الفاتورة:</strong> ${inv.invoiceId}</div>
-                <div><strong>المورد/العميل:</strong> ${inv.client}</div>
-                <div><strong>بواسطة المستخدم:</strong> <span style="color:var(--accent); font-weight:bold;">${inv.savedBy || 'غير مسجل'}</span></div>
+                <div><strong>رقم الفاتورة:</strong> ${escapeHtml(inv.invoiceId)}</div>
+                <div><strong>المورد/العميل:</strong> ${escapeHtml(inv.client)}</div>
+                <div><strong>بواسطة المستخدم:</strong> <span style="color:var(--accent); font-weight:bold;">${escapeHtml(inv.savedBy || 'غير مسجل')}</span></div>
                 <div><strong>المعامل المطبق:</strong> <span style="color:var(--warning); font-weight:bold;">${mult}%</span></div>
-                <div><strong>التاريخ والوقت:</strong> ${inv.dateStr}</div>
+                <div><strong>التاريخ والوقت:</strong> ${escapeHtml(inv.dateStr || '')}</div>
                 <div style="color:var(--success); font-weight:700; grid-column: span 2; font-size:15px; border-top: 1px dashed var(--border); padding-top: 5px;">الإجمالي الكلي: ${inv.totalAmount.toFixed(2)} ج.م</div>
             `;
 
@@ -816,14 +1574,18 @@
                 const finalPrice = item.price * (1 + mult / 100);
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>${item.unit}</td>
+                    <td>${escapeHtml(item.name)}</td>
+                    <td>${escapeHtml(item.unit)}</td>
                     <td>${item.price.toFixed(2)} ج.م</td>
                     <td>${item.quantity}</td>
                     <td style="font-weight:700; color:var(--accent)">${(finalPrice * item.quantity).toFixed(2)} ج.م</td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function closeArchiveDetail() {
+            document.getElementById('archiveLayout').classList.remove('mobile-detail-active');
         }
 
         function exportArchivedInvoiceToExcel() {
@@ -851,46 +1613,76 @@
 
         function loadInvoiceToWorkspace() {
             if(!currentSelectedArchivedInvoice) return;
-            if(confirm(`هل تريد تعديل الفاتورة رقم (${currentSelectedArchivedInvoice.invoiceId})؟`)) {
+            showModal('تأكيد التعديل', `هل تريد تعديل الفاتورة رقم (${currentSelectedArchivedInvoice.invoiceId})؟`, () => {
+                // 1. Load invoice data
                 activeInvoiceItems = JSON.parse(JSON.stringify(currentSelectedArchivedInvoice.items));
                 document.getElementById("invoiceClient").value = currentSelectedArchivedInvoice.client;
                 document.getElementById("invoiceMultiplier").value = currentSelectedArchivedInvoice.multiplier || 0;
-                
                 document.getElementById("editingInvoiceId").value = currentSelectedArchivedInvoice.invoiceId;
                 document.getElementById("btnSaveInvoice").innerText = `💾 تحديث الفاتورة المعدلة (${currentSelectedArchivedInvoice.invoiceId})`;
 
-                const pricingTabBtn = document.querySelector(".nav-tabs .tab-btn:first-child");
-                switchTab('pricing-tab', pricingTabBtn);
+                // 2. Close mobile archive detail
+                closeArchiveDetail();
+
+                // 3. Switch to pricing tab - direct DOM manipulation (most reliable)
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+                const pricingTab = document.getElementById('pricing-tab');
+                if (pricingTab) pricingTab.classList.add('active');
+
+                // Find the pricing tab button (works for all roles)
+                const allTabBtns = document.querySelectorAll('.tab-btn');
+                let pricingBtn = null;
+                for (let btn of allTabBtns) {
+                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('pricing-tab')) {
+                        pricingBtn = btn;
+                        break;
+                    }
+                }
+                if (pricingBtn) pricingBtn.classList.add('active');
+
+                // 4. Render and save
                 renderInvoiceTable();
+                saveInvoiceToLocal();
+                updateUnsavedIndicator();
                 showToast("تم استدعاء الفاتورة في مساحة العمل للتعديل");
-            }
+            });
         }
 
         function deleteInvoiceFromArchive() {
-            if (currentUser.role !== 'admin') return showToast("عفواً، لا تمتلك صلاحية حذف الفواتير", "error");
+            if (currentUser.role !== 'admin') return showToast("عفواً، حذف الفواتير متاح للمدير فقط", "error");
             if (!currentSelectedArchivedInvoice) return;
             const invId = currentSelectedArchivedInvoice.invoiceId;
-            if(confirm(`⚠️ تحذير: هل أنت متأكد من حذف الفاتورة رقم (${invId}) نهائياً؟`)) {
+
+            showModal('تحذير', `⚠️ هل أنت متأكد من حذف الفاتورة رقم (${invId}) نهائياً؟`, () => {
+                setLoading(true, 'جاري الحذف...');
                 firebaseDb.collection("invoices").doc(invId).delete().then(() => {
                     showToast(`تم حذف الفاتورة ${invId} بنجاح`);
                     currentSelectedArchivedInvoice = null;
                     document.getElementById("archiveActions").style.display = "none";
                     document.getElementById("archiveItemsBody").innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">اختر فاتورة من القائمة لعرض محتوياتها</td></tr>`;
-                    loadInvoicesArchive();
-                }).catch(() => showToast("حدث خطأ أثناء محاولة الحذف", "error"));
-            }
+                    closeArchiveDetail();
+                }).catch(() => showToast("حدث خطأ أثناء محاولة الحذف", "error"))
+                .finally(() => setLoading(false));
+            });
         }
 
+        // ==================== SEARCH ENGINE ====================
         function setupSearchEngine() {
             const searchInput = document.getElementById("searchInput");
             const resultsContainer = document.getElementById("searchResults");
             if(!searchInput) return;
 
-            searchInput.addEventListener("input", (e) => {
-                const query = cleanArabicText(e.target.value.trim());
+            const debouncedSearch = debounce((query) => {
                 if (!query) { closeSearch(); return; }
                 const filtered = allItemsCached.filter(item => cleanArabicText(item.name).includes(query));
                 renderSearchResults(filtered);
+            }, 300);
+
+            searchInput.addEventListener("input", (e) => {
+                const query = cleanArabicText(e.target.value.trim());
+                debouncedSearch(query);
             });
 
             searchInput.addEventListener("keydown", (e) => {
@@ -941,15 +1733,16 @@
             currentFocusIndex = -1;
 
             if (results.length === 0) {
-                resultsContainer.innerHTML = `<div class="search-row" style="color:var(--text-muted)">لا توجد نتائج مطابقة</div>`;
+                resultsContainer.innerHTML = `<div class="search-row" style="color:var(--text-muted); cursor:default;">لا توجد نتائج مطابقة</div>`;
                 resultsContainer.classList.add("active");
                 return;
             }
             results.forEach((item) => {
                 const div = document.createElement("div");
                 div.className = "search-row";
+                div.setAttribute('role', 'option');
                 div.innerHTML = `
-                    <span><strong>${item.name}</strong> <span style="font-size:11px; background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; margin-right:5px;">${item.category}</span></span>
+                    <span><strong>${escapeHtml(item.name)}</strong> <span style="font-size:11px; background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; margin-right:5px;">${escapeHtml(item.category)}</span></span>
                     <span style="font-weight:700; color:var(--accent)">${item.price.toFixed(2)} ج.م</span>
                 `;
                 div.onclick = () => { addItemToWorkspace(item); closeSearch(); };
@@ -970,6 +1763,7 @@
             }
         });
 
+        // ==================== INVOICE TABLE ====================
         function addItemToWorkspace(item) {
             const existingIndex = activeInvoiceItems.findIndex(i => i.name === item.name);
             let targetIndex = 0;
@@ -983,6 +1777,8 @@
             }
 
             renderInvoiceTable();
+            saveInvoiceToLocal();
+            updateUnsavedIndicator();
 
             setTimeout(() => {
                 const qtyInputs = document.querySelectorAll(".qty-input");
@@ -1007,13 +1803,13 @@
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td style="font-weight:600">${item.name}</td>
-                    <td>${item.unit}</td>
-                    <td><input type="number" step="0.01" class="table-input price-input" data-index="${index}" value="${item.price}"></td>
+                    <td style="font-weight:600">${escapeHtml(item.name)}</td>
+                    <td>${escapeHtml(item.unit)}</td>
+                    <td><input type="number" step="0.01" class="table-input price-input" data-index="${index}" value="${item.price}" inputmode="decimal"></td>
                     <td style="font-weight:bold; color:var(--warning)" class="mult-price-td">${priceWithMult.toFixed(2)}</td>
-                    <td><input type="number" step="1" class="table-input qty-input" data-index="${index}" value="${item.quantity}"></td>
+                    <td><input type="number" step="1" class="table-input qty-input" data-index="${index}" value="${item.quantity}" inputmode="numeric"></td>
                     <td style="font-weight:700; color:var(--accent)" class="item-total-td">${itemTotal.toFixed(2)}</td>
-                    <td><button class="btn" style="color:var(--danger); border:none; background:none" onclick="removeItemFromWorkspace(${index})">✕</button></td>
+                    <td><button class="btn" style="color:var(--danger); border:none; background:none; min-height:auto; padding:4px;" onclick="removeItemFromWorkspace(${index})">✕</button></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1029,6 +1825,7 @@
                     const idx = parseInt(e.target.dataset.index);
                     activeInvoiceItems[idx].price = parseFloat(e.target.value) || 0;
                     renderInvoiceTableSilent();
+                    saveInvoiceToLocal();
                 });
             });
 
@@ -1037,6 +1834,7 @@
                     const idx = parseInt(e.target.dataset.index);
                     activeInvoiceItems[idx].quantity = parseFloat(e.target.value) || 0;
                     renderInvoiceTableSilent();
+                    saveInvoiceToLocal();
                 });
 
                 input.addEventListener("keydown", (e) => {
@@ -1070,42 +1868,105 @@
             document.getElementById("sumTotalPrice").innerText = grandTotal.toFixed(2);
         }
 
-        function removeItemFromWorkspace(index) { activeInvoiceItems.splice(index, 1); renderInvoiceTable(); }
+        function handleMultiplierChange() {
+            renderInvoiceTableSilent();
+            saveInvoiceToLocal();
+        }
 
-        // تصفية وتحديث جدول الأصناف بناءً على كلمة البحث
+        function removeItemFromWorkspace(index) { 
+            activeInvoiceItems.splice(index, 1); 
+            renderInvoiceTable(); 
+            saveInvoiceToLocal();
+            updateUnsavedIndicator();
+        }
+
+        function clearInvoice() {
+            if (activeInvoiceItems.length === 0) return;
+            showModal('تأكيد المسح', 'هل أنت متأكد من مسح الفاتورة الحالية؟', () => {
+                activeInvoiceItems = [];
+                document.getElementById("invoiceClient").value = "";
+                document.getElementById("invoiceMultiplier").value = "0";
+                document.getElementById("editingInvoiceId").value = "";
+                document.getElementById("btnSaveInvoice").innerText = "💾 حفظ وأرشفة الفاتورة سحابياً";
+                clearLocalInvoice();
+                renderInvoiceTable();
+                updateUnsavedIndicator();
+                showToast("تم مسح الفاتورة");
+            });
+        }
+
+        function printInvoice() {
+            if (activeInvoiceItems.length === 0) return showToast("الفاتورة فارغة!", "error");
+            const tab = document.getElementById('pricing-tab');
+            tab.classList.add('print-target');
+            window.print();
+            setTimeout(() => tab.classList.remove('print-target'), 1000);
+        }
+
+        // ==================== DATABASE TABLE ====================
         function filterDatabaseTable() {
             const query = cleanArabicText(document.getElementById("dbSearchInput") ? document.getElementById("dbSearchInput").value.trim() : "");
-            const filtered = allItemsCached.filter(item => {
+            dbFilteredItems = allItemsCached.filter(item => {
                 return cleanArabicText(item.name).includes(query) ||
                        cleanArabicText(item.category).includes(query) ||
                        cleanArabicText(item.unit).includes(query);
             });
-            
-            renderDatabaseTable(filtered);
-            document.getElementById("dbCount").innerText = filtered.length;
+            dbFilteredItems.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            dbCurrentPage = 0;
+            renderDatabaseTable();
         }
 
-        function renderDatabaseTable(itemsToRender = allItemsCached) {
+        const debouncedFilterDb = debounce(filterDatabaseTable, 300);
+
+        function renderDatabaseTable() {
             const tbody = document.getElementById("databaseItemsBody");
             tbody.innerHTML = "";
-            if(itemsToRender.length === 0) {
+
+            const totalItems = dbFilteredItems.length;
+            const totalPages = Math.ceil(totalItems / dbPageSize) || 1;
+            const start = dbCurrentPage * dbPageSize;
+            const end = start + dbPageSize;
+            const pageItems = dbFilteredItems.slice(start, end);
+
+            document.getElementById("dbCount").innerText = totalItems;
+
+            const pagination = document.getElementById("dbPagination");
+            if (totalItems > dbPageSize) {
+                pagination.style.display = 'flex';
+                document.getElementById("dbPageInfo").innerText = `${dbCurrentPage + 1} / ${totalPages}`;
+                document.getElementById("dbPrevBtn").disabled = dbCurrentPage === 0;
+                document.getElementById("dbNextBtn").disabled = dbCurrentPage >= totalPages - 1;
+            } else {
+                pagination.style.display = 'none';
+            }
+
+            if(pageItems.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:15px;">لا توجد أصناف مطابقة للبحث</td></tr>`;
                 return;
             }
-            itemsToRender.forEach(item => {
+
+            pageItems.forEach(item => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td style="font-weight:600">${item.name}</td>
-                    <td>${item.category}</td>
-                    <td>${item.unit}</td>
+                    <td style="font-weight:600">${escapeHtml(item.name)}</td>
+                    <td>${escapeHtml(item.category)}</td>
+                    <td>${escapeHtml(item.unit)}</td>
                     <td style="font-weight:700; color:var(--accent)">${item.price.toFixed(2)} ج.م</td>
                     <td>
-                        <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent);" onclick="editItemFromDb('${item.name}')">تعديل</button>
-                        <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--danger);" onclick="deleteItemFromDb('${item.name}')">حذف</button>
+                        <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent); min-height:auto;" onclick="editItemFromDb('${escapeHtml(item.name)}')">تعديل</button>
+                        <button class="btn admin-only" style="padding:4px 8px; font-size:12px; color:var(--danger); min-height:auto;" onclick="deleteItemFromDb('${escapeHtml(item.name)}')">حذف</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function changeDbPage(direction) {
+            const totalPages = Math.ceil(dbFilteredItems.length / dbPageSize);
+            dbCurrentPage += direction;
+            if (dbCurrentPage < 0) dbCurrentPage = 0;
+            if (dbCurrentPage >= totalPages) dbCurrentPage = totalPages - 1;
+            renderDatabaseTable();
         }
 
         function editItemFromDb(name) {
@@ -1121,8 +1982,17 @@
             document.getElementById("btnCancelEdit").style.display = "inline-flex";
         }
 
-        function deleteItemFromDb(name) { if (confirm(`حذف (${name})؟`)) firebaseDb.collection("products").doc(name).delete(); }
-        
+        function deleteItemFromDb(name) { 
+            if (currentUser.role !== 'admin') return showToast("عفواً، الحذف متاح للمدير فقط", "error");
+            showModal('تأكيد الحذف', `حذف الصنف (${name})؟`, () => {
+                setLoading(true, 'جاري الحذف...');
+                firebaseDb.collection("products").doc(name).delete()
+                    .then(() => showToast("تم حذف الصنف"))
+                    .catch(() => showToast("حدث خطأ أثناء الحذف", "error"))
+                    .finally(() => setLoading(false));
+            });
+        }
+
         function resetItemForm() { 
             document.getElementById("itemForm").reset(); 
             document.getElementById("edit_old_name").value = ""; 
@@ -1130,39 +2000,56 @@
             document.getElementById("formActionTitle").innerText = "إضافة صنف جديد لقاعدة البيانات"; 
             document.getElementById("btnCancelEdit").style.display = "none"; 
         }
-        
+
+        // ==================== EXCEL IMPORT/EXPORT DB ====================
         function importFromExcel(event) {
             if (currentUser.role !== 'admin') return showToast("صلاحية مدير فقط", "error");
-            const file = event.target.files[0]; if (!file) return;
+            const file = event.target.files[0]; 
+            if (!file) return;
+
+            setLoading(true, 'جاري استيراد قاعدة البيانات...');
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                let batch = firebaseDb.batch(); let count = 0;
-                jsonData.forEach(row => {
-                    const name = row['name'] || row['اسم الصنف'];
-                    if(name) {
-                        const docRef = firebaseDb.collection("products").doc(name.toString().trim());
-                        batch.set(docRef, { name: name.toString().trim(), category: row['category'] || row['التصنيف'] || 'عام', unit: row['unit'] || row['الوحدة'] || 'قطعة', price: parseFloat(row['price'] || row['السعر الحالي'] || 0) });
-                        count++;
-                    }
-                });
-                batch.commit().then(() => { showToast(`🚀 تم تحديث ${count} صنف سحابياً!`); });
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    let batch = firebaseDb.batch(); 
+                    let count = 0;
+                    jsonData.forEach(row => {
+                        const name = row['name'] || row['اسم الصنف'];
+                        if(name) {
+                            const docRef = firebaseDb.collection("products").doc(name.toString().trim());
+                            batch.set(docRef, { 
+                                name: name.toString().trim(), 
+                                category: row['category'] || row['التصنيف'] || 'عام', 
+                                unit: row['unit'] || row['الوحدة'] || 'قطعة', 
+                                price: parseFloat(row['price'] || row['السعر الحالي'] || 0) 
+                            });
+                            count++;
+                        }
+                    });
+                    batch.commit().then(() => { 
+                        showToast(`🚀 تم تحديث ${count} صنف سحابياً!`); 
+                    }).catch(() => showToast("حدث خطأ أثناء الاستيراد", "error"))
+                    .finally(() => setLoading(false));
+                } catch(err) {
+                    showToast("حدث خطأ في قراءة الملف", "error");
+                    setLoading(false);
+                }
+                event.target.value = '';
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function exportToExcel() { if(allItemsCached.length === 0) return; const worksheet = XLSX.utils.json_to_sheet(allItemsCached); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "المخزن"); XLSX.writeFile(workbook, `المخزن_${new Date().toLocaleDateString('ar-EG')}.xlsx`); }
-        
-        function showToast(msg, type = "success") { 
-            const container = document.getElementById("toastContainer"); 
-            const toast = document.createElement("div"); 
-            toast.className = "toast"; 
-            if(type === "error") toast.style.borderRightColor = "var(--danger)"; 
-            toast.innerText = msg; container.appendChild(toast); 
-            setTimeout(() => toast.remove(), 2500); 
+        function exportToExcel() { 
+            if(allItemsCached.length === 0) return showToast("لا توجد أصناف للتصدير", "error"); 
+            const worksheet = XLSX.utils.json_to_sheet(allItemsCached); 
+            const workbook = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(workbook, worksheet, "المخزن"); 
+            XLSX.writeFile(workbook, `المخزن_${new Date().toLocaleDateString('ar-EG')}.xlsx`); 
+            showToast("تم تصدير قاعدة البيانات");
         }
     </script>
 </body>
