@@ -4,216 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>نظام E2 السحابي المطور لإدارة التكاليف والأسعار</title>
-
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
+    <!-- Firebase SDK is now loaded dynamically at runtime (see ensureFirebaseScripts) so we can
+         detect and report a failed/blocked load instead of crashing with "firebase is not defined". -->
     <style>
-        :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-input: #334155;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #38bdf8;
-            --accent-hover: #0ea5e9;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --border: #475569;
-            --active-row: #0284c7;
-            --warning: #f59e0b;
-        }
-
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Cairo', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body { 
-            background-color: var(--bg-main); 
-            color: var(--text-main); 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 10px; 
-            overflow: hidden; 
-        }
-
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: inline-block;
-        }
+        :root { --bg-main: #0f172a; --bg-card: #1e293b; --bg-input: #334155; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #38bdf8; --accent-hover: #0ea5e9; --success: #22c55e; --danger: #ef4444; --border: #475569; --active-row: #0284c7; --warning: #f59e0b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        html { overflow-x: hidden; }
+        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; padding: 10px; overflow: hidden; overflow-x: hidden; max-width: 100vw; }
+        .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        #loginOverlay { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100vw; height: 100vh; 
-            background-color: var(--bg-main); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 10000; 
-            transition: opacity 0.4s ease;
-        }
-        .login-card { 
-            background-color: var(--bg-card); 
-            border: 1px solid var(--border); 
-            border-radius: 12px; 
-            padding: 35px; 
-            width: 90%; 
-            max-width: 400px; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); 
-            text-align: center; 
-        }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 10000; transition: opacity 0.4s ease; }
+        .login-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 35px; width: 90%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); text-align: center; }
         .login-card h2 { color: var(--accent); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
         .login-card p { color: var(--text-muted); font-size: 13px; margin-bottom: 25px; }
-
-        #toastContainer { position: fixed; top: 15px; left: 15px; z-index: 9999; }
-        .toast { 
-            background-color: var(--bg-card); 
-            border-right: 5px solid var(--accent); 
-            color: var(--text-main); 
-            padding: 12px 20px; 
-            margin-bottom: 8px; 
-            border-radius: 6px; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); 
-            font-size: 13px; 
-            font-weight: 600; 
-            animation: slideIn 0.2s ease-out forwards;
-            position: relative;
-            overflow: hidden;
-        }
-        .toast.error { border-right-color: var(--danger); }
-        .toast.success { border-right-color: var(--success); }
-        .toast.warning { border-right-color: var(--warning); }
-        .toast-progress {
-            position: absolute;
-            bottom: 0; left: 0; height: 3px;
-            background: var(--accent);
-            animation: toastProgress 3s linear forwards;
-        }
+        #toastContainer { position: fixed; top: 15px; left: 15px; z-index: 9999; max-width: calc(100vw - 30px); }
+        .toast { background-color: var(--bg-card); border-right: 5px solid var(--accent); color: var(--text-main); padding: 12px 20px; margin-bottom: 8px; border-radius: 6px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); font-size: 13px; font-weight: 600; animation: slideIn 0.2s ease-out forwards; position: relative; overflow: hidden; }
+        .toast.error { border-right-color: var(--danger); } .toast.success { border-right-color: var(--success); } .toast.warning { border-right-color: var(--warning); }
+        .toast-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent); animation: toastProgress 3s linear forwards; }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
-
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding-bottom: 10px; 
-            border-bottom: 1px solid var(--border); 
-            margin-bottom: 10px; 
-            flex-wrap: wrap; 
-            gap: 10px; 
-        }
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .logo-section h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
         .logo-section span { font-size: 11px; color: var(--text-muted); }
-
-        .nav-tabs { 
-            display: flex; 
-            gap: 4px; 
-            background-color: var(--bg-card); 
-            padding: 4px; 
-            border-radius: 8px; 
-            border: 1px solid var(--border); 
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
+        .nav-tabs { display: flex; gap: 4px; background-color: var(--bg-card); padding: 4px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .nav-tabs::-webkit-scrollbar { display: none; }
-        .tab-btn { 
-            background: none; 
-            border: none; 
-            color: var(--text-muted); 
-            padding: 8px 14px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            font-size: 13px; 
-            transition: all 0.2s; 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            white-space: nowrap; 
-            user-select: none;
-            min-height: 40px;
-        }
+        .tab-btn { background: none; border: none; color: var(--text-muted); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; user-select: none; min-height: 40px; flex-shrink: 0; }
         .tab-btn.active { background-color: var(--accent); color: #000; }
-        .tab-btn .unsaved-dot {
-            width: 6px; height: 6px;
-            background: var(--danger);
-            border-radius: 50%;
-            display: none;
-        }
+        .tab-btn .unsaved-dot { width: 6px; height: 6px; background: var(--danger); border-radius: 50%; display: none; }
         .tab-btn.has-unsaved .unsaved-dot { display: inline-block; }
-
-        .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; gap: 12px; }
+        .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; gap: 12px; min-height: 0; }
         .tab-content.active { display: flex; }
-
-        .card { 
-            background-color: var(--bg-card); 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            padding: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-        }
-        .card-title { 
-            font-size: 15px; 
-            font-weight: 700; 
-            color: var(--accent); 
-            border-bottom: 1px solid var(--border); 
-            padding-bottom: 6px; 
-            margin-bottom: 4px; 
-        }
-
+        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 12px; max-width: 100%; }
+        .card-title { font-size: 15px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 4px; }
         .form-group { display: flex; flex-direction: column; gap: 4px; }
         .form-group label { font-size: 12px; color: var(--text-muted); }
-        .input-control { 
-            background-color: var(--bg-input); 
-            border: 1px solid var(--border); 
-            color: var(--text-main); 
-            padding: 10px 12px; 
-            border-radius: 6px; 
-            font-size: 14px; 
-            outline: none; 
-            width: 100%;
-            min-height: 40px;
-        }
+        .input-control { background-color: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 10px 12px; border-radius: 6px; font-size: 14px; outline: none; width: 100%; min-height: 40px; }
         .input-control:focus { border-color: var(--accent); }
         select.input-control { cursor: pointer; }
-
-        .btn { 
-            background-color: var(--bg-input); 
-            color: var(--text-main); 
-            border: 1px solid var(--border); 
-            padding: 10px 16px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px; 
-            font-size: 14px; 
-            transition: all 0.2s ease; 
-            user-select: none;
-            min-height: 40px;
-            position: relative;
-        }
+        .btn { background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border); padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: all 0.2s ease; user-select: none; min-height: 40px; position: relative; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn:hover:not(:disabled) { background-color: var(--border); }
         .btn-primary { background-color: var(--accent); color: #000; border: none; }
@@ -221,227 +53,94 @@
         .btn-success { background-color: var(--success); color: #fff; border: none; }
         .btn-danger { background-color: var(--danger); color: #fff; border: none; }
         .btn-sm { padding: 6px 10px; font-size: 12px; min-height: 32px; }
-
         .search-container { position: relative; width: 100%; }
-        .search-results { 
-            position: absolute; 
-            top: calc(100% + 4px); 
-            left: 0; right: 0; 
-            background-color: var(--bg-card); 
-            border: 1px solid var(--border); 
-            border-radius: 6px; 
-            max-height: 250px; 
-            overflow-y: auto; 
-            z-index: 1000; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
-            display: none; 
-        }
+        .search-results { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; max-height: 250px; overflow-y: auto; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.6); display: none; }
         .search-results.active { display: block; }
-        .search-row { 
-            padding: 10px 15px; 
-            cursor: pointer; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            transition: background 0.15s; 
-        }
-        .search-row:hover, .search-row.selected-row { 
-            background-color: var(--active-row) !important; 
-            color: #fff; 
-        }
-
-        .summary-bar { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
-            gap: 8px; 
-        }
-        .summary-card { 
-            background: linear-gradient(135deg, #1e293b, #0f172a); 
-            border: 1px solid var(--border); 
-            padding: 10px; 
-            border-radius: 8px; 
-            text-align: center; 
-        }
+        .search-row { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+        .search-row:hover, .search-row.selected-row { background-color: var(--active-row) !important; color: #fff; }
+        .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+        .summary-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: center; }
         .summary-card .val { font-size: 20px; font-weight: 700; color: var(--accent); }
         .summary-card .lbl { font-size: 11px; color: var(--text-muted); }
-
-        .table-responsive { 
-            background-color: var(--bg-card); 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            flex: 1; 
-            overflow: auto; 
-            -webkit-overflow-scrolling: touch;
-        }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            text-align: right; 
-            min-width: 650px; 
-        }
-        th { 
-            background-color: #111827; 
-            color: var(--text-muted); 
-            padding: 10px; 
-            font-size: 12px; 
-            position: sticky; 
-            top: 0; 
-            z-index: 10; 
-            border-bottom: 1px solid var(--border); 
-            white-space: nowrap;
-        }
-        td { 
-            padding: 8px 10px; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); 
-            font-size: 13px; 
-            white-space: nowrap;
-        }
+        .table-responsive { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; min-height: 0; }
+        table { width: 100%; border-collapse: collapse; text-align: right; min-width: 650px; }
+        th { background-color: #111827; color: var(--text-muted); padding: 10px; font-size: 12px; position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; white-space: nowrap; }
         tr.selected-item { background: rgba(56, 189, 248, 0.1); }
-        .table-input { 
-            background-color: var(--bg-input); 
-            border: 1px solid var(--border); 
-            color: var(--text-main); 
-            padding: 6px; 
-            border-radius: 4px; 
-            width: 80px; 
-            font-size: 13px; 
-            text-align: center; 
-            font-weight: bold;
-            min-height: 32px;
-        }
-
-        .db-layout { 
-            display: grid; 
-            grid-template-columns: 320px 1fr; 
-            gap: 12px; 
-            flex: 1; 
-            overflow: hidden; 
-        }
-        .sync-badge { 
-            font-size: 11px; 
-            padding: 4px 8px; 
-            border-radius: 20px; 
-            font-weight: bold; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 5px; 
-            white-space: nowrap;
-        }
+        .table-input { background-color: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px; width: 80px; font-size: 13px; text-align: center; font-weight: bold; min-height: 32px; }
+        .db-layout { display: grid; grid-template-columns: 320px 1fr; gap: 12px; flex: 1; overflow: hidden; min-height: 0; }
+        .sync-badge { font-size: 11px; padding: 4px 8px; border-radius: 20px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
         .sync-online { background-color: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid var(--success); }
         .sync-offline { background-color: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
         .sync-syncing { background-color: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
-
         .admin-only { display: none !important; }
         body.is-admin .admin-only { display: inline-flex !important; }
         body.is-admin div.admin-only { display: flex !important; }
+        body.is-admin span.admin-only { display: inline-flex !important; }
+        .supervisor-only { display: none !important; }
+        body.is-admin .supervisor-only { display: inline-flex !important; }
+        body.is-admin div.supervisor-only { display: flex !important; }
         body.is-supervisor .supervisor-only { display: inline-flex !important; }
         body.is-supervisor div.supervisor-only { display: flex !important; }
         body.is-supervisor span.supervisor-only { display: inline-flex !important; }
-        body.is-admin span.admin-only { display: inline-flex !important; }
-
-        .archive-layout { 
-            display: grid; 
-            grid-template-columns: 380px 1fr; 
-            gap: 12px; 
-            flex: 1; 
-            overflow: hidden; 
-            position: relative;
-        }
+        .archive-layout { display: grid; grid-template-columns: 380px 1fr; gap: 12px; flex: 1; overflow: hidden; position: relative; min-height: 0; }
         .archive-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
         .archive-detail { display: flex; flex-direction: column; overflow: hidden; }
-        .archive-item { 
-            background: var(--bg-input); 
-            border: 1px solid var(--border); 
-            padding: 12px; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            transition: 0.2s; 
-            position: relative; 
-        }
+        .archive-item { background: var(--bg-input); border: 1px solid var(--border); padding: 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; position: relative; }
         .archive-item:hover { border-color: var(--accent); }
-        .archive-item.selected { 
-            border-color: var(--accent); 
-            background: #1e293b; 
-            box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.1); 
-        }
-        .mobile-back-btn {
-            display: none;
-            margin-bottom: 10px;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            padding: 10px;
-            border-top: 1px solid var(--border);
-        }
-        .pagination-btn {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            min-height: 32px;
-        }
+        .archive-item.selected { border-color: var(--accent); background: #1e293b; box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.1); }
+        .mobile-back-btn { display: none; margin-bottom: 10px; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 10px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+        .pagination-btn { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; min-height: 32px; }
         .pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .pagination-info { font-size: 12px; color: var(--text-muted); }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9998;
-            flex-direction: column;
-            gap: 15px;
-        }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.85); display: none; justify-content: center; align-items: center; z-index: 9998; flex-direction: column; gap: 15px; }
         .loading-overlay.active { display: flex; }
         .loading-text { color: var(--accent); font-weight: 600; }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9997;
-            padding: 20px;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 9997; padding: 20px; }
         .modal-overlay.active { display: flex; }
-        .modal-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 420px;
-            width: 100%;
-            text-align: center;
-        }
+        .modal-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 420px; width: 100%; text-align: center; }
         .modal-card h3 { color: var(--accent); margin-bottom: 12px; }
-        .modal-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .modal-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; white-space: pre-line; }
         .modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+        /* Room Service Menu */
+        .menu-section-title { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-right: 4px solid #fbbf24; padding: 8px 16px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .menu-section-title h3 { color: var(--accent); font-size: 15px; font-weight: 700; margin: 0; }
+        .menu-subsection-title { background: rgba(251, 191, 36, 0.08); border-right: 3px solid #f59e0b; padding: 6px 12px; border-radius: 4px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        .menu-subsection-title span { color: #fbbf24; font-size: 12px; font-weight: 700; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1px; background: var(--border); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+        .menu-grid-2 { grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); }
+        .menu-grid-3 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        .menu-row-e2 { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-card); gap: 8px; transition: background 0.15s; }
+        .menu-row-e2:hover { background: rgba(56, 189, 248, 0.05); }
+        .menu-row-e2 .item-name { font-size: 13px; color: var(--text-main); flex: 1; line-height: 1.4; }
+        .menu-row-e2 .item-price { font-size: 13px; font-weight: 700; color: #fbbf24; white-space: nowrap; font-family: 'Cairo', monospace; }
+        .menu-row-e2 .price-editable { background: var(--bg-input); border: 1px solid var(--border); color: #fbbf24; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 700; text-align: center; width: 100px; min-width: 90px; font-family: 'Cairo', monospace; cursor: text; }
+        .menu-row-e2 .price-editable:hover { border-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .menu-row-e2 .price-editable:focus { outline: 2px solid #fbbf24; background: var(--bg-main); }
+        .menu-calc-box { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+        .menu-calc-box input { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 6px; font-size: 14px; width: 160px; text-align: center; }
+        .menu-calc-box input:focus { border-color: #fbbf24; outline: none; }
+        .discount-box { padding: 8px 16px; border-radius: 6px; text-align: center; border: 1px solid; }
+        .discount-box .lbl { font-size: 11px; font-weight: 700; display: block; margin-bottom: 2px; }
+        .discount-box .val { font-size: 16px; font-weight: 700; font-family: monospace; }
+        .disc-50 { border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.1); }
+        .disc-50 .lbl { color: #fbbf24; } .disc-50 .val { color: #fbbf24; }
+        .disc-25 { border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); }
+        .disc-25 .lbl { color: var(--success); } .disc-25 .val { color: var(--success); }
+        .menu-search { position: relative; }
+        .menu-search input { width: 100%; padding: 10px 12px 10px 40px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; font-size: 14px; }
+        .menu-search input:focus { border-color: #fbbf24; outline: none; }
+        .menu-search .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+        .menu-toast { position: fixed; bottom: 24px; left: 24px; background: var(--success); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .menu-toast.show { opacity: 1; transform: translateY(0); }
 
         @media print {
             body { background: white; color: black; overflow: visible; height: auto; }
-            #loginOverlay, header, .nav-tabs, .search-container, 
-            .btn:not(.print-only), .summary-card input, 
-            #toastContainer, .loading-overlay, .modal-overlay { 
-                display: none !important; 
-            }
+            #loginOverlay, header, .nav-tabs, .search-container, .btn:not(.print-only), .summary-card input, #toastContainer, .loading-overlay, .modal-overlay { display: none !important; }
             .tab-content { display: none !important; }
-            .tab-content.print-target { 
-                display: block !important; 
-                position: static; 
-                overflow: visible;
-            }
+            .tab-content.print-target { display: block !important; position: static; overflow: visible; }
             .table-responsive { border: none; overflow: visible; }
             table { min-width: 100% !important; font-size: 11px; }
             th { background: #eee !important; color: #333 !important; }
@@ -450,96 +149,66 @@
             .summary-bar { grid-template-columns: repeat(4, 1fr) !important; }
             .summary-card { border: 1px solid #ccc; }
         }
-
         @media (max-width: 768px) {
-            body { overflow-y: auto; height: auto; padding: 8px; }
+            body { overflow-y: auto; overflow-x: hidden; height: auto; min-height: 100vh; padding: 8px; }
             .login-card { padding: 24px 20px; width: 95%; }
             .login-card h2 { font-size: 18px; }
-
             header { flex-direction: column; align-items: stretch; gap: 8px; }
             .logo-section { text-align: center; }
+            .logo-section > div { justify-content: center; }
             .nav-tabs { padding: 3px; gap: 2px; }
-            .tab-btn { padding: 6px 10px; font-size: 12px; min-height: 36px; flex: 1; justify-content: center; }
-
-            .db-layout, .archive-layout { 
-                grid-template-columns: 1fr; 
-                overflow: visible; 
-            }
-
+            .tab-btn { padding: 6px 10px; font-size: 12px; min-height: 36px; justify-content: center; }
+            .tab-content { overflow: visible; min-height: auto; }
+            .db-layout, .archive-layout { grid-template-columns: 1fr; overflow: visible; }
+            .db-layout > div, .db-layout > .card { overflow: visible; }
             .archive-layout.mobile-detail-active .archive-list { display: none; }
             .archive-layout.mobile-detail-active .archive-detail { display: flex; }
             .mobile-back-btn { display: inline-flex; }
-
-            .table-responsive { max-height: 50vh; }
+            .table-responsive { max-height: 48vh; }
+            .archive-list { max-height: 60vh; }
             table { min-width: 600px; }
-
             .summary-bar { grid-template-columns: repeat(2, 1fr); }
             .summary-card .val { font-size: 16px; }
-
             .card { padding: 12px; gap: 10px; }
             .input-control { padding: 8px 10px; font-size: 16px; }
             .table-input { width: 65px; padding: 4px; }
-
             .btn { padding: 8px 12px; font-size: 13px; min-height: 44px; }
             .btn-sm { min-height: 36px; }
-
-            .search-results { 
-                position: fixed; 
-                top: auto; 
-                bottom: 0; 
-                left: 0; right: 0;
-                max-height: 50vh;
-                border-radius: 12px 12px 0 0;
-                z-index: 1001;
-            }
-
+            .search-results { position: fixed; top: auto; bottom: 0; left: 0; right: 0; max-height: 50vh; border-radius: 12px 12px 0 0; z-index: 1001; }
             .modal-card { padding: 20px 16px; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .menu-grid-2 { grid-template-columns: 1fr; }
+            .menu-grid-3 { grid-template-columns: 1fr; }
+            .menu-calc-box { flex-direction: column; align-items: stretch; }
+            .menu-calc-box input { width: 100%; }
+            .discount-box { width: 100%; }
+            .menu-row-e2 .price-editable { width: 90px; min-width: 80px; font-size: 12px; padding: 6px; }
+            .archiveDetailMeta, #archiveDetailMeta { grid-template-columns: 1fr !important; }
         }
-
         @media (max-width: 480px) {
             .summary-bar { grid-template-columns: repeat(2, 1fr); }
             .logo-section h1 { font-size: 16px; }
+            .menu-row-e2 .item-name { font-size: 12px; }
         }
-
         .text-center { text-align: center; }
         .mt-2 { margin-top: 8px; }
         .flex-wrap { flex-wrap: wrap; }
         .gap-2 { gap: 8px; }
         .w-full { width: 100%; }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
         .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
-
-        .mobile-save-bar {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0; right: 0;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border);
-            padding: 10px;
-            z-index: 100;
-            gap: 8px;
-        }
-        @media (max-width: 768px) {
-            .mobile-save-bar { display: flex; }
-            body { padding-bottom: 70px; }
-        }
+        .mobile-save-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); border-top: 1px solid var(--border); padding: 10px; z-index: 100; gap: 8px; }
+        @media (max-width: 768px) { .mobile-save-bar { display: flex; } body { padding-bottom: 70px; } }
     </style>
 <base target="_blank">
 </head>
 <body>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner" style="width: 40px; height: 40px; border-width: 3px;"></div>
         <div class="loading-text" id="loadingText">جاري المعالجة...</div>
     </div>
 
-    <!-- Custom Modal -->
     <div id="customModal" class="modal-overlay">
         <div class="modal-card">
             <h3 id="modalTitle">تأكيد</h3>
@@ -551,12 +220,10 @@
         </div>
     </div>
 
-    <!-- Login Overlay -->
     <div id="loginOverlay">
         <div class="login-card">
             <h2>🔑 تسجيل الدخول للسيستم</h2>
             <p>مجموعة E2 لخدمات وبرمجيات وإدارة الانظمة</p>
-
             <form onsubmit="handleMultiUserLogin(event)">
                 <div class="form-group" style="margin-bottom: 12px; text-align: right;">
                     <label>اسم المستخدم (بالإنجليزي)</label>
@@ -571,6 +238,8 @@
                 </button>
             </form>
             <div id="loginError" style="color: var(--danger); font-size: 12px; margin-top: 10px; font-weight: bold; display: none;">❌ اسم المستخدم أو كلمة المرور خاطئة!</div>
+            <div id="loginStatus" style="color: var(--text-muted); font-size: 11px; margin-top: 8px;">🔌 جاري الاتصال بالسحابة...</div>
+            <button type="button" id="reconnectBtn" class="btn" style="width: 100%; margin-top: 10px; display: none;" onclick="tryConnectFirebaseOnLoad()">🔄 إعادة الاتصال بالسحابة</button>
         </div>
     </div>
 
@@ -593,12 +262,13 @@
             <button class="tab-btn" onclick="switchTab('archive-tab', this)">🗄️ أرشيف</button>
             <button class="tab-btn supervisor-only" onclick="switchTab('items-tab', this)">📦 الأصناف</button>
             <button class="tab-btn supervisor-only" onclick="switchTab('history-tab', this)">📈 الأسعار</button>
+            <button class="tab-btn" onclick="switchTab('menu-tab', this)">🍽️ قائمة الغرف</button>
             <button class="tab-btn admin-only" onclick="switchTab('users-tab', this)">👥 المستخدمين</button>
             <button class="tab-btn admin-only" onclick="switchTab('settings-tab', this)">⚙️ إعدادات</button>
         </div>
     </header>
 
-    <!-- ================= صفحة التسعير والمبيعات ================= -->
+    <!-- PRICING TAB -->
     <div id="pricing-tab" class="tab-content active">
         <div class="card" style="padding: 12px; display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap;">
             <input type="hidden" id="editingInvoiceId" value="">
@@ -612,29 +282,24 @@
             <button class="btn" onclick="clearInvoice()" style="border-color: var(--danger); color: var(--danger);">🗑️ مسح</button>
             <button class="btn btn-success" id="btnSaveInvoice" onclick="saveInvoiceToCloud()">💾 حفظ وأرشفة</button>
         </div>
-
         <div class="summary-bar">
             <div class="summary-card"><span class="lbl">أصناف القائمة</span><div id="sumUniqueItems" class="val">0</div></div>
             <div class="summary-card"><span class="lbl">إجمالي الكمية</span><div id="sumTotalQuantities" class="val">0</div></div>
-
             <div class="summary-card" style="border-color: var(--warning);">
                 <span class="lbl" style="color: var(--warning);">المعامل / النسبة (%)</span>
                 <input type="number" id="invoiceMultiplier" class="input-control" value="0" step="0.5" inputmode="decimal" style="text-align: center; font-weight: bold; color: var(--warning); margin-top: 4px; padding: 2px;" oninput="handleMultiplierChange()">
             </div>
-
             <div class="summary-card" style="border-color: var(--accent);">
                 <span class="lbl" style="color: var(--accent);">إجمالي الحساب (ج.م)</span>
                 <div id="sumTotalPrice" class="val" style="color: var(--accent);">0.00</div>
             </div>
         </div>
-
         <div class="card" style="padding: 10px;">
             <div class="search-container">
                 <input type="text" id="searchInput" class="input-control" style="width:100%; padding:12px;" placeholder="🔍 ابدأ بكتابة اسم الصنف... (استخدم الأسهم ↑ ↓ ثم Enter)" autocomplete="off" autocorrect="off" spellcheck="false">
                 <div id="searchResults" class="search-results"></div>
             </div>
         </div>
-
         <div class="table-responsive">
             <table>
                 <thead>
@@ -653,16 +318,13 @@
         </div>
     </div>
 
-    <!-- ================= صفحة أرشيف الفواتير ================= -->
+    <!-- ARCHIVE TAB -->
     <div id="archive-tab" class="tab-content">
         <div class="archive-layout" id="archiveLayout">
             <div class="card archive-list" style="overflow-y: auto;">
                 <div class="card-title">🗄️ قائمة الفواتير المؤرشفة</div>
                 <div id="archiveList" style="display:flex; flex-direction:column; gap:8px;">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <div>جاري تحميل الأرشيف...</div>
-                    </div>
+                    <div class="empty-state"><div class="empty-state-icon">📭</div><div>جاري تحميل الأرشيف...</div></div>
                 </div>
             </div>
             <div class="card archive-detail" style="overflow:hidden; display:flex; flex-direction:column;">
@@ -676,40 +338,27 @@
                     </div>
                 </div>
                 <div id="archiveDetailMeta" style="font-size:13px; color:var(--text-muted); margin-bottom:10px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div>رقم الفاتورة: -</div>
-                    <div>المورد/العميل: -</div>
-                    <div>بواسطة المستخدم: -</div>
-                    <div>التاريخ والوقت: -</div>
+                    <div>رقم الفاتورة: -</div><div>المورد/العميل: -</div>
+                    <div>بواسطة المستخدم: -</div><div>التاريخ والوقت: -</div>
                     <div style="color:var(--accent); font-weight:700;">الإجمالي الكلي: -</div>
                 </div>
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>اسم الصنف</th>
-                                <th>الوحدة</th>
-                                <th>السعر الأساسي</th>
-                                <th>الكمية</th>
-                                <th>الإجمالي</th>
-                            </tr>
-                        </thead>
-                        <tbody id="archiveItemsBody">
-                            <tr><td colspan="5" style="text-align:center; color:var(--text-muted)">اختر فاتورة من القائمة لعرض محتوياتها</td></tr>
-                        </tbody>
+                        <thead><tr><th>اسم الصنف</th><th>الوحدة</th><th>السعر الأساسي</th><th>الكمية</th><th>الإجمالي</th></tr></thead>
+                        <tbody id="archiveItemsBody"><tr><td colspan="5" style="text-align:center; color:var(--text-muted)">اختر فاتورة من القائمة لعرض محتوياتها</td></tr></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ================= صفحة إدارة الأصناف ================= -->
+    <!-- ITEMS TAB -->
     <div id="items-tab" class="tab-content">
         <div class="db-layout">
             <div class="card" style="height: fit-content;">
                 <div class="card-title" id="formActionTitle">إضافة صنف جديد لقاعدة البيانات</div>
                 <form id="itemForm" onsubmit="saveItemToDb(event)">
-                    <input type="hidden" id="edit_old_name">
-                    <input type="hidden" id="edit_old_price">
+                    <input type="hidden" id="edit_old_name"><input type="hidden" id="edit_old_price">
                     <div class="form-group" style="margin-bottom:8px"><label>اسم الصنف *</label><input type="text" id="item_name" class="input-control" required autocomplete="off"></div>
                     <div class="form-group" style="margin-bottom:8px"><label>التصنيف</label><input type="text" id="item_category" class="input-control" placeholder="مشروبات، مجمدات..." autocomplete="off"></div>
                     <div class="form-group" style="margin-bottom:8px"><label>الوحدة</label><input type="text" id="item_unit" class="input-control" placeholder="قطعة، كيلو..." autocomplete="off"></div>
@@ -725,22 +374,12 @@
                     <span style="font-weight:700; color:var(--accent)">📦 جميع الأصناف المسجلة في السحابة:</span>
                     <span style="font-size:12px; color:var(--text-muted)">المعروض: <strong id="dbCount" style="color:var(--accent)">0</strong></span>
                 </div>
-
                 <div class="card" style="padding: 8px;">
                     <input type="text" id="dbSearchInput" class="input-control" placeholder="🔍 تصفية الأصناف بالاسم، التصنيف، أو الوحدة..." oninput="debouncedFilterDb()" autocomplete="off">
                 </div>
-
                 <div class="table-responsive">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>اسم الصنف</th>
-                                <th>التصنيف</th>
-                                <th>الوحدة</th>
-                                <th>السعر الحالي</th>
-                                <th style="width: 120px;">التحكم</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>اسم الصنف</th><th>التصنيف</th><th>الوحدة</th><th>السعر الحالي</th><th style="width: 120px;">التحكم</th></tr></thead>
                         <tbody id="databaseItemsBody"></tbody>
                     </table>
                 </div>
@@ -753,85 +392,162 @@
         </div>
     </div>
 
-    <!-- ================= صفحة تقرير تغير الأسعار ================= -->
+    <!-- HISTORY TAB -->
     <div id="history-tab" class="tab-content">
         <div class="card" style="flex:1; overflow:hidden;">
             <div class="card-title">📈 سجل مراقبة وتغير أسعار الأصناف في السوق</div>
             <div class="table-responsive">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>اسم الصنف</th>
-                            <th>السعر القديم (ج.م)</th>
-                            <th>السعر الجديد (ج.م)</th>
-                            <th>مقدار التغير</th>
-                            <th>تاريخ التعديل ووقت الرصد</th>
-                        </tr>
-                    </thead>
-                    <tbody id="priceHistoryBody">
-                        <tr><td colspan="5" style="text-align:center; color:var(--text-muted)">لا توجد تعديلات أسعار مسجلة بعد.</td></tr>
-                    </tbody>
+                    <thead><tr><th>اسم الصنف</th><th>السعر القديم (ج.م)</th><th>السعر الجديد (ج.م)</th><th>مقدار التغير</th><th>تاريخ التعديل ووقت الرصد</th></tr></thead>
+                    <tbody id="priceHistoryBody"><tr><td colspan="5" style="text-align:center; color:var(--text-muted)">لا توجد تعديلات أسعار مسجلة بعد.</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ================= صفحة إدارة المستخدمين ================= -->
+    <!-- ROOM SERVICE MENU TAB -->
+    <div id="menu-tab" class="tab-content">
+        <div class="card" style="padding: 12px; display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <div class="menu-search" style="flex: 1; min-width: 200px;">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="menuSearchInput" oninput="filterMenu()" placeholder="ابحث في قائمة خدمة الغرف..." autocomplete="off">
+            </div>
+            <div class="menu-calc-box" style="flex: 2; min-width: 300px;">
+                <span style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">🧮 حاسبة الخصم:</span>
+                <input type="number" id="menuCheckTotal" oninput="calculateMenuDiscount()" placeholder="إجمالي الشيك..." step="any">
+                <div class="discount-box disc-50">
+                    <span class="lbl">الصافي بعد خصم 50%</span>
+                    <span class="val" id="menuDisc50">0.00 LE</span>
+                </div>
+                <div class="discount-box disc-25">
+                    <span class="lbl">الصافي بعد خصم 25%</span>
+                    <span class="val" id="menuDisc25">0.00 LE</span>
+                </div>
+            </div>
+            <span id="menuSyncBadge" class="sync-badge sync-offline">🔌 غير متصل</span>
+            <button class="btn supervisor-only" onclick="resetMenuPrices()" style="border-color: var(--warning); color: var(--warning);">🔄 إعادة الأسعار</button>
+            <button class="btn" onclick="printMenu()" style="border-color: var(--success); color: var(--success);">🖨️ طباعة</button>
+        </div>
+
+        <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;" id="menuScrollArea">
+            <!-- FOOD -->
+            <div>
+                <div class="menu-section-title"><span>🍔</span><h3>قائمة الطعام — IN-ROOM FOOD MENU</h3></div>
+
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>☀️</span><span>Breakfast</span></div>
+                    <div class="menu-grid" id="menuBreakfast"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🥣</span><span>Soups</span></div>
+                    <div class="menu-grid" id="menuSoups"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🥗</span><span>Salads</span></div>
+                    <div class="menu-grid" id="menuSalads"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🥪</span><span>Sandwiches (Served with French fries & Pickles)</span></div>
+                    <div class="menu-grid menu-grid-2" id="menuSandwiches"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍝</span><span>Pasta</span></div>
+                    <div class="menu-grid" id="menuPasta"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍗</span><span>Main Courses (Served with French fries or Rice & Vegetables)</span></div>
+                    <div class="menu-grid menu-grid-2" id="menuMains"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍰</span><span>Desserts</span></div>
+                    <div class="menu-grid" id="menuDesserts"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍦</span><span>Ice Cream & Sweets</span></div>
+                    <div class="menu-grid menu-grid-3" id="menuIcecream"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>💨</span><span>Hookah (Shisha)</span></div>
+                    <div class="menu-grid" id="menuShisha"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>⭐</span><span>Fruit Basket (VIP) & Tart & Oriental Pastry</span></div>
+                    <div class="menu-grid" id="menuVip"></div>
+                </div>
+            </div>
+
+            <!-- BEVERAGES -->
+            <div>
+                <div class="menu-section-title"><span>🍷</span><h3>قائمة المشروبات — IN-ROOM BEVERAGE MENU</h3></div>
+
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍹</span><span>Mocktails & Fresh Bar</span></div>
+                    <div class="menu-grid" id="menuMocktails"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🥤</span><span>Soft Drinks</span></div>
+                    <div class="menu-grid" id="menuSoft"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>☕</span><span>Hot Drinks</span></div>
+                    <div class="menu-grid" id="menuHot"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍺</span><span>Beer & ID</span></div>
+                    <div class="menu-grid" id="menuBeer"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍾</span><span>Wine & Champagne</span></div>
+                    <div class="menu-grid menu-grid-2" id="menuWine"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🥃</span><span>Cognac & Whisky (Per Shot)</span></div>
+                    <div class="menu-grid" id="menuCognac"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍶</span><span>Local (Per Shot / Bottle)</span></div>
+                    <div class="menu-grid menu-grid-3" id="menuLocal"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>💎</span><span>Premium (Per Shot / Bottle)</span></div>
+                    <div class="menu-grid" id="menuPremium"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🧪</span><span>Liqueurs & Aperitifs (Per Shot)</span></div>
+                    <div class="menu-grid" id="menuLiqueurs"></div>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px;">
+                F&B Cost Controller — MR. EHAB ENAL | Room Service Menu | جميع الأسعار بالجنيه المصري
+            </div>
+        </div>
+    </div>
+
+    <!-- USERS TAB -->
     <div id="users-tab" class="tab-content">
         <div class="db-layout">
             <div class="card" style="height: fit-content;">
                 <div class="card-title" id="userFormActionTitle">إضافة / تعديل مستخدم سحابي</div>
                 <form id="userForm" onsubmit="saveUserToDb(event)">
                     <input type="hidden" id="user_is_edit" value="false">
-                    <div class="form-group" style="margin-bottom:8px">
-                        <label>اسم المستخدم البرمجي (بالإنجليزي - لا يتغير)</label>
-                        <input type="text" id="user_username" class="input-control" required placeholder="مثال: Ehab" autocomplete="off">
-                    </div>
-                    <div class="form-group" style="margin-bottom:8px">
-                        <label>الاسم الظاهر بالفاتورة (بالعربي)</label>
-                        <input type="text" id="user_displayName" class="input-control" required placeholder="مثال: إيهاب غبريال" autocomplete="off">
-                    </div>
-                    <div class="form-group" style="margin-bottom:8px">
-                        <label>كلمة المرور (الباسورد)</label>
-                        <input type="text" id="user_password" class="input-control" required placeholder="اكتب الباسورد هنا" autocomplete="off">
-                    </div>
-                    <div class="form-group" style="margin-bottom:12px">
-                        <label>الصلاحية</label>
-                        <select id="user_role" class="input-control">
-                            <option value="staff">موظف (Staff - قراءة وأرشفة فقط)</option>
-                            <option value="supervisor">مشرف (Supervisor - إدارة أصناف + أرشفة)</option>
-                            <option value="admin">مدير عام (Admin - تحكم كامل)</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button type="submit" class="btn btn-primary" style="flex:1" id="btnSaveUser">حفظ المستخدم بالسحابة</button>
-                        <button type="button" id="btnCancelUserEdit" class="btn" style="display:none;" onclick="resetUserForm()">إلغاء</button>
-                    </div>
+                    <div class="form-group" style="margin-bottom:8px"><label>اسم المستخدم البرمجي (بالإنجليزي - لا يتغير)</label><input type="text" id="user_username" class="input-control" required placeholder="مثال: Ehab" autocomplete="off"></div>
+                    <div class="form-group" style="margin-bottom:8px"><label>الاسم الظاهر بالفاتورة (بالعربي)</label><input type="text" id="user_displayName" class="input-control" required placeholder="مثال: إيهاب غبريال" autocomplete="off"></div>
+                    <div class="form-group" style="margin-bottom:8px"><label>كلمة المرور (الباسورد)</label><input type="text" id="user_password" class="input-control" required placeholder="اكتب الباسورد هنا" autocomplete="off"></div>
+                    <div class="form-group" style="margin-bottom:12px"><label>الصلاحية</label><select id="user_role" class="input-control"><option value="staff">موظف (Staff - قراءة وأرشفة فقط)</option><option value="supervisor">مشرف (Supervisor - إدارة أصناف + أرشفة)</option><option value="admin">مدير عام (Admin - تحكم كامل)</option></select></div>
+                    <div style="display:flex; gap:8px;"><button type="submit" class="btn btn-primary" style="flex:1" id="btnSaveUser">حفظ المستخدم بالسحابة</button><button type="button" id="btnCancelUserEdit" class="btn" style="display:none;" onclick="resetUserForm()">إلغاء</button></div>
                 </form>
             </div>
             <div style="display:flex; flex-direction:column; gap:10px; overflow:hidden;">
                 <span style="font-weight:700; color:var(--accent)">👥 الحسابات المسجلة للسيستم على السحابة حالياً:</span>
                 <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>اسم المستخدم</th>
-                                <th>الاسم العربي</th>
-                                <th>الباسورد الحالي</th>
-                                <th>الصلاحية</th>
-                                <th style="width: 150px;">التحكم من السيستم</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody">
-                            <tr><td colspan="5" style="text-align:center; color:var(--text-muted)">جاري تحميل الحسابات...</td></tr>
-                        </tbody>
-                    </table>
+                    <table><thead><tr><th>اسم المستخدم</th><th>الاسم العربي</th><th>الباسورد الحالي</th><th>الصلاحية</th><th style="width: 150px;">التحكم من السيستم</th></tr></thead><tbody id="usersTableBody"><tr><td colspan="5" style="text-align:center; color:var(--text-muted)">جاري تحميل الحسابات...</td></tr></tbody></table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ================= صفحة الإعدادات ================= -->
+    <!-- SETTINGS TAB -->
     <div id="settings-tab" class="tab-content">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
             <div class="card">
@@ -842,6 +558,8 @@
             </div>
         </div>
     </div>
+
+    <div id="menuToast" class="menu-toast">✅ تم حفظ التعديل!</div>
 
     <script>
 
@@ -859,14 +577,8 @@
         let dbFilteredItems = [];
         let modalCallback = null;
 
-        const unsubscribers = {
-            products: null,
-            invoices: null,
-            users: null,
-            history: null
-        };
+        const unsubscribers = { products: null, invoices: null, users: null, history: null, menu: null };
 
-        // ==================== UTILITY FUNCTIONS ====================
         function escapeHtml(text) {
             if (text == null) return '';
             const div = document.createElement('div');
@@ -882,15 +594,11 @@
             };
         }
 
-        function setLoading(show, text = 'جاري المعالجة...') {
+        function setLoading(show, text) {
             const overlay = document.getElementById('loadingOverlay');
             const txt = document.getElementById('loadingText');
-            if (show) {
-                txt.innerText = text;
-                overlay.classList.add('active');
-            } else {
-                overlay.classList.remove('active');
-            }
+            if (show) { txt.innerText = text || 'جاري المعالجة...'; overlay.classList.add('active'); }
+            else { overlay.classList.remove('active'); }
         }
 
         function showModal(title, message, onConfirm) {
@@ -898,8 +606,8 @@
             document.getElementById('modalMessage').innerText = message;
             modalCallback = onConfirm;
             const confirmBtn = document.getElementById('modalConfirm');
-            confirmBtn.onclick = () => {
-                const cb = modalCallback;
+            confirmBtn.onclick = function() {
+                var cb = modalCallback;
                 closeModal();
                 if (cb) cb();
             };
@@ -911,42 +619,40 @@
             modalCallback = null;
         }
 
-        function showToast(msg, type = "success") {
-            const container = document.getElementById("toastContainer"); 
-            const toast = document.createElement("div"); 
+        function showToast(msg, type) {
+            type = type || "success";
+            var container = document.getElementById("toastContainer"); 
+            var toast = document.createElement("div"); 
             toast.className = "toast " + type; 
             toast.innerText = msg;
-
-            const progress = document.createElement('div');
+            var progress = document.createElement('div');
             progress.className = 'toast-progress';
             if (type === 'error') progress.style.background = 'var(--danger)';
             else if (type === 'warning') progress.style.background = 'var(--warning)';
             toast.appendChild(progress);
-
             container.appendChild(toast); 
-            setTimeout(() => {
+            setTimeout(function() {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(-100%)';
                 toast.style.transition = 'all 0.3s';
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(function() { toast.remove(); }, 300);
             }, 3000); 
         }
 
         function updateUnsavedIndicator() {
-            const badge = document.getElementById('unsavedBadge');
-            const tabBtn = document.querySelector('.tab-btn[onclick*="pricing-tab"]');
+            var badge = document.getElementById('unsavedBadge');
+            var tabBtn = document.querySelector('.tab-btn[onclick*="pricing-tab"]');
             if (activeInvoiceItems.length > 0) {
                 badge.style.display = 'inline-block';
-                tabBtn.classList.add('has-unsaved');
+                if(tabBtn) tabBtn.classList.add('has-unsaved');
             } else {
                 badge.style.display = 'none';
-                tabBtn.classList.remove('has-unsaved');
+                if(tabBtn) tabBtn.classList.remove('has-unsaved');
             }
         }
 
-        // ==================== LOCAL STORAGE ====================
         function saveInvoiceToLocal() {
-            const data = {
+            var data = {
                 items: activeInvoiceItems,
                 client: document.getElementById("invoiceClient").value,
                 multiplier: document.getElementById("invoiceMultiplier").value,
@@ -958,16 +664,16 @@
 
         function loadLocalInvoice() {
             try {
-                const saved = localStorage.getItem('e2_active_invoice');
+                var saved = localStorage.getItem('e2_active_invoice');
                 if (!saved) return false;
-                const data = JSON.parse(saved);
+                var data = JSON.parse(saved);
                 if (data.items && data.items.length > 0) {
                     activeInvoiceItems = data.items;
                     document.getElementById("invoiceClient").value = data.client || '';
                     document.getElementById("invoiceMultiplier").value = data.multiplier || '0';
                     document.getElementById("editingInvoiceId").value = data.editingId || '';
                     if (data.editingId) {
-                        document.getElementById("btnSaveInvoice").innerText = `💾 تحديث الفاتورة (${data.editingId})`;
+                        document.getElementById("btnSaveInvoice").innerText = '💾 تحديث الفاتورة (' + data.editingId + ')';
                     }
                     renderInvoiceTable();
                     return true;
@@ -980,165 +686,200 @@
             localStorage.removeItem('e2_active_invoice');
         }
 
-        // ==================== TAB SWITCHING ====================
         function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-
-            const targetTab = document.getElementById(tabId);
+            document.querySelectorAll('.tab-content').forEach(function(tab) { tab.classList.remove('active'); });
+            document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
+            var targetTab = document.getElementById(tabId);
             if (targetTab) targetTab.classList.add('active');
-
             if (btnElement && btnElement.classList) {
                 btnElement.classList.add('active');
             } else {
-                // Fallback: find button by onclick attribute
-                const fallbackBtn = document.querySelector('.tab-btn[onclick*="' + tabId + '"], .tab-btn[onclick*="' + tabId.split('-')[0] + '-tab"]');
+                var fallbackBtn = document.querySelector('.tab-btn[onclick*="' + tabId + '"], .tab-btn[onclick*="' + tabId.split('-')[0] + '-tab"]');
                 if (fallbackBtn) fallbackBtn.classList.add('active');
             }
-
             if (tabId === 'archive-tab') loadInvoicesArchive();
             if (tabId === 'history-tab') loadPriceHistory();
             if (tabId === 'users-tab') loadSystemUsers();
             if (tabId === 'items-tab') filterDatabaseTable();
+            if (tabId === 'menu-tab') renderMenu();
         }
 
-        // ==================== FIREBASE INIT ====================
         window.onload = function() {
             tryConnectFirebaseOnLoad();
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
+            document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.key === 's') {
                     e.preventDefault();
                     if (activeInvoiceItems.length > 0) saveInvoiceToCloud();
                 }
                 if (e.ctrlKey && e.key === 'f') {
                     e.preventDefault();
-                    document.getElementById('searchInput').focus();
+                    var si = document.getElementById('searchInput');
+                    if(si) { si.focus(); si.select(); }
                 }
             });
-
-            // Before unload warning
-            window.addEventListener('beforeunload', (e) => {
+            window.addEventListener('beforeunload', function(e) {
                 if (activeInvoiceItems.length > 0) {
                     e.preventDefault();
                     e.returnValue = '';
                 }
             });
-
-            // Online/offline detection
-            window.addEventListener('online', () => {
+            window.addEventListener('online', function() {
                 if (firebaseDb) {
                     document.getElementById("cloudStatus").className = "sync-badge sync-online";
                     document.getElementById("cloudStatus").innerText = "☁️ متصل";
                 }
             });
-            window.addEventListener('offline', () => {
+            window.addEventListener('offline', function() {
                 document.getElementById("cloudStatus").className = "sync-badge sync-offline";
                 document.getElementById("cloudStatus").innerText = "❌ غير متصل";
             });
         };
 
-        function tryConnectFirebaseOnLoad() {
-            const firebaseConfig = {
-                apiKey: "AIzaSyCVvNtvzpJYNpz9hGYcMQL8X4GFnzSFNoE",
-                authDomain: "e2-smart-pricing.firebaseapp.com",
-                projectId: "e2-smart-pricing",
-                storageBucket: "e2-smart-pricing.firebasestorage.app",
-                messagingSenderId: "307066111808",
-                appId: "1:307066111808:web:210c1d8c22bf89a029dca5"
-            };
+        // ---- Dynamic, retry-aware loader for the Firebase SDK ----
+        // Loading these as plain <script> tags in <head> fails silently if a network filter,
+        // ad-blocker, or offline connection blocks www.gstatic.com — the page then crashes later
+        // with "firebase is not defined". Loading them from JS lets us catch that and show a clear
+        // message instead, and lets "إعادة الاتصال" genuinely retry the download.
+        var FIREBASE_SDK_URLS = [
+            "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js",
+            "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"
+        ];
+        var firebaseScriptsLoaded = false;
 
-            try {
+        function loadScriptOnce(src) {
+            return new Promise(function(resolve, reject) {
+                var existing = document.querySelector('script[data-fbsrc="' + src + '"]');
+                if (existing) { existing.remove(); } // allow a clean retry
+                var s = document.createElement('script');
+                s.src = src + (src.indexOf('?') === -1 ? '?_r=' : '&_r=') + Date.now(); // cache-bust on retry
+                s.setAttribute('data-fbsrc', src);
+                s.onload = function() { resolve(); };
+                s.onerror = function() { reject(new Error('تعذر تحميل: ' + src)); };
+                document.head.appendChild(s);
+            });
+        }
+
+        function ensureFirebaseScripts() {
+            if (firebaseScriptsLoaded && typeof firebase !== 'undefined') return Promise.resolve();
+            var chain = Promise.resolve();
+            FIREBASE_SDK_URLS.forEach(function(url) {
+                chain = chain.then(function() { return loadScriptOnce(url); });
+            });
+            return chain.then(function() {
+                if (typeof firebase === 'undefined') {
+                    throw new Error('تم تحميل الملفات لكن مكتبة firebase غير معرّفة');
+                }
+                firebaseScriptsLoaded = true;
+            });
+        }
+
+        function tryConnectFirebaseOnLoad() {
+            var statusEl = document.getElementById("loginStatus");
+            var reconnectBtn = document.getElementById("reconnectBtn");
+            if(statusEl) { statusEl.innerText = "🔌 جاري تحميل مكتبات السحابة والاتصال..."; statusEl.style.color = "var(--text-muted)"; }
+            if(reconnectBtn) reconnectBtn.style.display = "none";
+            document.getElementById("cloudStatus").className = "sync-badge sync-syncing";
+            document.getElementById("cloudStatus").innerText = "🔌 جاري الاتصال...";
+
+            ensureFirebaseScripts().then(function() {
+                var firebaseConfig = {
+                    apiKey: "AIzaSyCVvNtvzpJYNpz9hGYcMQL8X4GFnzSFNoE",
+                    authDomain: "e2-smart-pricing.firebaseapp.com",
+                    projectId: "e2-smart-pricing",
+                    storageBucket: "e2-smart-pricing.firebasestorage.app",
+                    messagingSenderId: "307066111808",
+                    appId: "1:307066111808:web:210c1d8c22bf89a029dca5"
+                };
                 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
                 firebaseDb = firebase.firestore();
-
-                // Enable offline persistence
-                firebaseDb.enablePersistence({ synchronizeTabs: true }).catch(() => {});
-
+                firebaseDb.enablePersistence({ synchronizeTabs: true }).catch(function(e){ console.log("Persistence error:", e); });
                 document.getElementById("cloudStatus").className = "sync-badge sync-online";
                 document.getElementById("cloudStatus").innerText = "☁️ السحابة متصلة";
-
+                var statusEl3 = document.getElementById("loginStatus");
+                if(statusEl3) { statusEl3.innerText = "☁️ متصل بالسحابة - يمكنك تسجيل الدخول"; statusEl3.style.color = "var(--success)"; }
                 seedInitialUsersData();
-
                 if (unsubscribers.products) unsubscribers.products();
-                unsubscribers.products = firebaseDb.collection("products").onSnapshot((snapshot) => {
-                    const cloudItems = [];
-                    snapshot.forEach(doc => cloudItems.push(doc.data()));
+                unsubscribers.products = firebaseDb.collection("products").onSnapshot(function(snapshot) {
+                    var cloudItems = [];
+                    snapshot.forEach(function(doc) { cloudItems.push(doc.data()); });
                     allItemsCached = cloudItems;
                     filterDatabaseTable();
-                }, (err) => {
-                    console.error('Products sync error:', err);
-                });
-
-            } catch (err) {
+                }, function(err) { console.error('Products sync error:', err); });
+                loadRoomServiceMenuFromCloud();
+            }).catch(function(err) {
                 console.error('Firebase init error:', err);
                 document.getElementById("cloudStatus").className = "sync-badge sync-offline";
                 document.getElementById("cloudStatus").innerText = "❌ فشل الاتصال بالسحابة";
-
-                // Retry after 5 seconds
-                setTimeout(tryConnectFirebaseOnLoad, 5000);
-            }
+                var statusEl2 = document.getElementById("loginStatus");
+                var reconnectBtn2 = document.getElementById("reconnectBtn");
+                if(statusEl2) {
+                    statusEl2.innerText = "❌ تعذر تحميل مكتبات Firebase. تحقق من الإنترنت، أو أن مانع إعلانات/جدار حماية الشبكة لا يحظر gstatic.com، ثم أعد المحاولة";
+                    statusEl2.style.color = "var(--danger)";
+                }
+                if(reconnectBtn2) reconnectBtn2.style.display = "block";
+            });
         }
 
         function seedInitialUsersData() {
             if (!firebaseDb) return;
-            firebaseDb.collection("users").get().then(snap => {
+            firebaseDb.collection("users").get().then(function(snap) {
                 if(snap.empty) {
-                    firebaseDb.collection("users").doc("Ehab").set({ username: "Ehab", displayName: "إيهاب", password: "123456", role: "admin" });
-                    firebaseDb.collection("users").doc("Supervisor").set({ username: "Supervisor", displayName: "مشرف النظام", password: "super123", role: "supervisor" });
-                    firebaseDb.collection("users").doc("Keroles").set({ username: "Keroles", displayName: "كيرلس", password: "7890", role: "staff" });
+                    var batch = firebaseDb.batch();
+                    batch.set(firebaseDb.collection("users").doc("Ehab"), { username: "Ehab", displayName: "إيهاب", password: "123456", role: "admin" });
+                    batch.set(firebaseDb.collection("users").doc("Supervisor"), { username: "Supervisor", displayName: "مشرف النظام", password: "super123", role: "supervisor" });
+                    batch.set(firebaseDb.collection("users").doc("Keroles"), { username: "Keroles", displayName: "كيرلس", password: "7890", role: "staff" });
+                    return batch.commit();
                 }
-            }).catch(() => {});
+            }).then(function() {
+                console.log("Users seeded successfully");
+            }).catch(function(err) {
+                console.error("Seed error:", err);
+            });
         }
 
-        // ==================== LOGIN ====================
         function handleMultiUserLogin(event) {
             event.preventDefault();
-            const userInp = document.getElementById("loginUsername").value.trim();
-            const passInp = document.getElementById("loginPassword").value;
-            const errorDiv = document.getElementById("loginError");
-            const loginBtn = document.getElementById("loginBtn");
-            const loginBtnText = document.getElementById("loginBtnText");
-
-            if(!firebaseDb) {
-                showToast("السحابة غير متصلة بعد، انتظر ثانية أو تحقق من الإنترنت", "error");
-                return;
+            var userInp = document.getElementById("loginUsername").value.trim();
+            var passInp = document.getElementById("loginPassword").value;
+            var errorDiv = document.getElementById("loginError");
+            var loginBtn = document.getElementById("loginBtn");
+            var loginBtnText = document.getElementById("loginBtnText");
+            if (typeof firebase === 'undefined') {
+                showToast("مكتبات Firebase لم تحمل، تحقق من الإنترنت وأعد تحميل الصفحة", "error");
+                loginBtn.disabled = false; loginBtnText.innerText = "دخول النظام"; return;
             }
-
+            if(!firebaseDb) { 
+                showToast("السحابة غير متصلة بعد، اضغط على إعادة الاتصال", "error"); 
+                loginBtn.disabled = false;
+                loginBtnText.innerText = "دخول النظام";
+                var rbtn = document.getElementById("reconnectBtn");
+                if(rbtn) rbtn.style.display = "block";
+                return; 
+            }
             loginBtn.disabled = true;
             loginBtnText.innerText = "جاري الدخول...";
-
-            firebaseDb.collection("users").doc(userInp).get().then(doc => {
+            firebaseDb.collection("users").doc(userInp).get().then(function(doc) {
                 if(doc.exists && doc.data().password === passInp) {
-                    const userData = doc.data();
+                    var userData = doc.data();
                     currentUser = { username: userData.username, displayName: userData.displayName, role: userData.role };
-
                     document.body.classList.remove('is-admin', 'is-supervisor');
-                    if(userData.role === 'admin') {
-                        document.body.classList.add('is-admin');
-                    } else if(userData.role === 'supervisor') {
-                        document.body.classList.add('is-supervisor');
-                    }
-
-                    const roleLabel = currentUser.role === 'admin' ? 'مدير عام' : currentUser.role === 'supervisor' ? 'مشرف' : 'موظف';
-                    document.getElementById("userBadge").innerText = `👤 ${currentUser.displayName} (${roleLabel})`;
+                    if(userData.role === 'admin') document.body.classList.add('is-admin');
+                    else if(userData.role === 'supervisor') document.body.classList.add('is-supervisor');
+                    var roleLabel = currentUser.role === 'admin' ? 'مدير عام' : currentUser.role === 'supervisor' ? 'مشرف' : 'موظف';
+                    document.getElementById("userBadge").innerText = '👤 ' + currentUser.displayName + ' (' + roleLabel + ')';
                     document.getElementById("loginOverlay").style.opacity = 0;
-                    setTimeout(() => { document.getElementById("loginOverlay").style.display = "none"; }, 400);
-                    showToast(`مرحباً بك: ${currentUser.displayName}`);
+                    setTimeout(function() { document.getElementById("loginOverlay").style.display = "none"; }, 400);
+                    showToast('مرحباً بك: ' + currentUser.displayName);
                     setupSearchEngine();
-
-                    // Try load local invoice
-                    const hasLocal = loadLocalInvoice();
-                    if (hasLocal) {
-                        showToast("تم استرجاع الفاتورة المحفوظة محلياً", "warning");
-                    }
+                    var hasLocal = loadLocalInvoice();
+                    if (hasLocal) showToast("تم استرجاع الفاتورة المحفوظة محلياً", "warning");
+                    renderMenu();
                 } else {
                     errorDiv.style.display = "block";
                     loginBtn.disabled = false;
                     loginBtnText.innerText = "دخول النظام";
                 }
-            }).catch(() => {
+            }).catch(function() {
                 errorDiv.innerText = "حدث خطأ في الشبكة السحابية";
                 errorDiv.style.display = "block";
                 loginBtn.disabled = false;
@@ -1146,114 +887,76 @@
             });
         }
 
-        // ==================== ITEMS / PRODUCTS ====================
         function saveItemToDb(event) {
             event.preventDefault();
             if (currentUser.role !== 'admin' && currentUser.role !== 'supervisor') return showToast("عفواً، لا تمتلك صلاحية تعديل الأصناف", "error");
-
-            const btn = document.getElementById('btnSaveItem');
+            var btn = document.getElementById('btnSaveItem');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> جاري الحفظ...';
-
-            const name = document.getElementById("item_name").value.trim();
-            const category = document.getElementById("item_category").value.trim() || "عام";
-            const unit = document.getElementById("item_unit").value.trim() || "قطعة";
-            const price = parseFloat(document.getElementById("item_price").value) || 0;
-            const editOldName = document.getElementById("edit_old_name").value;
-            const editOldPrice = parseFloat(document.getElementById("edit_old_price").value) || 0;
-
-            const product = { name, category, unit, price };
-
+            var name = document.getElementById("item_name").value.trim();
+            var category = document.getElementById("item_category").value.trim() || "عام";
+            var unit = document.getElementById("item_unit").value.trim() || "قطعة";
+            var price = parseFloat(document.getElementById("item_price").value) || 0;
+            var editOldName = document.getElementById("edit_old_name").value;
+            var editOldPrice = parseFloat(document.getElementById("edit_old_price").value) || 0;
+            var product = { name: name, category: category, unit: unit, price: price };
             if (editOldName && editOldPrice !== price) {
                 firebaseDb.collection("price_history").add({
-                    itemName: name,
-                    oldPrice: editOldPrice,
-                    newPrice: price,
+                    itemName: name, oldPrice: editOldPrice, newPrice: price,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     dateStr: new Date().toLocaleString('ar-EG')
                 });
             }
-
-            let promiseChain = Promise.resolve();
+            var promiseChain = Promise.resolve();
             if (editOldName && editOldName !== name) {
                 promiseChain = firebaseDb.collection("products").doc(editOldName).delete();
             }
-
-            promiseChain.then(() => {
+            promiseChain.then(function() {
                 return firebaseDb.collection("products").doc(name).set(product);
-            }).then(() => {
+            }).then(function() {
                 showToast("تم حفظ وتحديث الصنف بنجاح!");
                 resetItemForm();
-            }).catch(() => showToast("حدث خطأ أثناء حفظ التعديلات", "error"))
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerText = 'حفظ سحابياً';
-            });
+            }).catch(function() { showToast("حدث خطأ أثناء حفظ التعديلات", "error"); })
+            .finally(function() { btn.disabled = false; btn.innerText = 'حفظ سحابياً'; });
         }
 
         function loadPriceHistory() {
             if (!firebaseDb) return;
-
             if (unsubscribers.history) unsubscribers.history();
-
             setLoading(true, 'جاري تحميل سجل الأسعار...');
-
-            unsubscribers.history = firebaseDb.collection("price_history")
-                .orderBy("timestamp", "desc")
-                .onSnapshot(snapshot => {
-                    setLoading(false);
-                    const tbody = document.getElementById("priceHistoryBody");
-                    tbody.innerHTML = "";
-                    if(snapshot.empty) {
-                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">لا توجد تعديلات أسعار مسجلة حتى الآن.</td></tr>`;
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        const diff = data.newPrice - data.oldPrice;
-                        const diffColor = diff > 0 ? 'var(--danger)' : 'var(--success)';
-                        const diffSign = diff > 0 ? `▲ +${diff.toFixed(2)}` : `▼ ${diff.toFixed(2)}`;
-
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td style="font-weight:600">${escapeHtml(data.itemName)}</td>
-                            <td>${data.oldPrice.toFixed(2)} ج.م</td>
-                            <td style="font-weight:700; color:var(--accent)">${data.newPrice.toFixed(2)} ج.م</td>
-                            <td style="font-weight:700; color:${diffColor}">${diffSign}</td>
-                            <td style="color:var(--text-muted); font-size:12px;">${escapeHtml(data.dateStr || '')}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }, () => {
-                    setLoading(false);
+            unsubscribers.history = firebaseDb.collection("price_history").orderBy("timestamp", "desc").onSnapshot(function(snapshot) {
+                setLoading(false);
+                var tbody = document.getElementById("priceHistoryBody");
+                tbody.innerHTML = "";
+                if(snapshot.empty) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">لا توجد تعديلات أسعار مسجلة حتى الآن.</td></tr>'; return; }
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
+                    var diff = data.newPrice - data.oldPrice;
+                    var diffColor = diff > 0 ? 'var(--danger)' : 'var(--success)';
+                    var diffSign = diff > 0 ? '▲ +' + diff.toFixed(2) : '▼ ' + diff.toFixed(2);
+                    var tr = document.createElement("tr");
+                    tr.innerHTML = '<td style="font-weight:600">' + escapeHtml(data.itemName) + '</td><td>' + data.oldPrice.toFixed(2) + ' ج.م</td><td style="font-weight:700; color:var(--accent)">' + data.newPrice.toFixed(2) + ' ج.م</td><td style="font-weight:700; color:' + diffColor + '">' + diffSign + '</td><td style="color:var(--text-muted); font-size:12px;">' + escapeHtml(data.dateStr || '') + '</td>';
+                    tbody.appendChild(tr);
                 });
+            }, function() { setLoading(false); });
         }
 
-        // ==================== USERS ====================
         function loadSystemUsers() {
             if (!firebaseDb) return;
-
             if (unsubscribers.users) unsubscribers.users();
-
-            unsubscribers.users = firebaseDb.collection("users").onSnapshot(snapshot => {
+            unsubscribers.users = firebaseDb.collection("users").onSnapshot(function(snapshot) {
                 systemUsersCached = [];
-                const tbody = document.getElementById("usersTableBody");
+                var tbody = document.getElementById("usersTableBody");
                 tbody.innerHTML = "";
-
-                snapshot.forEach(doc => {
-                    const u = doc.data();
+                snapshot.forEach(function(doc) {
+                    var u = doc.data();
                     systemUsersCached.push(u);
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td style="font-weight:600; font-family:monospace;">${escapeHtml(u.username)}</td>
-                        <td>${escapeHtml(u.displayName)}</td>
-                        <td style="font-family:monospace; color:var(--text-muted);">${escapeHtml(u.password)}</td>
-                        <td><span style="color:${u.role==='admin'?'var(--accent)':u.role==='supervisor'?'var(--warning)':'var(--text-main)'}">${u.role==='admin'?'مدير عام':u.role==='supervisor'?'مشرف':'موظف'}</span></td>
-                        <td>
-                            <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent);" onclick="editUserFields('${escapeHtml(u.username)}')">✏️ تعديل</button>
-                            <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--danger); ${u.username==='Ehab'?'display:none':''}" onclick="deleteUserFromDb('${escapeHtml(u.username)}')">✕ حذف</button>
-                        </td>
-                    `;
+                    var tr = document.createElement("tr");
+                    var roleText = u.role==='admin'?'مدير عام':u.role==='supervisor'?'مشرف':'موظف';
+                    var roleColor = u.role==='admin'?'var(--accent)':u.role==='supervisor'?'var(--warning)':'var(--text-main)';
+                    var editBtn = '<button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent);" onclick="editUserFields(' + "'" + escapeHtml(u.username) + "'" + ')">&#9999; تعديل</button>';
+                    var delBtn = '<button class="btn" style="padding:4px 8px; font-size:12px; color:var(--danger); ' + (u.username==='Ehab'?'display:none':'') + '" onclick="deleteUserFromDb(' + "'" + escapeHtml(u.username) + "'" + ')">&#10005; حذف</button>';
+                    tr.innerHTML = '<td style="font-weight:600; font-family:monospace;">' + escapeHtml(u.username) + '</td><td>' + escapeHtml(u.displayName) + '</td><td style="font-family:monospace; color:var(--text-muted);">' + escapeHtml(u.password) + '</td><td><span style="color:' + roleColor + '">' + roleText + '</span></td><td>' + editBtn + delBtn + '</td>';
                     tbody.appendChild(tr);
                 });
             });
@@ -1262,39 +965,29 @@
         function saveUserToDb(event) {
             event.preventDefault();
             if (currentUser.role !== 'admin') return showToast("عفواً، إدارة الحسابات متاحة للمدير فقط", "error");
-
-            const btn = document.getElementById('btnSaveUser');
+            var btn = document.getElementById('btnSaveUser');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> جاري الحفظ...';
-
-            const username = document.getElementById("user_username").value.trim();
-            const displayName = document.getElementById("user_displayName").value.trim();
-            const password = document.getElementById("user_password").value.trim();
-            const role = document.getElementById("user_role").value;
-            const isEdit = document.getElementById("user_is_edit").value === "true";
-
-            firebaseDb.collection("users").doc(username).set({
-                username, displayName, password, role
-            }).then(() => {
+            var username = document.getElementById("user_username").value.trim();
+            var displayName = document.getElementById("user_displayName").value.trim();
+            var password = document.getElementById("user_password").value.trim();
+            var role = document.getElementById("user_role").value;
+            var isEdit = document.getElementById("user_is_edit").value === "true";
+            firebaseDb.collection("users").doc(username).set({ username: username, displayName: displayName, password: password, role: role }).then(function() {
                 showToast(isEdit ? "تم تحديث بيانات الحساب وكلمة المرور بنجاح!" : "تم إضافة المستخدم الجديد للسيستم سحابياً!");
                 resetUserForm();
-            }).catch(() => showToast("حدث خطأ أثناء حفظ بيانات المستخدم", "error"))
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerText = 'حفظ المستخدم بالسحابة';
-            });
+            }).catch(function() { showToast("حدث خطأ أثناء حفظ بيانات المستخدم", "error"); })
+            .finally(function() { btn.disabled = false; btn.innerText = 'حفظ المستخدم بالسحابة'; });
         }
 
         function editUserFields(username) {
-            const u = systemUsersCached.find(user => user.username === username);
+            var u = systemUsersCached.find(function(user) { return user.username === username; });
             if(!u) return;
-
             document.getElementById("user_username").value = u.username;
             document.getElementById("user_username").disabled = true;
             document.getElementById("user_displayName").value = u.displayName;
             document.getElementById("user_password").value = u.password;
             document.getElementById("user_role").value = u.role;
-
             document.getElementById("user_is_edit").value = "true";
             document.getElementById("userFormActionTitle").innerText = "✏️ تعديل بيانات الحساب: " + u.username;
             document.getElementById("btnCancelUserEdit").style.display = "inline-flex";
@@ -1303,12 +996,12 @@
         function deleteUserFromDb(username) {
             if (currentUser.role !== 'admin') return showToast("عفواً، الحذف متاح للمدير فقط", "error");
             if(username === "Ehab") return showToast("لا يمكن حذف حساب الأدمن الرئيسي!", "error");
-            showModal('تأكيد الحذف', `هل أنت متأكد من حذف صلاحية دخول المستخدم (${username}) نهائياً؟`, () => {
+            showModal('تأكيد الحذف', 'هل أنت متأكد من حذف صلاحية دخول المستخدم (' + username + ') نهائياً؟', function() {
                 setLoading(true, 'جاري الحذف...');
-                firebaseDb.collection("users").doc(username).delete().then(() => {
+                firebaseDb.collection("users").doc(username).delete().then(function() {
                     showToast("تم إقصاء وحذف المستخدم من قاعدة البيانات");
-                }).catch(() => showToast("حدث خطأ أثناء الحذف", "error"))
-                .finally(() => setLoading(false));
+                }).catch(function() { showToast("حدث خطأ أثناء الحذف", "error"); })
+                .finally(function() { setLoading(false); });
             });
         }
 
@@ -1320,132 +1013,87 @@
             document.getElementById("btnCancelUserEdit").style.display = "none";
         }
 
-        // ==================== INVOICE EXPORT/IMPORT ====================
         function exportInvoiceToExcel() {
             if (activeInvoiceItems.length === 0) return showToast("لا توجد أصناف في الفاتورة الحالية لتصديرها!", "error");
-            const client = document.getElementById("invoiceClient").value.trim() || "فاتورة غير معنونة";
-            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
-
-            const excelRows = activeInvoiceItems.map(item => {
-                const finalPrice = item.price * (1 + multiplier / 100);
-                return {
-                    'اسم الصنف': item.name,
-                    'الوحدة': item.unit,
-                    'السعر الأساسي': item.price,
-                    'السعر بعد المعامل': finalPrice,
-                    'الكمية المطلوبة': item.quantity,
-                    'الإجمالي': finalPrice * item.quantity
-                };
+            var client = document.getElementById("invoiceClient").value.trim() || "فاتورة غير معنونة";
+            var multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
+            var excelRows = activeInvoiceItems.map(function(item) {
+                var finalPrice = item.price * (1 + multiplier / 100);
+                return { 'اسم الصنف': item.name, 'الوحدة': item.unit, 'السعر الأساسي': item.price, 'السعر بعد المعامل': finalPrice, 'الكمية المطلوبة': item.quantity, 'الإجمالي': finalPrice * item.quantity };
             });
-
-            const worksheet = XLSX.utils.json_to_sheet(excelRows);
-            const workbook = XLSX.utils.book_new();
+            var worksheet = XLSX.utils.json_to_sheet(excelRows);
+            var workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "الفاتورة الحالية");
-            XLSX.writeFile(workbook, `فاتورة_${client}_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
+            XLSX.writeFile(workbook, 'فاتورة_' + client + '_' + new Date().toLocaleDateString('ar-EG') + '.xlsx');
             showToast("تم تصدير الفاتورة الحالية إلى إكسل بنجاح!");
         }
 
         function importInvoiceFromExcel(event) {
-            const file = event.target.files[0];
+            var file = event.target.files[0];
             if (!file) return;
-
             setLoading(true, 'جاري استيراد البيانات...');
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-                    if (jsonData.length === 0) {
-                        showToast("الملف الذي تم رفعه فارغ!", "error");
-                        setLoading(false);
-                        return;
-                    }
-
-                    let importedCount = 0;
-                    jsonData.forEach(row => {
-                        const name = row['اسم الصنف'] || row['name'] || row['الصنف'];
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    var worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    if (jsonData.length === 0) { showToast("الملف الذي تم رفعه فارغ!", "error"); setLoading(false); return; }
+                    var importedCount = 0;
+                    jsonData.forEach(function(row) {
+                        var name = row['اسم الصنف'] || row['name'] || row['الصنف'];
                         if (name) {
-                            const cleanName = name.toString().trim();
-                            const unit = row['الوحدة'] || row['unit'] || 'قطعة';
-                            const price = parseFloat(row['السعر الأساسي'] || row['السعر'] || row['price'] || 0);
-                            const quantity = parseFloat(row['الكمية المطلوبة'] || row['الكمية'] || row['quantity'] || 1);
-
-                            const existingIndex = activeInvoiceItems.findIndex(i => i.name === cleanName);
+                            var cleanName = name.toString().trim();
+                            var unit = row['الوحدة'] || row['unit'] || 'قطعة';
+                            var price = parseFloat(row['السعر الأساسي'] || row['السعر'] || row['price'] || 0);
+                            var quantity = parseFloat(row['الكمية المطلوبة'] || row['الكمية'] || row['quantity'] || 1);
+                            var existingIndex = activeInvoiceItems.findIndex(function(i) { return i.name === cleanName; });
                             if (existingIndex !== -1) {
                                 activeInvoiceItems[existingIndex].quantity += quantity;
                                 if (price > 0) activeInvoiceItems[existingIndex].price = price;
                             } else {
-                                activeInvoiceItems.push({
-                                    name: cleanName,
-                                    unit: unit,
-                                    price: price,
-                                    quantity: quantity
-                                });
+                                activeInvoiceItems.push({ name: cleanName, unit: unit, price: price, quantity: quantity });
                             }
                             importedCount++;
                         }
                     });
-
                     renderInvoiceTable();
                     saveInvoiceToLocal();
-                    showToast(`🚀 تم استيراد ${importedCount} صنف إلى الفاتورة الحالية!`);
-                } catch(err) {
-                    showToast("حدث خطأ أثناء قراءة الملف", "error");
-                    console.error(err);
-                }
+                    showToast('🚀 تم استيراد ' + importedCount + ' صنف إلى الفاتورة الحالية!');
+                } catch(err) { showToast("حدث خطأ أثناء قراءة الملف", "error"); console.error(err); }
                 event.target.value = '';
                 setLoading(false);
             };
-            reader.onerror = () => {
-                showToast("حدث خطأ أثناء قراءة الملف", "error");
-                setLoading(false);
-            };
+            reader.onerror = function() { showToast("حدث خطأ أثناء قراءة الملف", "error"); setLoading(false); };
             reader.readAsArrayBuffer(file);
         }
 
-        // ==================== SAVE INVOICE ====================
         function saveInvoiceToCloud() {
             if (activeInvoiceItems.length === 0) return showToast("الفاتورة فارغة، لا يمكن أرشفتها!", "error");
-
-            const priceChanges = [];
-            activeInvoiceItems.forEach(item => {
-                const dbProduct = allItemsCached.find(p => p.name === item.name);
+            var priceChanges = [];
+            activeInvoiceItems.forEach(function(item) {
+                var dbProduct = allItemsCached.find(function(p) { return p.name === item.name; });
                 if (dbProduct && dbProduct.price !== item.price) {
-                    priceChanges.push({
-                        name: item.name,
-                        oldPrice: dbProduct.price,
-                        newPrice: item.price
-                    });
+                    priceChanges.push({ name: item.name, oldPrice: dbProduct.price, newPrice: item.price });
                 }
             });
-
-            const doSave = () => {
+            var doSave = function() {
                 setLoading(true, 'جاري الأرشفة السحابية...');
-
-                const client = document.getElementById("invoiceClient").value.trim() || "عميل افتراضي / غير محدد";
-                const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
-                const total = parseFloat(document.getElementById("sumTotalPrice").innerText) || 0;
-
-                const editingId = document.getElementById("editingInvoiceId").value;
-                const invoiceId = editingId ? editingId : firebaseDb.collection("invoices").doc().id;
-
-                const invoiceData = {
-                    invoiceId: invoiceId,
-                    client: client,
-                    multiplier: multiplier,
-                    items: activeInvoiceItems,
-                    totalAmount: total,
+                var client = document.getElementById("invoiceClient").value.trim() || "عميل افتراضي / غير محدد";
+                var multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
+                var total = parseFloat(document.getElementById("sumTotalPrice").innerText) || 0;
+                var editingId = document.getElementById("editingInvoiceId").value;
+                var invoiceId = editingId ? editingId : firebaseDb.collection("invoices").doc().id;
+                var invoiceData = {
+                    invoiceId: invoiceId, client: client, multiplier: multiplier,
+                    items: activeInvoiceItems, totalAmount: total,
                     savedBy: currentUser.displayName,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     dateStr: new Date().toLocaleString('ar-EG')
                 };
-
-                firebaseDb.collection("invoices").doc(invoiceId).set(invoiceData).then(() => {
-                    showToast(`🚀 تم ${editingId ? 'تحديث وتعديل' : 'أرشفة'} الفاتورة برقم ${invoiceId} بنجاح!`);
-
+                firebaseDb.collection("invoices").doc(invoiceId).set(invoiceData).then(function() {
+                    showToast('🚀 تم ' + (editingId ? 'تحديث وتعديل' : 'أرشفة') + ' الفاتورة برقم ' + invoiceId + ' بنجاح!');
                     activeInvoiceItems = [];
                     document.getElementById("invoiceClient").value = "";
                     document.getElementById("invoiceMultiplier").value = "0";
@@ -1454,26 +1102,18 @@
                     clearLocalInvoice();
                     renderInvoiceTable();
                     updateUnsavedIndicator();
-                }).catch(err => {
-                    showToast("حدث خطأ أثناء الأرشفة السحابية", "error");
-                    console.error(err);
-                }).finally(() => setLoading(false));
+                }).catch(function(err) { showToast("حدث خطأ أثناء الأرشفة السحابية", "error"); console.error(err); })
+                .finally(function() { setLoading(false); });
             };
-
             if (priceChanges.length > 0) {
-                let msg = "توجد أسعار تم تعديلها داخل الفاتورة:\n";
-                priceChanges.forEach(pc => {
-                    msg += `- ${pc.name}: من ${pc.oldPrice} إلى ${pc.newPrice} ج.م\n`;
-                });
+                var msg = "توجد أسعار تم تعديلها داخل الفاتورة:\n";
+                priceChanges.forEach(function(pc) { msg += '- ' + pc.name + ': من ' + pc.oldPrice + ' إلى ' + pc.newPrice + ' ج.م\n'; });
                 msg += "\nهل تريد تطبيق وتحديث هذه الأسعار الجديدة في قاعدة البيانات الأساسية وسجل المراقبة؟";
-
-                showModal('تأكيد تحديث الأسعار', msg, () => {
-                    priceChanges.forEach(pc => {
+                showModal('تأكيد تحديث الأسعار', msg, function() {
+                    priceChanges.forEach(function(pc) {
                         firebaseDb.collection("products").doc(pc.name).update({ price: pc.newPrice });
                         firebaseDb.collection("price_history").add({
-                            itemName: pc.name,
-                            oldPrice: pc.oldPrice,
-                            newPrice: pc.newPrice,
+                            itemName: pc.name, oldPrice: pc.oldPrice, newPrice: pc.newPrice,
                             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                             dateStr: new Date().toLocaleString('ar-EG')
                         });
@@ -1481,105 +1121,49 @@
                     showToast("تم تحديث أسعار الأصناف في قاعدة البيانات بنجاح!");
                     doSave();
                 });
-            } else {
-                doSave();
-            }
+            } else { doSave(); }
         }
 
-        // ==================== ARCHIVE ====================
         function loadInvoicesArchive() {
             if (!firebaseDb) return;
-
             if (unsubscribers.invoices) unsubscribers.invoices();
-
-            const listDiv = document.getElementById("archiveList");
-            listDiv.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">📭</div>
-                    <div>جاري تحميل الأرشيف...</div>
-                </div>
-            `;
-
-            unsubscribers.invoices = firebaseDb.collection("invoices")
-                .orderBy("timestamp", "desc")
-                .onSnapshot(snapshot => {
-                    listDiv.innerHTML = "";
-                    if (snapshot.empty) {
-                        listDiv.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-state-icon">📭</div>
-                                <div>لا توجد فواتير مؤرشفة حتى الآن.</div>
-                            </div>
-                        `;
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const inv = doc.data();
-                        const itemDiv = document.createElement("div");
-                        itemDiv.className = "archive-item";
-                        itemDiv.id = `arch-${inv.invoiceId}`;
-                        itemDiv.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; font-weight:700;">
-                                <span style="color:var(--accent)">${escapeHtml(inv.invoiceId)}</span>
-                                <span style="color:var(--success)">${inv.totalAmount.toFixed(2)} ج.م</span>
-                            </div>
-                            <div style="font-size:12px; color:var(--text-main); margin-top:4px;">👤 الجهة: ${escapeHtml(inv.client)}</div>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px;">
-                                <span>✍️ بواسطة: ${escapeHtml(inv.savedBy || 'غير مسجل')}</span>
-                                <span>📅 ${inv.dateStr ? inv.dateStr.split(' ')[0] : ''}</span>
-                            </div>
-                        `;
-                        itemDiv.onclick = () => showInvoiceDetails(inv);
-                        listDiv.appendChild(itemDiv);
-                    });
-                }, (err) => {
-                    console.error('Archive error:', err);
-                    listDiv.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-state-icon">⚠️</div>
-                            <div>حدث خطأ في تحميل الأرشيف</div>
-                        </div>
-                    `;
+            var listDiv = document.getElementById("archiveList");
+            listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>جاري تحميل الأرشيف...</div></div>';
+            unsubscribers.invoices = firebaseDb.collection("invoices").orderBy("timestamp", "desc").onSnapshot(function(snapshot) {
+                listDiv.innerHTML = "";
+                if (snapshot.empty) { listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div>لا توجد فواتير مؤرشفة حتى الآن.</div></div>'; return; }
+                snapshot.forEach(function(doc) {
+                    var inv = doc.data();
+                    var itemDiv = document.createElement("div");
+                    itemDiv.className = "archive-item";
+                    itemDiv.id = 'arch-' + inv.invoiceId;
+                    itemDiv.innerHTML = '<div style="display:flex; justify-content:space-between; font-weight:700;"><span style="color:var(--accent)">' + escapeHtml(inv.invoiceId) + '</span><span style="color:var(--success)">' + inv.totalAmount.toFixed(2) + ' ج.م</span></div><div style="font-size:12px; color:var(--text-main); margin-top:4px;">👤 الجهة: ' + escapeHtml(inv.client) + '</div><div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px;"><span>✍️ بواسطة: ' + escapeHtml(inv.savedBy || 'غير مسجل') + '</span><span>📅 ' + (inv.dateStr ? inv.dateStr.split(' ')[0] : '') + '</span></div>';
+                    itemDiv.onclick = function() { showInvoiceDetails(inv); };
+                    listDiv.appendChild(itemDiv);
                 });
+            }, function(err) {
+                console.error('Archive error:', err);
+                listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div>حدث خطأ في تحميل الأرشيف</div></div>';
+            });
         }
 
         function showInvoiceDetails(inv) {
             currentSelectedArchivedInvoice = inv;
-            document.querySelectorAll('.archive-item').forEach(el => el.classList.remove('selected'));
-            const selectedElement = document.getElementById(`arch-${inv.invoiceId}`);
+            document.querySelectorAll('.archive-item').forEach(function(el) { el.classList.remove('selected'); });
+            var selectedElement = document.getElementById('arch-' + inv.invoiceId);
             if(selectedElement) selectedElement.classList.add('selected');
-
-            // Mobile: show detail view
-            if (window.innerWidth <= 768) {
-                document.getElementById('archiveLayout').classList.add('mobile-detail-active');
-            }
-
-            document.getElementById("archiveDetailTitle").innerText = `📄 تفاصيل فاتورة رقم: ${escapeHtml(inv.invoiceId)}`;
+            if (window.innerWidth <= 768) document.getElementById('archiveLayout').classList.add('mobile-detail-active');
+            document.getElementById("archiveDetailTitle").innerText = '📄 تفاصيل فاتورة رقم: ' + escapeHtml(inv.invoiceId);
             document.getElementById("archiveActions").style.display = "flex";
-
-            const mult = inv.multiplier || 0;
-            const metaDiv = document.getElementById("archiveDetailMeta");
-            metaDiv.innerHTML = `
-                <div><strong>رقم الفاتورة:</strong> ${escapeHtml(inv.invoiceId)}</div>
-                <div><strong>المورد/العميل:</strong> ${escapeHtml(inv.client)}</div>
-                <div><strong>بواسطة المستخدم:</strong> <span style="color:var(--accent); font-weight:bold;">${escapeHtml(inv.savedBy || 'غير مسجل')}</span></div>
-                <div><strong>المعامل المطبق:</strong> <span style="color:var(--warning); font-weight:bold;">${mult}%</span></div>
-                <div><strong>التاريخ والوقت:</strong> ${escapeHtml(inv.dateStr || '')}</div>
-                <div style="color:var(--success); font-weight:700; grid-column: span 2; font-size:15px; border-top: 1px dashed var(--border); padding-top: 5px;">الإجمالي الكلي: ${inv.totalAmount.toFixed(2)} ج.م</div>
-            `;
-
-            const tbody = document.getElementById("archiveItemsBody");
+            var mult = inv.multiplier || 0;
+            var metaDiv = document.getElementById("archiveDetailMeta");
+            metaDiv.innerHTML = '<div><strong>رقم الفاتورة:</strong> ' + escapeHtml(inv.invoiceId) + '</div><div><strong>المورد/العميل:</strong> ' + escapeHtml(inv.client) + '</div><div><strong>بواسطة المستخدم:</strong> <span style="color:var(--accent); font-weight:bold;">' + escapeHtml(inv.savedBy || 'غير مسجل') + '</span></div><div><strong>المعامل المطبق:</strong> <span style="color:var(--warning); font-weight:bold;">' + mult + '%</span></div><div><strong>التاريخ والوقت:</strong> ' + escapeHtml(inv.dateStr || '') + '</div><div style="color:var(--success); font-weight:700; grid-column: span 2; font-size:15px; border-top: 1px dashed var(--border); padding-top: 5px;">الإجمالي الكلي: ' + inv.totalAmount.toFixed(2) + ' ج.م</div>';
+            var tbody = document.getElementById("archiveItemsBody");
             tbody.innerHTML = "";
-            inv.items.forEach(item => {
-                const finalPrice = item.price * (1 + mult / 100);
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${escapeHtml(item.name)}</td>
-                    <td>${escapeHtml(item.unit)}</td>
-                    <td>${item.price.toFixed(2)} ج.م</td>
-                    <td>${item.quantity}</td>
-                    <td style="font-weight:700; color:var(--accent)">${(finalPrice * item.quantity).toFixed(2)} ج.م</td>
-                `;
+            inv.items.forEach(function(item) {
+                var finalPrice = item.price * (1 + mult / 100);
+                var tr = document.createElement("tr");
+                tr.innerHTML = '<td>' + escapeHtml(item.name) + '</td><td>' + escapeHtml(item.unit) + '</td><td>' + item.price.toFixed(2) + ' ج.م</td><td>' + item.quantity + '</td><td style="font-weight:700; color:var(--accent)">' + (finalPrice * item.quantity).toFixed(2) + ' ج.م</td>';
                 tbody.appendChild(tr);
             });
         }
@@ -1590,59 +1174,39 @@
 
         function exportArchivedInvoiceToExcel() {
             if(!currentSelectedArchivedInvoice) return;
-            const inv = currentSelectedArchivedInvoice;
-            const mult = inv.multiplier || 0;
-
-            const excelRows = inv.items.map(item => {
-                const finalPrice = item.price * (1 + mult / 100);
-                return {
-                    'اسم الصنف': item.name,
-                    'الوحدة': item.unit,
-                    'السعر الأساسي': item.price,
-                    'السعر بعد المعامل': finalPrice,
-                    'الكمية': item.quantity,
-                    'الإجمالي': finalPrice * item.quantity
-                };
+            var inv = currentSelectedArchivedInvoice;
+            var mult = inv.multiplier || 0;
+            var excelRows = inv.items.map(function(item) {
+                var finalPrice = item.price * (1 + mult / 100);
+                return { 'اسم الصنف': item.name, 'الوحدة': item.unit, 'السعر الأساسي': item.price, 'السعر بعد المعامل': finalPrice, 'الكمية': item.quantity, 'الإجمالي': finalPrice * item.quantity };
             });
-            const worksheet = XLSX.utils.json_to_sheet(excelRows);
-            const workbook = XLSX.utils.book_new();
+            var worksheet = XLSX.utils.json_to_sheet(excelRows);
+            var workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "تفاصيل الفاتورة");
-            XLSX.writeFile(workbook, `أرشيف_فاتورة_${inv.invoiceId}_${inv.client}.xlsx`);
+            XLSX.writeFile(workbook, 'أرشيف_فاتورة_' + inv.invoiceId + '_' + inv.client + '.xlsx');
             showToast("تم تصدير الفاتورة المؤرشفة بنجاح");
         }
 
         function loadInvoiceToWorkspace() {
             if(!currentSelectedArchivedInvoice) return;
-            showModal('تأكيد التعديل', `هل تريد تعديل الفاتورة رقم (${currentSelectedArchivedInvoice.invoiceId})؟`, () => {
-                // 1. Load invoice data
+            showModal('تأكيد التعديل', 'هل تريد تعديل الفاتورة رقم (' + currentSelectedArchivedInvoice.invoiceId + ')؟', function() {
                 activeInvoiceItems = JSON.parse(JSON.stringify(currentSelectedArchivedInvoice.items));
                 document.getElementById("invoiceClient").value = currentSelectedArchivedInvoice.client;
                 document.getElementById("invoiceMultiplier").value = currentSelectedArchivedInvoice.multiplier || 0;
                 document.getElementById("editingInvoiceId").value = currentSelectedArchivedInvoice.invoiceId;
-                document.getElementById("btnSaveInvoice").innerText = `💾 تحديث الفاتورة المعدلة (${currentSelectedArchivedInvoice.invoiceId})`;
-
-                // 2. Close mobile archive detail
+                document.getElementById("btnSaveInvoice").innerText = '💾 تحديث الفاتورة المعدلة (' + currentSelectedArchivedInvoice.invoiceId + ')';
                 closeArchiveDetail();
-
-                // 3. Switch to pricing tab - direct DOM manipulation (most reliable)
-                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-
-                const pricingTab = document.getElementById('pricing-tab');
+                document.querySelectorAll('.tab-content').forEach(function(tab) { tab.classList.remove('active'); });
+                document.querySelectorAll('.tab-btn').forEach(function(btn) { btn.classList.remove('active'); });
+                var pricingTab = document.getElementById('pricing-tab');
                 if (pricingTab) pricingTab.classList.add('active');
-
-                // Find the pricing tab button (works for all roles)
-                const allTabBtns = document.querySelectorAll('.tab-btn');
-                let pricingBtn = null;
-                for (let btn of allTabBtns) {
-                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('pricing-tab')) {
-                        pricingBtn = btn;
-                        break;
-                    }
+                var allTabBtns = document.querySelectorAll('.tab-btn');
+                var pricingBtn = null;
+                for (var i = 0; i < allTabBtns.length; i++) {
+                    var oc = allTabBtns[i].getAttribute('onclick');
+                    if (oc && oc.indexOf('pricing-tab') !== -1) { pricingBtn = allTabBtns[i]; break; }
                 }
                 if (pricingBtn) pricingBtn.classList.add('active');
-
-                // 4. Render and save
                 renderInvoiceTable();
                 saveInvoiceToLocal();
                 updateUnsavedIndicator();
@@ -1653,73 +1217,56 @@
         function deleteInvoiceFromArchive() {
             if (currentUser.role !== 'admin') return showToast("عفواً، حذف الفواتير متاح للمدير فقط", "error");
             if (!currentSelectedArchivedInvoice) return;
-            const invId = currentSelectedArchivedInvoice.invoiceId;
-
-            showModal('تحذير', `⚠️ هل أنت متأكد من حذف الفاتورة رقم (${invId}) نهائياً؟`, () => {
+            var invId = currentSelectedArchivedInvoice.invoiceId;
+            showModal('تحذير', '⚠️ هل أنت متأكد من حذف الفاتورة رقم (' + invId + ') نهائياً؟', function() {
                 setLoading(true, 'جاري الحذف...');
-                firebaseDb.collection("invoices").doc(invId).delete().then(() => {
-                    showToast(`تم حذف الفاتورة ${invId} بنجاح`);
+                firebaseDb.collection("invoices").doc(invId).delete().then(function() {
+                    showToast('تم حذف الفاتورة ' + invId + ' بنجاح');
                     currentSelectedArchivedInvoice = null;
                     document.getElementById("archiveActions").style.display = "none";
-                    document.getElementById("archiveItemsBody").innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">اختر فاتورة من القائمة لعرض محتوياتها</td></tr>`;
+                    document.getElementById("archiveItemsBody").innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted)">اختر فاتورة من القائمة لعرض محتوياتها</td></tr>';
                     closeArchiveDetail();
-                }).catch(() => showToast("حدث خطأ أثناء محاولة الحذف", "error"))
-                .finally(() => setLoading(false));
+                }).catch(function() { showToast("حدث خطأ أثناء محاولة الحذف", "error"); })
+                .finally(function() { setLoading(false); });
             });
         }
 
-        // ==================== SEARCH ENGINE ====================
         function setupSearchEngine() {
-            const searchInput = document.getElementById("searchInput");
-            const resultsContainer = document.getElementById("searchResults");
+            var searchInput = document.getElementById("searchInput");
+            var resultsContainer = document.getElementById("searchResults");
             if(!searchInput) return;
-
-            const debouncedSearch = debounce((query) => {
+            var debouncedSearch = debounce(function(query) {
                 if (!query) { closeSearch(); return; }
-                const filtered = allItemsCached.filter(item => cleanArabicText(item.name).includes(query));
+                var filtered = allItemsCached.filter(function(item) { return cleanArabicText(item.name).includes(query); });
                 renderSearchResults(filtered);
             }, 300);
-
-            searchInput.addEventListener("input", (e) => {
-                const query = cleanArabicText(e.target.value.trim());
+            searchInput.addEventListener("input", function(e) {
+                var query = cleanArabicText(e.target.value.trim());
                 debouncedSearch(query);
             });
-
-            searchInput.addEventListener("keydown", (e) => {
-                const rows = resultsContainer.querySelectorAll(".search-row");
+            searchInput.addEventListener("keydown", function(e) {
+                var rows = resultsContainer.querySelectorAll(".search-row");
                 if (!resultsContainer.classList.contains("active") || rows.length === 0) return;
-
                 if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    currentFocusIndex++;
+                    e.preventDefault(); currentFocusIndex++;
                     if (currentFocusIndex >= rows.length) currentFocusIndex = 0;
                     updateActiveSearchRow(rows);
                 } else if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    currentFocusIndex--;
+                    e.preventDefault(); currentFocusIndex--;
                     if (currentFocusIndex < 0) currentFocusIndex = rows.length - 1;
                     updateActiveSearchRow(rows);
                 } else if (e.key === "Enter") {
                     e.preventDefault();
-                    if (currentFocusIndex > -1 && rows[currentFocusIndex]) {
-                        rows[currentFocusIndex].click();
-                    } else if (rows.length > 0) {
-                        rows[0].click();
-                    }
-                } else if (e.key === "Escape") {
-                    closeSearch();
-                }
+                    if (currentFocusIndex > -1 && rows[currentFocusIndex]) rows[currentFocusIndex].click();
+                    else if (rows.length > 0) rows[0].click();
+                } else if (e.key === "Escape") { closeSearch(); }
             });
         }
 
         function updateActiveSearchRow(rows) {
-            rows.forEach((row, index) => {
-                if (index === currentFocusIndex) {
-                    row.classList.add("selected-row");
-                    row.scrollIntoView({ block: "nearest" });
-                } else {
-                    row.classList.remove("selected-row");
-                }
+            rows.forEach(function(row, index) {
+                if (index === currentFocusIndex) { row.classList.add("selected-row"); row.scrollIntoView({ block: "nearest" }); }
+                else { row.classList.remove("selected-row"); }
             });
         }
 
@@ -1728,24 +1275,19 @@
         }
 
         function renderSearchResults(results) {
-            const resultsContainer = document.getElementById("searchResults");
+            var resultsContainer = document.getElementById("searchResults");
             resultsContainer.innerHTML = "";
             currentFocusIndex = -1;
-
             if (results.length === 0) {
-                resultsContainer.innerHTML = `<div class="search-row" style="color:var(--text-muted); cursor:default;">لا توجد نتائج مطابقة</div>`;
-                resultsContainer.classList.add("active");
-                return;
+                resultsContainer.innerHTML = '<div class="search-row" style="color:var(--text-muted); cursor:default;">لا توجد نتائج مطابقة</div>';
+                resultsContainer.classList.add("active"); return;
             }
-            results.forEach((item) => {
-                const div = document.createElement("div");
+            results.forEach(function(item) {
+                var div = document.createElement("div");
                 div.className = "search-row";
                 div.setAttribute('role', 'option');
-                div.innerHTML = `
-                    <span><strong>${escapeHtml(item.name)}</strong> <span style="font-size:11px; background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; margin-right:5px;">${escapeHtml(item.category)}</span></span>
-                    <span style="font-weight:700; color:var(--accent)">${item.price.toFixed(2)} ج.م</span>
-                `;
-                div.onclick = () => { addItemToWorkspace(item); closeSearch(); };
+                div.innerHTML = '<span><strong>' + escapeHtml(item.name) + '</strong> <span style="font-size:11px; background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; margin-right:5px;">' + escapeHtml(item.category) + '</span></span><span style="font-weight:700; color:var(--accent)">' + item.price.toFixed(2) + ' ج.م</span>';
+                div.onclick = function() { addItemToWorkspace(item); closeSearch(); };
                 resultsContainer.appendChild(div);
             });
             resultsContainer.classList.add("active");
@@ -1757,17 +1299,13 @@
             currentFocusIndex = -1;
         }
 
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest(".search-container")) {
-                closeSearch();
-            }
+        document.addEventListener("click", function(e) {
+            if (!e.target.closest(".search-container")) closeSearch();
         });
 
-        // ==================== INVOICE TABLE ====================
         function addItemToWorkspace(item) {
-            const existingIndex = activeInvoiceItems.findIndex(i => i.name === item.name);
-            let targetIndex = 0;
-
+            var existingIndex = activeInvoiceItems.findIndex(function(i) { return i.name === item.name; });
+            var targetIndex = 0;
             if (existingIndex !== -1) {
                 activeInvoiceItems[existingIndex].quantity += 1;
                 targetIndex = existingIndex;
@@ -1775,42 +1313,26 @@
                 activeInvoiceItems.push({ name: item.name, unit: item.unit, price: item.price, quantity: 1 });
                 targetIndex = activeInvoiceItems.length - 1;
             }
-
             renderInvoiceTable();
             saveInvoiceToLocal();
             updateUnsavedIndicator();
-
-            setTimeout(() => {
-                const qtyInputs = document.querySelectorAll(".qty-input");
-                if (qtyInputs[targetIndex]) {
-                    qtyInputs[targetIndex].focus();
-                    qtyInputs[targetIndex].select();
-                }
+            setTimeout(function() {
+                var qtyInputs = document.querySelectorAll(".qty-input");
+                if (qtyInputs[targetIndex]) { qtyInputs[targetIndex].focus(); qtyInputs[targetIndex].select(); }
             }, 50);
         }
 
         function renderInvoiceTable() {
-            const tbody = document.getElementById("invoiceBody");
+            var tbody = document.getElementById("invoiceBody");
             tbody.innerHTML = "";
-            let totalUnique = activeInvoiceItems.length, totalQty = 0, grandTotal = 0;
-            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
-
-            activeInvoiceItems.forEach((item, index) => {
-                const priceWithMult = item.price * (1 + multiplier / 100);
-                const itemTotal = priceWithMult * item.quantity;
-                totalQty += item.quantity; 
-                grandTotal += itemTotal;
-
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td style="font-weight:600">${escapeHtml(item.name)}</td>
-                    <td>${escapeHtml(item.unit)}</td>
-                    <td><input type="number" step="0.01" class="table-input price-input" data-index="${index}" value="${item.price}" inputmode="decimal"></td>
-                    <td style="font-weight:bold; color:var(--warning)" class="mult-price-td">${priceWithMult.toFixed(2)}</td>
-                    <td><input type="number" step="1" class="table-input qty-input" data-index="${index}" value="${item.quantity}" inputmode="numeric"></td>
-                    <td style="font-weight:700; color:var(--accent)" class="item-total-td">${itemTotal.toFixed(2)}</td>
-                    <td><button class="btn" style="color:var(--danger); border:none; background:none; min-height:auto; padding:4px;" onclick="removeItemFromWorkspace(${index})">✕</button></td>
-                `;
+            var totalUnique = activeInvoiceItems.length, totalQty = 0, grandTotal = 0;
+            var multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
+            activeInvoiceItems.forEach(function(item, index) {
+                var priceWithMult = item.price * (1 + multiplier / 100);
+                var itemTotal = priceWithMult * item.quantity;
+                totalQty += item.quantity; grandTotal += itemTotal;
+                var tr = document.createElement("tr");
+                tr.innerHTML = '<td style="font-weight:600">' + escapeHtml(item.name) + '</td><td>' + escapeHtml(item.unit) + '</td><td><input type="number" step="0.01" class="table-input price-input" data-index="' + index + '" value="' + item.price + '" inputmode="decimal"></td><td style="font-weight:bold; color:var(--warning)" class="mult-price-td">' + priceWithMult.toFixed(2) + '</td><td><input type="number" step="1" class="table-input qty-input" data-index="' + index + '" value="' + item.quantity + '" inputmode="numeric"></td><td style="font-weight:700; color:var(--accent)" class="item-total-td">' + itemTotal.toFixed(2) + '</td><td><button class="btn" style="color:var(--danger); border:none; background:none; min-height:auto; padding:4px;" onclick="removeItemFromWorkspace(' + index + ')">✕</button></td>';
                 tbody.appendChild(tr);
             });
             document.getElementById("sumUniqueItems").innerText = totalUnique;
@@ -1820,45 +1342,39 @@
         }
 
         function attachTableEventListeners() {
-            document.querySelectorAll(".price-input").forEach(input => {
-                input.addEventListener("input", (e) => {
-                    const idx = parseInt(e.target.dataset.index);
+            document.querySelectorAll(".price-input").forEach(function(input) {
+                input.addEventListener("input", function(e) {
+                    var idx = parseInt(e.target.dataset.index);
                     activeInvoiceItems[idx].price = parseFloat(e.target.value) || 0;
                     renderInvoiceTableSilent();
                     saveInvoiceToLocal();
                 });
             });
-
-            document.querySelectorAll(".qty-input").forEach(input => {
-                input.addEventListener("input", (e) => {
-                    const idx = parseInt(e.target.dataset.index);
+            document.querySelectorAll(".qty-input").forEach(function(input) {
+                input.addEventListener("input", function(e) {
+                    var idx = parseInt(e.target.dataset.index);
                     activeInvoiceItems[idx].quantity = parseFloat(e.target.value) || 0;
                     renderInvoiceTableSilent();
                     saveInvoiceToLocal();
                 });
-
-                input.addEventListener("keydown", (e) => {
+                input.addEventListener("keydown", function(e) {
                     if (e.key === "Enter") {
                         e.preventDefault();
-                        const searchInput = document.getElementById("searchInput");
-                        searchInput.focus();
-                        searchInput.select();
+                        var searchInput = document.getElementById("searchInput");
+                        searchInput.focus(); searchInput.select();
                     }
                 });
             });
         }
 
         function renderInvoiceTableSilent() {
-            let totalQty = 0, grandTotal = 0;
-            const multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
-            const rows = document.getElementById("invoiceBody").querySelectorAll("tr");
-
-            activeInvoiceItems.forEach((item, index) => {
-                const priceWithMult = item.price * (1 + multiplier / 100);
-                const itemTotal = priceWithMult * item.quantity;
-                totalQty += item.quantity; 
-                grandTotal += itemTotal;
-
+            var totalQty = 0, grandTotal = 0;
+            var multiplier = parseFloat(document.getElementById("invoiceMultiplier").value) || 0;
+            var rows = document.getElementById("invoiceBody").querySelectorAll("tr");
+            activeInvoiceItems.forEach(function(item, index) {
+                var priceWithMult = item.price * (1 + multiplier / 100);
+                var itemTotal = priceWithMult * item.quantity;
+                totalQty += item.quantity; grandTotal += itemTotal;
                 if(rows[index]) {
                     rows[index].querySelector(".mult-price-td").innerText = priceWithMult.toFixed(2);
                     rows[index].querySelector(".item-total-td").innerText = itemTotal.toFixed(2);
@@ -1882,7 +1398,7 @@
 
         function clearInvoice() {
             if (activeInvoiceItems.length === 0) return;
-            showModal('تأكيد المسح', 'هل أنت متأكد من مسح الفاتورة الحالية؟', () => {
+            showModal('تأكيد المسح', 'هل أنت متأكد من مسح الفاتورة الحالية؟', function() {
                 activeInvoiceItems = [];
                 document.getElementById("invoiceClient").value = "";
                 document.getElementById("invoiceMultiplier").value = "0";
@@ -1897,72 +1413,50 @@
 
         function printInvoice() {
             if (activeInvoiceItems.length === 0) return showToast("الفاتورة فارغة!", "error");
-            const tab = document.getElementById('pricing-tab');
+            var tab = document.getElementById('pricing-tab');
             tab.classList.add('print-target');
             window.print();
-            setTimeout(() => tab.classList.remove('print-target'), 1000);
+            setTimeout(function() { tab.classList.remove('print-target'); }, 1000);
         }
 
-        // ==================== DATABASE TABLE ====================
         function filterDatabaseTable() {
-            const query = cleanArabicText(document.getElementById("dbSearchInput") ? document.getElementById("dbSearchInput").value.trim() : "");
-            dbFilteredItems = allItemsCached.filter(item => {
-                return cleanArabicText(item.name).includes(query) ||
-                       cleanArabicText(item.category).includes(query) ||
-                       cleanArabicText(item.unit).includes(query);
+            var query = cleanArabicText(document.getElementById("dbSearchInput") ? document.getElementById("dbSearchInput").value.trim() : "");
+            dbFilteredItems = allItemsCached.filter(function(item) {
+                return cleanArabicText(item.name).includes(query) || cleanArabicText(item.category).includes(query) || cleanArabicText(item.unit).includes(query);
             });
-            dbFilteredItems.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            dbFilteredItems.sort(function(a, b) { return a.name.localeCompare(b.name, 'ar'); });
             dbCurrentPage = 0;
             renderDatabaseTable();
         }
 
-        const debouncedFilterDb = debounce(filterDatabaseTable, 300);
+        var debouncedFilterDb = debounce(filterDatabaseTable, 300);
 
         function renderDatabaseTable() {
-            const tbody = document.getElementById("databaseItemsBody");
+            var tbody = document.getElementById("databaseItemsBody");
             tbody.innerHTML = "";
-
-            const totalItems = dbFilteredItems.length;
-            const totalPages = Math.ceil(totalItems / dbPageSize) || 1;
-            const start = dbCurrentPage * dbPageSize;
-            const end = start + dbPageSize;
-            const pageItems = dbFilteredItems.slice(start, end);
-
+            var totalItems = dbFilteredItems.length;
+            var totalPages = Math.ceil(totalItems / dbPageSize) || 1;
+            var start = dbCurrentPage * dbPageSize;
+            var end = start + dbPageSize;
+            var pageItems = dbFilteredItems.slice(start, end);
             document.getElementById("dbCount").innerText = totalItems;
-
-            const pagination = document.getElementById("dbPagination");
+            var pagination = document.getElementById("dbPagination");
             if (totalItems > dbPageSize) {
                 pagination.style.display = 'flex';
-                document.getElementById("dbPageInfo").innerText = `${dbCurrentPage + 1} / ${totalPages}`;
+                document.getElementById("dbPageInfo").innerText = (dbCurrentPage + 1) + ' / ' + totalPages;
                 document.getElementById("dbPrevBtn").disabled = dbCurrentPage === 0;
                 document.getElementById("dbNextBtn").disabled = dbCurrentPage >= totalPages - 1;
-            } else {
-                pagination.style.display = 'none';
-            }
-
-            if(pageItems.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:15px;">لا توجد أصناف مطابقة للبحث</td></tr>`;
-                return;
-            }
-
-            pageItems.forEach(item => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td style="font-weight:600">${escapeHtml(item.name)}</td>
-                    <td>${escapeHtml(item.category)}</td>
-                    <td>${escapeHtml(item.unit)}</td>
-                    <td style="font-weight:700; color:var(--accent)">${item.price.toFixed(2)} ج.م</td>
-                    <td>
-                        <button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent); min-height:auto;" onclick="editItemFromDb('${escapeHtml(item.name)}')">تعديل</button>
-                        <button class="btn admin-only" style="padding:4px 8px; font-size:12px; color:var(--danger); min-height:auto;" onclick="deleteItemFromDb('${escapeHtml(item.name)}')">حذف</button>
-                    </td>
-                `;
+            } else { pagination.style.display = 'none'; }
+            if(pageItems.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:15px;">لا توجد أصناف مطابقة للبحث</td></tr>'; return; }
+            pageItems.forEach(function(item) {
+                var tr = document.createElement("tr");
+                tr.innerHTML = '<td style="font-weight:600">' + escapeHtml(item.name) + '</td><td>' + escapeHtml(item.category) + '</td><td>' + escapeHtml(item.unit) + '</td><td style="font-weight:700; color:var(--accent)">' + item.price.toFixed(2) + ' ج.م</td><td><button class="btn" style="padding:4px 8px; font-size:12px; color:var(--accent); min-height:auto;" onclick="editItemFromDb(\'' + escapeHtml(item.name) + '\')">تعديل</button><button class="btn admin-only" style="padding:4px 8px; font-size:12px; color:var(--danger); min-height:auto;" onclick="deleteItemFromDb(\'' + escapeHtml(item.name) + '\')">حذف</button></td>';
                 tbody.appendChild(tr);
             });
         }
 
         function changeDbPage(direction) {
-            const totalPages = Math.ceil(dbFilteredItems.length / dbPageSize);
+            var totalPages = Math.ceil(dbFilteredItems.length / dbPageSize);
             dbCurrentPage += direction;
             if (dbCurrentPage < 0) dbCurrentPage = 0;
             if (dbCurrentPage >= totalPages) dbCurrentPage = totalPages - 1;
@@ -1970,7 +1464,7 @@
         }
 
         function editItemFromDb(name) {
-            const item = allItemsCached.find(i => i.name === name);
+            var item = allItemsCached.find(function(i) { return i.name === name; });
             if (!item) return;
             document.getElementById("item_name").value = item.name;
             document.getElementById("item_category").value = item.category;
@@ -1984,12 +1478,12 @@
 
         function deleteItemFromDb(name) { 
             if (currentUser.role !== 'admin') return showToast("عفواً، الحذف متاح للمدير فقط", "error");
-            showModal('تأكيد الحذف', `حذف الصنف (${name})؟`, () => {
+            showModal('تأكيد الحذف', 'حذف الصنف (' + name + ')؟', function() {
                 setLoading(true, 'جاري الحذف...');
                 firebaseDb.collection("products").doc(name).delete()
-                    .then(() => showToast("تم حذف الصنف"))
-                    .catch(() => showToast("حدث خطأ أثناء الحذف", "error"))
-                    .finally(() => setLoading(false));
+                    .then(function() { showToast("تم حذف الصنف"); })
+                    .catch(function() { showToast("حدث خطأ أثناء الحذف", "error"); })
+                    .finally(function() { setLoading(false); });
             });
         }
 
@@ -2001,43 +1495,28 @@
             document.getElementById("btnCancelEdit").style.display = "none"; 
         }
 
-        // ==================== EXCEL IMPORT/EXPORT DB ====================
         function importFromExcel(event) {
             if (currentUser.role !== 'admin') return showToast("صلاحية مدير فقط", "error");
-            const file = event.target.files[0]; 
-            if (!file) return;
-
+            var file = event.target.files[0]; if (!file) return;
             setLoading(true, 'جاري استيراد قاعدة البيانات...');
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                    let batch = firebaseDb.batch(); 
-                    let count = 0;
-                    jsonData.forEach(row => {
-                        const name = row['name'] || row['اسم الصنف'];
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    var worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    var batch = firebaseDb.batch(); var count = 0;
+                    jsonData.forEach(function(row) {
+                        var name = row['name'] || row['اسم الصنف'];
                         if(name) {
-                            const docRef = firebaseDb.collection("products").doc(name.toString().trim());
-                            batch.set(docRef, { 
-                                name: name.toString().trim(), 
-                                category: row['category'] || row['التصنيف'] || 'عام', 
-                                unit: row['unit'] || row['الوحدة'] || 'قطعة', 
-                                price: parseFloat(row['price'] || row['السعر الحالي'] || 0) 
-                            });
+                            var docRef = firebaseDb.collection("products").doc(name.toString().trim());
+                            batch.set(docRef, { name: name.toString().trim(), category: row['category'] || row['التصنيف'] || 'عام', unit: row['unit'] || row['الوحدة'] || 'قطعة', price: parseFloat(row['price'] || row['السعر الحالي'] || 0) });
                             count++;
                         }
                     });
-                    batch.commit().then(() => { 
-                        showToast(`🚀 تم تحديث ${count} صنف سحابياً!`); 
-                    }).catch(() => showToast("حدث خطأ أثناء الاستيراد", "error"))
-                    .finally(() => setLoading(false));
-                } catch(err) {
-                    showToast("حدث خطأ في قراءة الملف", "error");
-                    setLoading(false);
-                }
+                    batch.commit().then(function() { showToast('🚀 تم تحديث ' + count + ' صنف سحابياً!'); }).catch(function() { showToast("حدث خطأ أثناء الاستيراد", "error"); }).finally(function() { setLoading(false); });
+                } catch(err) { showToast("حدث خطأ في قراءة الملف", "error"); setLoading(false); }
                 event.target.value = '';
             };
             reader.readAsArrayBuffer(file);
@@ -2045,11 +1524,331 @@
 
         function exportToExcel() { 
             if(allItemsCached.length === 0) return showToast("لا توجد أصناف للتصدير", "error"); 
-            const worksheet = XLSX.utils.json_to_sheet(allItemsCached); 
-            const workbook = XLSX.utils.book_new(); 
+            var worksheet = XLSX.utils.json_to_sheet(allItemsCached); 
+            var workbook = XLSX.utils.book_new(); 
             XLSX.utils.book_append_sheet(workbook, worksheet, "المخزن"); 
-            XLSX.writeFile(workbook, `المخزن_${new Date().toLocaleDateString('ar-EG')}.xlsx`); 
+            XLSX.writeFile(workbook, 'المخزن_' + new Date().toLocaleDateString('ar-EG') + '.xlsx'); 
             showToast("تم تصدير قاعدة البيانات");
+        }
+
+        // ==================== ROOM SERVICE MENU (Firebase-backed) ====================
+        var menuDefaultData = {
+            breakfast: [
+                { name: "Fresh juice - Orange or Grapefruits", price: "120 LE" },
+                { name: "Fresh fruits salad", price: "150 LE" },
+                { name: "Plain or fruit yoghurt", price: "100 LE" },
+                { name: "Selection of cheese platter", price: "370 LE" },
+                { name: "Plate of French Fries", price: "110 LE" },
+                { name: "Assorted cold cuts", price: "475 LE" },
+                { name: "Bowl of Corn flakes with milk", price: "120 LE" },
+                { name: "Two Eggs with your favorite choice", price: "160 LE" },
+                { name: "Salad plate", price: "120 LE" },
+                { name: "Variety bread and pastries (Served with jam & butter)", price: "145 LE" },
+                { name: "Bowl of seasoned stewed fava beans", price: "120 LE" },
+                { name: "Tea", price: "115 LE" },
+                { name: "American coffee", price: "115 LE" }
+            ],
+            soups: [
+                { name: "Chicken cream soup", price: "160 LE" },
+                { name: "Vegetables clear soup", price: "145 LE" }
+            ],
+            salads: [
+                { name: "Garden green salad", price: "145 LE" },
+                { name: "Baba ghanough salad", price: "145 LE" },
+                { name: "Yoghurt salad", price: "145 LE" },
+                { name: "Tahina salad", price: "145 LE" }
+            ],
+            sandwiches: [
+                { name: "Tortilla Chicken Wraps Sandwich", price: "550 LE" },
+                { name: "Burger Sandwich", price: "460 LE" },
+                { name: "Tuna Sandwich", price: "410 LE" }
+            ],
+            pasta: [
+                { name: "Penne Arrabbiata", price: "200 LE" },
+                { name: "Liguinni Alfredo", price: "340 LE" },
+                { name: "Spaghetti Bolognese", price: "330 LE" }
+            ],
+            mains: [
+                { name: "Grilled beef fillet (mushroom & BBQ sauce)", price: "740 LE" },
+                { name: "Chicken breast pane", price: "600 LE" },
+                { name: "Fish and Chips (served with Tartar Sauce)", price: "480 LE" },
+                { name: "Shrimps - Fried or grilled", price: "1150 LE" }
+            ],
+            desserts: [
+                { name: "Gateaux Soiree", price: "260 LE" },
+                { name: "French Pastry", price: "260 LE" },
+                { name: "Oriental sweet", price: "290 LE" },
+                { name: "Seasonal Fruits Platter", price: "220 LE" }
+            ],
+            icecream: [
+                { name: "Ice Cream Steak", price: "75 LE" },
+                { name: "Ice Cream Cone", price: "75 LE" },
+                { name: "Ice Cream Cup", price: "75 LE" },
+                { name: "Ice Cream Sandwich", price: "60 LE" },
+                { name: "Cotton Candy Sweet", price: "35 LE" }
+            ],
+            shisha: [
+                { name: "Normal Shisha", price: "325 LE" },
+                { name: "Shisha Flavors Added", price: "350 LE" },
+                { name: "Shisha Fruits Heads", price: "375 LE" }
+            ],
+            vip: [
+                { name: "Vip No. 1", price: "325 LE" },
+                { name: "Vip No. 2", price: "350 LE" },
+                { name: "Vip No. 3", price: "375 LE" },
+                { name: "Tart 4 Pax", price: "600 LE" },
+                { name: "Tart 6 Pax", price: "800 LE" },
+                { name: "Tart 30*30", price: "1200 LE" },
+                { name: "Tart 40*40", price: "1500 LE" },
+                { name: "Tart 50*50", price: "2000 LE" },
+                { name: "Oriental Pastry KG", price: "400 LE" },
+                { name: "French Pastry 12 Pax", price: "360 LE" }
+            ],
+            mocktails: [
+                { name: "Dreams Juice Sunset", price: "275 LE" },
+                { name: "Classic Mojito (Mint, Lime, Soda)", price: "250 LE" },
+                { name: "Pina Colada Juice", price: "275 LE" },
+                { name: "Margarita Juice", price: "295 LE" },
+                { name: "Fresh Detox Juice (Orange, Carrot, Ginger)", price: "145 LE" },
+                { name: "Virgin Mojito", price: "170 LE" },
+                { name: "Strawberry Smoothie", price: "160 LE" },
+                { name: "Mango Smoothie", price: "160 LE" }
+            ],
+            soft: [
+                { name: "Cola (Glass) / (Can)", price: "80 / 100 LE" },
+                { name: "Diet Cola (Glass) / (Can)", price: "80 / 100 LE" },
+                { name: "Sprite (Glass) / (Can)", price: "80 / 100 LE" },
+                { name: "Fanta (Glass) / (Can)", price: "80 / 100 LE" },
+                { name: "Tonic", price: "100 LE" },
+                { name: "Soda", price: "100 LE" },
+                { name: "Fresh Juice", price: "150 LE" },
+                { name: "MWS (Small)", price: "50 LE" },
+                { name: "MWL (Large)", price: "65 LE" }
+            ],
+            hot: [
+                { name: "Tea (Red / Green / Herbal)", price: "80 LE" },
+                { name: "Turkish Coffee", price: "125 LE" },
+                { name: "Nescafe", price: "110 LE" },
+                { name: "Espresso", price: "120 LE" },
+                { name: "Cappuccino", price: "130 LE" },
+                { name: "Hot Chocolate", price: "110 LE" }
+            ],
+            beer: [
+                { name: "Draft Beer (Glass)", price: "100 LE" },
+                { name: "Heineken (Bottle)", price: "120 LE" },
+                { name: "Stella (Bottle)", price: "120 LE" },
+                { name: "ID Small (Bottle)", price: "460 LE" },
+                { name: "ID Blue Large (Bottle)", price: "875 LE" }
+            ],
+            wine: [
+                { name: "Draft Wine (Glass)", price: "190 LE" },
+                { name: "Omar Khayyam (Red / Rose / White) (Bottle)", price: "950 LE" },
+                { name: "Cape Bay (Red / Rose / White) (Bottle)", price: "1600 LE" },
+                { name: "Jardin du Nil (Bottle)", price: "1250 LE" },
+                { name: "Le Baron (Bottle)", price: "1600 LE" },
+                { name: "Rocardet (Bottle)", price: "3125 LE" },
+                { name: "Calvet (Bottle)", price: "3125 LE" },
+                { name: "Aida Sparkling", price: "1600 LE" },
+                { name: "Lanson Champagne", price: "7800 LE" },
+                { name: "Cordon Rouge Champagne", price: "7800 LE" }
+            ],
+            cognac: [
+                { name: "Cognac VS", price: "900 LE" },
+                { name: "Cognac VSOP", price: "950 LE" },
+                { name: "J&B", price: "500 LE" },
+                { name: "Ballantine's", price: "500 LE" },
+                { name: "Bell's", price: "625 LE" },
+                { name: "Jim Beam", price: "625 LE" },
+                { name: "Red Label", price: "780 LE" },
+                { name: "Chivas Regal", price: "720 LE" },
+                { name: "Canadian Club", price: "780 LE" },
+                { name: "Black Label", price: "1500 LE" }
+            ],
+            local: [
+                { name: "Local (Gin) Shot / Bottle", price: "125 / 780 LE" },
+                { name: "Local (Vodka) Shot / Bottle", price: "125 / 780 LE" },
+                { name: "Local (Rum) Shot / Bottle", price: "125 / 780 LE" },
+                { name: "Local (Wisky) Shot / Bottle", price: "125 / 780 LE" },
+                { name: "Local (Brandy) Shot / Bottle", price: "125 / 780 LE" }
+            ],
+            premium: [
+                { name: "Premium (Gin) Shot / Bottle", price: "160 / 1100 LE" },
+                { name: "Premium (Vodka) Shot / Bottle", price: "160 / 1100 LE" },
+                { name: "Premium (Rum) Shot / Bottle", price: "160 / 1100 LE" },
+                { name: "Premium (Wisky) Shot / Bottle", price: "160 / 1100 LE" }
+            ],
+            liqueurs: [
+                { name: "Cherry Brandy", price: "470 LE" },
+                { name: "Crème de Menthe", price: "470 LE" },
+                { name: "Tia Maria", price: "470 LE" },
+                { name: "Cointreau", price: "470 LE" },
+                { name: "Triple Sec", price: "470 LE" },
+                { name: "Drambuie", price: "470 LE" },
+                { name: "Malibu", price: "470 LE" },
+                { name: "Martini Rosso", price: "470 LE" },
+                { name: "Pernod", price: "470 LE" },
+                { name: "Gordon Dry Gin", price: "470 LE" },
+                { name: "Grand Marne", price: "470 LE" },
+                { name: "Billy's", price: "470 LE" },
+                { name: "Ricard", price: "470 LE" },
+                { name: "Château Ksarak, Arak", price: "650 LE" },
+                { name: "Ouzo", price: "470 LE" },
+                { name: "Vodka", price: "470 LE" },
+                { name: "Tequila", price: "470 LE" },
+                { name: "Rum", price: "470 LE" }
+            ]
+        };
+
+        var menuData = JSON.parse(JSON.stringify(menuDefaultData));
+        var menuLoadedFromCloud = false;
+        var menuSaveInFlight = false;
+
+        function setMenuSyncBadge(state) {
+            var el = document.getElementById('menuSyncBadge');
+            if (!el) return;
+            if (state === 'online') { el.className = 'sync-badge sync-online'; el.innerText = '☁️ متصل - القائمة مشتركة'; }
+            else if (state === 'saving') { el.className = 'sync-badge sync-syncing'; el.innerText = '⏳ جاري الحفظ...'; }
+            else { el.className = 'sync-badge sync-offline'; el.innerText = '🔌 غير متصل'; }
+        }
+
+        // Loads the room-service menu from Firestore in real time (settings/roomServiceMenu),
+        // and seeds the default menu the first time the app connects to a fresh database.
+        function loadRoomServiceMenuFromCloud() {
+            if (!firebaseDb) return;
+            if (unsubscribers.menu) unsubscribers.menu();
+            var menuDocRef = firebaseDb.collection("settings").doc("roomServiceMenu");
+            unsubscribers.menu = menuDocRef.onSnapshot(function(doc) {
+                if (doc.exists && doc.data() && doc.data().categories) {
+                    menuData = doc.data().categories;
+                    menuLoadedFromCloud = true;
+                } else if (!menuSaveInFlight) {
+                    // First run on a fresh database: seed the defaults so every user shares the same prices.
+                    menuDocRef.set({ categories: menuDefaultData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(err) {
+                        console.error('Menu seed error:', err);
+                    });
+                }
+                setMenuSyncBadge('online');
+                renderMenu();
+            }, function(err) {
+                console.error('Menu sync error:', err);
+                setMenuSyncBadge('offline');
+            });
+        }
+
+        function saveMenu() {
+            var t = document.getElementById('menuToast');
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 1500);
+            if (!firebaseDb) { showToast("لا يوجد اتصال بالسحابة، لم يتم حفظ التعديل", "error"); return; }
+            menuSaveInFlight = true;
+            setMenuSyncBadge('saving');
+            firebaseDb.collection("settings").doc("roomServiceMenu").set({
+                categories: menuData,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedBy: currentUser.displayName || ''
+            }).then(function() {
+                setMenuSyncBadge('online');
+            }).catch(function(err) {
+                console.error('Menu save error:', err);
+                showToast("حدث خطأ أثناء حفظ سعر القائمة سحابياً", "error");
+                setMenuSyncBadge('offline');
+            }).finally(function() {
+                menuSaveInFlight = false;
+            });
+        }
+
+        function resetMenuPrices() {
+            if (currentUser.role !== 'admin' && currentUser.role !== 'supervisor') {
+                return showToast("عفواً، إعادة الأسعار متاحة للمدير والمشرف فقط", "error");
+            }
+            showModal('تأكيد', 'هل أنت متأكد من إعادة تعيين جميع أسعار قائمة الغرف للقيم الافتراضية؟ سيتم تطبيق ذلك على كل المستخدمين.', function() {
+                menuData = JSON.parse(JSON.stringify(menuDefaultData));
+                renderMenu();
+                saveMenu();
+            });
+        }
+
+        function canEditMenu() {
+            return currentUser.role === 'admin' || currentUser.role === 'supervisor';
+        }
+
+        function createMenuRow(item, cat, idx) {
+            var isEditable = canEditMenu();
+            var priceHtml = isEditable
+                ? '<input type="text" class="price-editable" inputmode="decimal" autocomplete="off" data-cat="' + cat + '" data-idx="' + idx + '" value="' + escapeHtml(item.price) + '">'
+                : '<span class="item-price">' + escapeHtml(item.price) + '</span>';
+            return '<div class="menu-row-e2" data-cat="' + cat + '" data-idx="' + idx + '"><span class="item-name">' + escapeHtml(item.name) + '</span>' + priceHtml + '</div>';
+        }
+
+        function renderMenuSection(containerId, category) {
+            var el = document.getElementById(containerId);
+            if (!el) return;
+            el.innerHTML = menuData[category].map(function(item, idx) { return createMenuRow(item, category, idx); }).join('');
+            if (canEditMenu()) {
+                el.querySelectorAll('.price-editable').forEach(function(inputEl) {
+                    inputEl.addEventListener('change', function() {
+                        var cat = this.dataset.cat;
+                        var idx = parseInt(this.dataset.idx);
+                        menuData[cat][idx].price = this.value.trim();
+                        saveMenu();
+                    });
+                    inputEl.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
+                    });
+                });
+            }
+        }
+
+        function renderMenu() {
+            renderMenuSection('menuBreakfast', 'breakfast');
+            renderMenuSection('menuSoups', 'soups');
+            renderMenuSection('menuSalads', 'salads');
+            renderMenuSection('menuSandwiches', 'sandwiches');
+            renderMenuSection('menuPasta', 'pasta');
+            renderMenuSection('menuMains', 'mains');
+            renderMenuSection('menuDesserts', 'desserts');
+            renderMenuSection('menuIcecream', 'icecream');
+            renderMenuSection('menuShisha', 'shisha');
+            renderMenuSection('menuVip', 'vip');
+            renderMenuSection('menuMocktails', 'mocktails');
+            renderMenuSection('menuSoft', 'soft');
+            renderMenuSection('menuHot', 'hot');
+            renderMenuSection('menuBeer', 'beer');
+            renderMenuSection('menuWine', 'wine');
+            renderMenuSection('menuCognac', 'cognac');
+            renderMenuSection('menuLocal', 'local');
+            renderMenuSection('menuPremium', 'premium');
+            renderMenuSection('menuLiqueurs', 'liqueurs');
+            filterMenu();
+        }
+
+        function filterMenu() {
+            var q = (document.getElementById('menuSearchInput').value || '').toLowerCase();
+            document.querySelectorAll('.menu-row-e2').forEach(function(row) {
+                row.style.display = row.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+            });
+            document.querySelectorAll('#menuScrollArea .mb-3').forEach(function(sec) {
+                var visible = sec.querySelectorAll('.menu-row-e2:not([style*="none"])');
+                sec.style.display = visible.length ? 'block' : 'none';
+            });
+        }
+
+        function calculateMenuDiscount() {
+            var total = parseFloat(document.getElementById('menuCheckTotal').value);
+            if (isNaN(total) || total <= 0) {
+                document.getElementById('menuDisc50').innerText = "0.00 LE";
+                document.getElementById('menuDisc25').innerText = "0.00 LE";
+                return;
+            }
+            document.getElementById('menuDisc50').innerText = (total * (1 - 0.3916167)).toFixed(2) + " LE";
+            document.getElementById('menuDisc25').innerText = (total * (1 - 0.1957)).toFixed(2) + " LE";
+        }
+
+        function printMenu() {
+            var tab = document.getElementById('menu-tab');
+            tab.classList.add('print-target');
+            window.print();
+            setTimeout(function() { tab.classList.remove('print-target'); }, 1000);
         }
     </script>
 </body>
