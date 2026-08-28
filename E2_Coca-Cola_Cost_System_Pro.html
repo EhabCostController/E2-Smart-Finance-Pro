@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E2 Coca-Cola Cost System - Invoice Style</title>
+    <title>E2 Cost System - Professional Receiving Note</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-app: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
+            --bg-app: #0b0f19;
+            --card-bg: #111827;
+            --card-border: #1f2937;
             --primary: #ef4444;
             --success: #10b981;
             --warning: #f59e0b;
             --info: #3b82f6;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --input-bg: #0f172a;
-            --table-header-bg: #0f172a;
-            --table-row-alt: #24324a;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --input-bg: #030712;
+            --table-header-bg: #1f2937;
+            --table-row-alt: #161e2e;
             --highlight-bg: #78350f;
             --highlight-text: #fde68a;
         }
@@ -27,7 +27,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
@@ -39,13 +39,13 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 340px 1fr;
             gap: 20px;
-            max-width: 1200px;
+            max-width: 1350px;
             margin: 0 auto;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1000px) {
             .main-grid { grid-template-columns: 1fr; }
         }
 
@@ -53,56 +53,58 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
 
         h2 {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--card-border);
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--text-main);
         }
 
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         label {
             font-size: 0.8rem;
             color: var(--text-muted);
             display: block;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .input-style {
             width: 100%;
             background: var(--input-bg);
             border: 1px solid var(--card-border);
-            border-radius: 6px;
-            padding: 8px 10px;
+            border-radius: 8px;
+            padding: 9px 12px;
             color: var(--text-main);
             font-size: 0.9rem;
-            font-weight: bold;
+            font-weight: 600;
             outline: none;
+            transition: border-color 0.2s;
         }
 
-        .input-style:focus { border-color: var(--primary); }
+        .input-style:focus { border-color: var(--info); }
 
         .btn-block {
             width: 100%;
             background: var(--success);
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 11px;
+            border-radius: 8px;
             font-weight: bold;
             font-size: 0.95rem;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
             transition: background 0.2s;
         }
 
@@ -112,36 +114,61 @@
             background: var(--info);
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 0.85rem;
+            transition: background 0.2s;
         }
 
         .btn-print:hover { background: #2563eb; }
 
-        .receipt-header {
+        /* ترويسة إذن الاستلام الاحترافية لـ E2 */
+        .receipt-brand-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--card-border);
+            padding-bottom: 15px;
             margin-bottom: 15px;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 10px;
+        }
+
+        .brand-logo-area h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-logo-area p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .receipt-meta-info {
+            text-align: left;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .receipt-meta-info b {
+            color: var(--text-main);
         }
 
         .table-container {
             overflow-x: auto;
+            margin-top: 10px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 0px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-align: center;
             background: var(--card-bg);
             color: var(--text-main);
@@ -153,13 +180,13 @@
 
         th, td {
             padding: 10px;
-            font-weight: bold;
         }
 
         th {
             background: var(--table-header-bg);
             color: var(--text-main);
-            font-size: 1rem;
+            font-size: 0.9rem;
+            font-weight: 700;
         }
 
         tbody tr:nth-child(even) {
@@ -201,30 +228,49 @@
         .warning-text {
             color: var(--warning);
             font-size: 0.75rem;
-            margin-top: 4px;
+            margin-top: 6px;
             display: none;
+        }
+
+        /* توقيعات نهاية الإذن المطبوع */
+        .signatures-section {
+            display: none;
+            margin-top: 40px;
+            justify-content: space-between;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .sig-box {
+            width: 30%;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            font-weight: bold;
         }
 
         @media print {
             body { background: white; color: black; padding: 0; }
             .cashier-panel, .btn-print, .action-btns, th:last-child, td:last-child { display: none !important; }
-            .main-grid { grid-template-columns: 1fr; }
+            .main-grid { grid-template-columns: 1fr; display: block; }
             .receipt-panel { border: none; box-shadow: none; background: white; color: black; padding: 0; }
+            .receipt-brand-header { border-bottom: 2px solid #000; }
+            .brand-logo-area h1 { color: #000 !important; }
             table { width: 100% !important; margin: 0; background: white; color: black; }
-            table, th, td { border: 2px solid #000000 !important; }
-            th { background: #f1f5f9 !important; color: #000 !important; }
-            tbody tr:nth-child(even) { background: #f8fafc !important; }
-            .total-row { background: #f1f5f9 !important; }
-            .yellow-highlight { background: #ffff00 !important; color: #000 !important; }
+            table, th, td { border: 1px solid #000 !important; }
+            th { background: #e5e7eb !important; color: #000 !important; }
+            tbody tr:nth-child(even) { background: #f9fafb !important; }
+            .total-row { background: #e5e7eb !important; color: #000 !important; }
+            .yellow-highlight { background: #fef08a !important; color: #000 !important; }
+            .signatures-section { display: flex !important; }
         }
     </style>
 </head>
 <body>
 
     <div class="main-grid">
-        <!-- لوحة الإدخال -->
+        <!-- لوحة الإدخال والتحكم -->
         <div class="cashier-panel">
-            <h2><i class="fa-solid fa-calculator" style="color: var(--primary);"></i> إدخال الفاتورة</h2>
+            <h2><i class="fa-solid fa-calculator" style="color: var(--primary);"></i> لوحة التحكم والإدخال</h2>
             
             <div class="form-group">
                 <label>اسم الصنف</label>
@@ -257,12 +303,12 @@
             </div>
 
             <div class="form-group">
-                <label>السعر الأساسي للكرتونة (قبل الخصم والضريبة)</label>
+                <label>السعر الأساسي للكرتونة</label>
                 <input type="number" id="price" class="input-style" value="0" step="0.001">
             </div>
 
             <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
-                <label>إجمالي الخصم للصنف بالكامل</label>
+                <label>إجمالي الخصم للصنف</label>
                 <input type="number" id="totalDiscount" class="input-style" value="0" step="0.001">
             </div>
 
@@ -272,20 +318,32 @@
             </div>
 
             <div class="form-group">
-                <label style="color: #60a5fa;">إجمالي ضريبة 14% للصنف</label>
-                <input type="number" id="tax14" class="input-style" value="0" step="0.001" style="border-color: #3b82f6;">
+                <label style="color: #60a5fa;">إجمالي ضريبة 14%</label>
+                <input type="number" id="tax14" class="input-style" value="0" step="0.001">
             </div>
 
             <div id="warningBox" class="warning-text"></div>
 
-            <button class="btn-block" onclick="addItemToReceipt()"><i class="fa-solid fa-plus"></i> إضافة إلى الجدول</button>
+            <button class="btn-block" onclick="addItemToReceipt()"><i class="fa-solid fa-plus"></i> إضافة إلى إذن الاستلام</button>
         </div>
 
-        <!-- لوحة عرض إذن الاستلام -->
+        <!-- لوحة عرض إذن الاستلام المالي -->
         <div class="receipt-panel">
-            <div class="receipt-header">
-                <h2><i class="fa-solid fa-file-invoice" style="color: var(--success);"></i> إذن الاستلام المالي الدقيق</h2>
-                <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الإذن</button>
+            <!-- ترويسة إذن الاستلام مع شعار E2 -->
+            <div class="receipt-brand-header">
+                <div class="brand-logo-area">
+                    <h1>E2 - Cost System</h1>
+                    <p>نظام الرقابة المالية وإذن الاستلام الدقيق</p>
+                </div>
+                <div class="receipt-meta-info">
+                    <p>رقم الإذن: <b>#E2-REC-2026</b></p>
+                    <p>التاريخ: <b id="currentDate"></b></p>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h2 style="margin: 0; border: none; padding: 0;"><i class="fa-solid fa-file-invoice-dollar" style="color: var(--success);"></i> تفاصيل الإذن المالي</h2>
+                <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الإذن الرسمى</button>
             </div>
 
             <div class="table-container">
@@ -295,37 +353,47 @@
                             <th style="width: 40%;">اسم الصنف</th>
                             <th style="width: 15%;">الكمية</th>
                             <th style="width: 20%;">السعر</th>
-                            <th style="width: 20%;">الاجمالي</th>
+                            <th style="width: 20%;">الإجمالي</th>
                             <th style="width: 5%;">إجراء</th>
                         </tr>
                     </thead>
                     <tbody id="receiptBody">
-                        <!-- البيانات والحسابات تنزل هنا تلقائياً -->
+                        <!-- العناصر تضاف هنا ديناميكياً -->
                     </tbody>
                     <tfoot>
                         <tr class="total-row">
-                            <td colspan="3"><b>الاجمالي</b></td>
+                            <td colspan="3"><b>الإجمالي غير شامل 14%</b></td>
                             <td id="grandNetWithout14" style="font-weight: bold;">0.000</td>
                             <td></td>
                         </tr>
                         <tr class="total-row">
-                            <td colspan="3"><b>قيمة الـ 14%</b></td>
+                            <td colspan="3"><b>قيمة ضريبة الـ 14%</b></td>
                             <td id="grandTax14" style="font-weight: bold;">0.000</td>
                             <td></td>
                         </tr>
                         <tr class="total-row yellow-highlight">
-                            <td colspan="3"><b>الاجمالي في الفاتورة</b></td>
+                            <td colspan="3"><b>إجمالي الفاتورة النهائي</b></td>
                             <td id="grandNetWith14" style="font-weight: bold;">0.000</td>
                             <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
+
+            <!-- التوقيعات الرسمية عند الطباعة -->
+            <div class="signatures-section">
+                <div class="sig-box">أمين المخزن</div>
+                <div class="sig-box">مراقب التكاليف</div>
+                <div class="sig-box">الاعتماد المالي</div>
+            </div>
         </div>
     </div>
 
     <script>
         let receiptItems = [];
+
+        // ضبط التاريخ الحالي تلقائياً
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG');
 
         function autoSelectPack() {
             const selectElement = document.getElementById('prodName');
@@ -377,11 +445,11 @@
             const totalNetVal = netCartonPrice * qty;
 
             if (netCartonPrice < 0) {
-                showWarning('تنبيه: الخصم أكبر من سعر الكرتونة، السعر الصافي أصبح سالباً. تأكد من صحة الأرقام.');
+                showWarning('تنبيه: الخصم أكبر من سعر الكرتونة، السعر الصافي أصبح سالباً.');
             }
 
             const totalUnits = qty * packSize;
-            if (totalUnits <= 0) { alert('لا يمكن حساب عدد الوحدات، تأكد من الكمية وعدد الوحدات بالكرتونة'); return; }
+            if (totalUnits <= 0) { alert('لا يمكن حساب عدد الوحدات، تأكد من الكمية وعدد الوحدات'); return; }
 
             const rawUnitPrice = totalNetVal / totalUnits;
             const roundedUnitPrice = floorTo2(rawUnitPrice);
@@ -421,7 +489,7 @@
             document.getElementById('price').value = 0;
             document.getElementById('qty').value = 0;
             document.getElementById('totalDiscount').value = 0;
-            document.getElementById('tax8').value = "0.000";
+            document.getElementById('tax8').value = 0;
             document.getElementById('tax14').value = 0;
             clearWarning();
         }
