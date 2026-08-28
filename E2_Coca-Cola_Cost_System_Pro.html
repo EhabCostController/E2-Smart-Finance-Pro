@@ -13,6 +13,7 @@
             --primary: #ef4444;
             --success: #10b981;
             --warning: #f59e0b;
+            --info: #3b82f6;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --input-bg: #0f172a;
@@ -108,7 +109,7 @@
         .btn-block:hover { background: #059669; }
 
         .btn-print {
-            background: #3b82f6;
+            background: var(--info);
             color: white;
             border: none;
             padding: 8px 15px;
@@ -174,11 +175,27 @@
             color: var(--highlight-text) !important;
         }
 
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+        }
+
         .delete-btn {
             color: var(--primary);
             cursor: pointer;
             border: none;
             background: none;
+            font-size: 0.9rem;
+        }
+
+        .edit-btn {
+            color: var(--info);
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 0.9rem;
         }
 
         .warning-text {
@@ -190,7 +207,7 @@
 
         @media print {
             body { background: white; color: black; padding: 0; }
-            .cashier-panel, .btn-print, .delete-btn, th:last-child, td:last-child { display: none !important; }
+            .cashier-panel, .btn-print, .action-btns, th:last-child, td:last-child { display: none !important; }
             .main-grid { grid-template-columns: 1fr; }
             .receipt-panel { border: none; box-shadow: none; background: white; color: black; padding: 0; }
             table { width: 100% !important; margin: 0; background: white; color: black; }
@@ -212,20 +229,20 @@
             <div class="form-group">
                 <label>اسم الصنف</label>
                 <select id="prodName" class="input-style" onchange="autoSelectPack()">
-                    <!-- خيار افتراضي فارغ -->
-                    <option value="" data-pack="0" data-price="0.000" selected disabled>-- اختر الصنف من هنا --</option>
-                    <option value="كولا كانز" data-pack="24" data-price="279.650">كولا كانز (24 قطعة)</option>
-                    <option value="كولا دايت كانز" data-pack="24" data-price="279.650">كولا دايت كانز (24 قطعة)</option>
-                    <option value="اسبرايت كانز" data-pack="24" data-price="279.650">اسبرايت كانز (24 قطعة)</option>
-                    <option value="فانتا كانز" data-pack="24" data-price="279.650">فانتا كانز (24 قطعة)</option>
-                    <option value="صودا" data-pack="12" data-price="231.230">صودا (12 قطعة)</option>
-                    <option value="تونيك" data-pack="12" data-price="231.230">تونيك (12 قطعة)</option>
-                    <option value="مياة دساني 1.5" data-pack="12" data-price="93.860">مياة دساني 1.5 (12 قطعة)</option>
-                    <option value="مياة دساني 600" data-pack="20" data-price="96.490">مياة دساني 600 (20 قطعة)</option>
-                    <option value="كولا باجين" data-pack="1" data-price="0.000">كولا باجين (1 قطعة)</option>
-                    <option value="اسبرايت باجين" data-pack="1" data-price="0.000">اسبرايت باجين (1 قطعة)</option>
-                    <option value="فانتا باجين" data-pack="1" data-price="0.000">فانتا باجين (1 قطعة)</option>
-                    <option value="غاز كولا" data-pack="1" data-price="0.000">غاز كولا (1 قطعة)</option>
+                    <option value="" data-pack="0" data-price="0.000" selected disabled>-- اختر الصنف --</option>
+                    <option value="كولا كانز" data-pack="24" data-price="279.650">كولا كانز</option>
+                    <option value="كولا دايت كانز" data-pack="24" data-price="279.650">كولا دايت كانز</option>
+                    <option value="اسبرايت كانز" data-pack="24" data-price="279.650">اسبرايت كانز</option>
+                    <option value="فانتا كانز" data-pack="24" data-price="279.650">فانتا كانز</option>
+                    <option value="صودا" data-pack="12" data-price="231.230">صودا</option>
+                    <option value="تونيك" data-pack="12" data-price="231.230">تونيك</option>
+                    <option value="كولا زيرو 0.95 لتر" data-pack="12" data-price="112.830">كولا زيرو 0.95 لتر</option>
+                    <option value="مياة دساني 1.5 لتر" data-pack="12" data-price="93.860">مياة دساني 1.5 لتر</option>
+                    <option value="مياة دساني 600 ملي" data-pack="20" data-price="96.490">مياة دساني 600 ملي</option>
+                    <option value="كولا باجين" data-pack="1" data-price="1840.480">كولا باجين</option>
+                    <option value="اسبرايت باجين" data-pack="1" data-price="1840.480">اسبرايت باجين</option>
+                    <option value="فانتا باجين" data-pack="1" data-price="1840.480">فانتا باجين</option>
+                    <option value="غاز كولا" data-pack="1" data-price="28.950">غاز كولا</option>
                 </select>
             </div>
 
@@ -279,7 +296,7 @@
                             <th style="width: 15%;">الكمية</th>
                             <th style="width: 20%;">السعر</th>
                             <th style="width: 20%;">الاجمالي</th>
-                            <th class="delete-btn" style="width: 5%;">إجراء</th>
+                            <th style="width: 5%;">إجراء</th>
                         </tr>
                     </thead>
                     <tbody id="receiptBody">
@@ -289,17 +306,17 @@
                         <tr class="total-row">
                             <td colspan="3"><b>الاجمالي</b></td>
                             <td id="grandNetWithout14" style="font-weight: bold;">0.000</td>
-                            <td class="delete-btn"></td>
+                            <td></td>
                         </tr>
                         <tr class="total-row">
                             <td colspan="3"><b>قيمة الـ 14%</b></td>
                             <td id="grandTax14" style="font-weight: bold;">0.000</td>
-                            <td class="delete-btn"></td>
+                            <td></td>
                         </tr>
                         <tr class="total-row yellow-highlight">
                             <td colspan="3"><b>الاجمالي في الفاتورة</b></td>
                             <td id="grandNetWith14" style="font-weight: bold;">0.000</td>
-                            <td class="delete-btn"></td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -312,7 +329,6 @@
 
         function autoSelectPack() {
             const selectElement = document.getElementById('prodName');
-            // إذا لم يتم اختيار صنف حقيقي، لا تفعل شيئاً
             if (selectElement.value === "") return;
 
             const pack = parseInt(selectElement.options[selectElement.selectedIndex].getAttribute('data-pack'));
@@ -385,14 +401,21 @@
 
             receiptItems.push({
                 name: prodName,
+                packSize: packSize,
+                qty: qty,
+                price: price,
+                totalDiscount: totalDiscount,
+                tax8: tax8,
                 tax14: tax14,
                 totalNetVal: totalNetVal,
                 rows: rows
             });
 
             renderReceipt();
-            
-            // إعادة تعيين القائمة للافتراضي بعد الإضافة
+            resetForm();
+        }
+
+        function resetForm() {
             document.getElementById('prodName').selectedIndex = 0;
             document.getElementById('packSize').value = 0;
             document.getElementById('price').value = 0;
@@ -400,9 +423,32 @@
             document.getElementById('totalDiscount').value = 0;
             document.getElementById('tax8').value = "0.000";
             document.getElementById('tax14').value = 0;
+            clearWarning();
         }
 
         function deleteItem(index) {
+            receiptItems.splice(index, 1);
+            renderReceipt();
+        }
+
+        function editItem(index) {
+            const item = receiptItems[index];
+            
+            const selectElement = document.getElementById('prodName');
+            for (let i = 0; i < selectElement.options.length; i++) {
+                if (selectElement.options[i].value === item.name) {
+                    selectElement.selectedIndex = i;
+                    break;
+                }
+            }
+
+            document.getElementById('packSize').value = item.packSize;
+            document.getElementById('qty').value = item.qty;
+            document.getElementById('price').value = item.price.toFixed(3);
+            document.getElementById('totalDiscount').value = item.totalDiscount.toFixed(3);
+            document.getElementById('tax8').value = item.tax8.toFixed(3);
+            document.getElementById('tax14').value = item.tax14.toFixed(3);
+
             receiptItems.splice(index, 1);
             renderReceipt();
         }
@@ -419,8 +465,11 @@
                 sumTax14 += item.tax14;
 
                 item.rows.forEach((row, rowIndex) => {
-                    const actionBtn = rowIndex === 0 
-                        ? `<button class="delete-btn" onclick="deleteItem(${index})"><i class="fa-solid fa-trash"></i></button>` 
+                    const actionBtns = rowIndex === 0 
+                        ? `<div class="action-btns">
+                                <button class="edit-btn" onclick="editItem(${index})" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="delete-btn" onclick="deleteItem(${index})" title="حذف"><i class="fa-solid fa-trash"></i></button>
+                           </div>` 
                         : '';
 
                     const tableRow = `<tr>
@@ -428,7 +477,7 @@
                         <td>${row.qty.toLocaleString('ar-EG')}</td>
                         <td>${row.price.toLocaleString('ar-EG', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
                         <td>${row.total.toLocaleString('ar-EG', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</td>
-                        <td class="delete-btn">${actionBtn}</td>
+                        <td>${actionBtns}</td>
                     </tr>`;
                     tbody.innerHTML += tableRow;
                 });
