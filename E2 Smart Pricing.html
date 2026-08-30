@@ -119,6 +119,14 @@
         .menu-row-e2 .price-editable { background: var(--bg-input); border: 1px solid var(--border); color: #fbbf24; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: 700; text-align: center; width: 100px; min-width: 90px; font-family: 'Cairo', monospace; cursor: text; }
         .menu-row-e2 .price-editable:hover { border-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
         .menu-row-e2 .price-editable:focus { outline: 2px solid #fbbf24; background: var(--bg-main); }
+        .buffet-prices { display: flex; gap: 10px; align-items: center; }
+        .buffet-price-box { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 70px; }
+        .buffet-label { font-size: 10px; color: var(--text-muted); font-weight: 700; }
+        .buffet-input { width: 70px !important; min-width: 60px !important; font-size: 12px !important; padding: 4px 6px !important; }
+        @media (max-width: 768px) {
+            .buffet-input { width: 60px !important; min-width: 50px !important; }
+            .buffet-price-box { min-width: 60px; }
+        }
         .menu-calc-box { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
         .menu-calc-box input { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 6px; font-size: 14px; width: 160px; text-align: center; }
         .menu-calc-box input:focus { border-color: #fbbf24; outline: none; }
@@ -200,6 +208,7 @@
         .mobile-save-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); border-top: 1px solid var(--border); padding: 10px; z-index: 100; gap: 8px; }
         @media (max-width: 768px) { .mobile-save-bar { display: flex; } body { padding-bottom: 70px; } }
     </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -473,6 +482,10 @@
                 <div class="mb-3">
                     <div class="menu-subsection-title"><span>⭐</span><span>Fruit Basket (VIP) & Tart & Oriental Pastry</span></div>
                     <div class="menu-grid" id="menuVip"></div>
+                </div>
+                <div class="mb-3">
+                    <div class="menu-subsection-title"><span>🍽️</span><span>أسعار الوجبات في البوفيهات — Buffet Meal Prices</span></div>
+                    <div class="menu-grid" id="menuBuffet"></div>
                 </div>
             </div>
 
@@ -1534,168 +1547,179 @@
         // ==================== ROOM SERVICE MENU (Firebase-backed) ====================
         var menuDefaultData = {
             breakfast: [
-                { name: "Fresh juice - Orange or Grapefruits", price: "120 LE" },
-                { name: "Fresh fruits salad", price: "150 LE" },
-                { name: "Plain or fruit yoghurt", price: "100 LE" },
-                { name: "Selection of cheese platter", price: "370 LE" },
-                { name: "Plate of French Fries", price: "110 LE" },
-                { name: "Assorted cold cuts", price: "475 LE" },
-                { name: "Bowl of Corn flakes with milk", price: "120 LE" },
-                { name: "Two Eggs with your favorite choice", price: "160 LE" },
-                { name: "Salad plate", price: "120 LE" },
-                { name: "Variety bread and pastries (Served with jam & butter)", price: "145 LE" },
-                { name: "Bowl of seasoned stewed fava beans", price: "120 LE" },
-                { name: "Tea", price: "115 LE" },
-                { name: "American coffee", price: "115 LE" }
+                { name: "Fresh juice - Orange or Grapefruits", price: "120" },
+                { name: "Fresh fruits salad", price: "150" },
+                { name: "Plain or fruit yoghurt", price: "100" },
+                { name: "Selection of cheese platter", price: "370" },
+                { name: "Plate of French Fries", price: "110" },
+                { name: "Assorted cold cuts", price: "475" },
+                { name: "Bowl of Corn flakes with milk", price: "120" },
+                { name: "Two Eggs with your favorite choice", price: "160" },
+                { name: "Salad plate", price: "120" },
+                { name: "Variety bread and pastries (Served with jam & butter)", price: "145" },
+                { name: "Bowl of seasoned stewed fava beans", price: "120" },
+                { name: "Tea", price: "115" },
+                { name: "American coffee", price: "115" }
             ],
             soups: [
-                { name: "Chicken cream soup", price: "160 LE" },
-                { name: "Vegetables clear soup", price: "145 LE" }
+                { name: "Chicken cream soup", price: "160" },
+                { name: "Vegetables clear soup", price: "145" }
             ],
             salads: [
-                { name: "Garden green salad", price: "145 LE" },
-                { name: "Baba ghanough salad", price: "145 LE" },
-                { name: "Yoghurt salad", price: "145 LE" },
-                { name: "Tahina salad", price: "145 LE" }
+                { name: "Garden green salad", price: "145" },
+                { name: "Baba ghanough salad", price: "145" },
+                { name: "Yoghurt salad", price: "145" },
+                { name: "Tahina salad", price: "145" }
             ],
             sandwiches: [
-                { name: "Tortilla Chicken Wraps Sandwich", price: "550 LE" },
-                { name: "Burger Sandwich", price: "460 LE" },
-                { name: "Tuna Sandwich", price: "410 LE" }
+                { name: "Tortilla Chicken Wraps Sandwich", price: "550" },
+                { name: "Burger Sandwich", price: "460" },
+                { name: "Tuna Sandwich", price: "410" }
             ],
             pasta: [
-                { name: "Penne Arrabbiata", price: "200 LE" },
-                { name: "Liguinni Alfredo", price: "340 LE" },
-                { name: "Spaghetti Bolognese", price: "330 LE" }
+                { name: "Penne Arrabbiata", price: "200" },
+                { name: "Liguinni Alfredo", price: "340" },
+                { name: "Spaghetti Bolognese", price: "330" }
             ],
             mains: [
-                { name: "Grilled beef fillet (mushroom & BBQ sauce)", price: "740 LE" },
-                { name: "Chicken breast pane", price: "600 LE" },
-                { name: "Fish and Chips (served with Tartar Sauce)", price: "480 LE" },
-                { name: "Shrimps - Fried or grilled", price: "1150 LE" }
+                { name: "Grilled beef fillet (mushroom & BBQ sauce)", price: "740" },
+                { name: "Chicken breast pane", price: "600" },
+                { name: "Fish and Chips (served with Tartar Sauce)", price: "480" },
+                { name: "Shrimps - Fried or grilled", price: "1150" }
             ],
             desserts: [
-                { name: "Gateaux Soiree", price: "260 LE" },
-                { name: "French Pastry", price: "260 LE" },
-                { name: "Oriental sweet", price: "290 LE" },
-                { name: "Seasonal Fruits Platter", price: "220 LE" }
+                { name: "Gateaux Soiree", price: "260" },
+                { name: "French Pastry", price: "26" },
+                { name: "Oriental sweet", price: "290" },
+                { name: "Seasonal Fruits Platter", price: "220" }
             ],
             icecream: [
-                { name: "Ice Cream Steak", price: "75 LE" },
-                { name: "Ice Cream Cone", price: "75 LE" },
-                { name: "Ice Cream Cup", price: "75 LE" },
-                { name: "Ice Cream Sandwich", price: "60 LE" },
-                { name: "Cotton Candy Sweet", price: "35 LE" }
+                { name: "Ice Cream Steak", price: "75" },
+                { name: "Ice Cream Cone", price: "75" },
+                { name: "Ice Cream Cup", price: "75" },
+                { name: "Ice Cream Sandwich", price: "60" },
+                { name: "Cotton Candy Sweet", price: "35" }
+            ],
+            "buffetPrices": [
+                { name: "فطار", priceDB: "400", priceDV: "365" },
+                { name: "غداء", priceDB: "700", priceDV: "585" },
+                { name: "عشاء", priceDB: "950", priceDV: "820" },
+                { name: "سناكس", priceDB: "250", priceDV: "250" },
+                { name: "الوجبات بالمطاعم المتخصصة", priceDB: "900", priceDV: "900" }
             ],
             shisha: [
-                { name: "Normal Shisha", price: "325 LE" },
-                { name: "Shisha Flavors Added", price: "350 LE" },
-                { name: "Shisha Fruits Heads", price: "375 LE" }
+                { name: "Normal Shisha", price: "325" },
+                { name: "Shisha Flavors Added", price: "350" },
+                { name: "Shisha Fruits Heads", price: "375" }
             ],
             vip: [
-                { name: "Vip No. 1", price: "325 LE" },
-                { name: "Vip No. 2", price: "350 LE" },
-                { name: "Vip No. 3", price: "375 LE" },
-                { name: "Tart 4 Pax", price: "600 LE" },
-                { name: "Tart 6 Pax", price: "800 LE" },
-                { name: "Tart 30*30", price: "1200 LE" },
-                { name: "Tart 40*40", price: "1500 LE" },
-                { name: "Tart 50*50", price: "2000 LE" },
-                { name: "Oriental Pastry KG", price: "400 LE" },
-                { name: "French Pastry 12 Pax", price: "360 LE" }
+                { name: "Vip No. 1", price: "325" },
+                { name: "Vip No. 2", price: "350" },
+                { name: "Vip No. 3", price: "375" },
+                { name: "Tart 4 Pax", price: "600" },
+                { name: "Tart 6 Pax", price: "800" },
+                { name: "Tart 30*30", price: "1200" },
+                { name: "Tart 40*40", price: "1500" },
+                { name: "Tart 50*50", price: "2000" },
+                { name: "Oriental Pastry KG", price: "400" },
+                { name: "French Pastry 12 Pax", price: "360" }
             ],
             mocktails: [
-                { name: "Dreams Juice Sunset", price: "275 LE" },
-                { name: "Classic Mojito (Mint, Lime, Soda)", price: "250 LE" },
-                { name: "Pina Colada Juice", price: "275 LE" },
-                { name: "Margarita Juice", price: "295 LE" },
-                { name: "Fresh Detox Juice (Orange, Carrot, Ginger)", price: "145 LE" },
-                { name: "Virgin Mojito", price: "170 LE" },
-                { name: "Strawberry Smoothie", price: "160 LE" },
-                { name: "Mango Smoothie", price: "160 LE" }
+                { name: "Dreams Juice Sunset", price: "275" },
+                { name: "Classic Mojito (Mint, Lime, Soda)", price: "250" },
+                { name: "Pina Colada Juice", price: "275" },
+                { name: "Margarita Juice", price: "295" },
+                { name: "Fresh Detox Juice (Orange, Carrot, Ginger)", price: "145" },
+                { name: "Virgin Mojito", price: "170" },
+                { name: "Strawberry Smoothie", price: "160" },
+                { name: "Mango Smoothie", price: "160" }
             ],
             soft: [
-                { name: "Cola (Glass) / (Can)", price: "80 / 100 LE" },
-                { name: "Diet Cola (Glass) / (Can)", price: "80 / 100 LE" },
-                { name: "Sprite (Glass) / (Can)", price: "80 / 100 LE" },
-                { name: "Fanta (Glass) / (Can)", price: "80 / 100 LE" },
-                { name: "Tonic", price: "100 LE" },
-                { name: "Soda", price: "100 LE" },
-                { name: "Fresh Juice", price: "150 LE" },
-                { name: "MWS (Small)", price: "50 LE" },
-                { name: "MWL (Large)", price: "65 LE" }
+                { name: "Cola (Glass)", price: "80" },
+                { name: "Cola (Can)", price: "100" },
+                { name: "Diet Cola (Glass)", price: "80" },
+                { name: "Diet Cola (Can)", price: "100" },
+                { name: "Sprite (Glass)", price: "80" },
+                { name: "Sprite (Can)", price: "100" },
+                { name: "Fanta (Glass)", price: "80" },
+                { name: "Fanta (Can)", price: "100" },
+                { name: "Tonic", price: "100" },
+                { name: "Soda", price: "100" },
+                { name: "Fresh Juice", price: "150" },
+                { name: "MWS (Small)", price: "50" },
+                { name: "MWL (Large)", price: "65" }
             ],
             hot: [
-                { name: "Tea (Red / Green / Herbal)", price: "80 LE" },
-                { name: "Turkish Coffee", price: "125 LE" },
-                { name: "Nescafe", price: "110 LE" },
-                { name: "Espresso", price: "120 LE" },
-                { name: "Cappuccino", price: "130 LE" },
-                { name: "Hot Chocolate", price: "110 LE" }
+                { name: "Tea (Red / Green / Herbal)", price: "80" },
+                { name: "Turkish Coffee", price: "125" },
+                { name: "Nescafe", price: "110" },
+                { name: "Espresso", price: "120" },
+                { name: "Cappuccino", price: "130" },
+                { name: "Hot Chocolate", price: "110" }
             ],
             beer: [
-                { name: "Draft Beer (Glass)", price: "100 LE" },
-                { name: "Heineken (Bottle)", price: "120 LE" },
-                { name: "Stella (Bottle)", price: "120 LE" },
-                { name: "ID Small (Bottle)", price: "460 LE" },
-                { name: "ID Blue Large (Bottle)", price: "875 LE" }
+                { name: "Draft Beer (Glass)", price: "100" },
+                { name: "Heineken (Bottle)", price: "120" },
+                { name: "Stella (Bottle)", price: "120" },
+                { name: "ID Small (Bottle)", price: "460" },
+                { name: "ID Blue Large (Bottle)", price: "875" }
             ],
             wine: [
-                { name: "Draft Wine (Glass)", price: "190 LE" },
-                { name: "Omar Khayyam (Red / Rose / White) (Bottle)", price: "950 LE" },
-                { name: "Cape Bay (Red / Rose / White) (Bottle)", price: "1600 LE" },
-                { name: "Jardin du Nil (Bottle)", price: "1250 LE" },
-                { name: "Le Baron (Bottle)", price: "1600 LE" },
-                { name: "Rocardet (Bottle)", price: "3125 LE" },
-                { name: "Calvet (Bottle)", price: "3125 LE" },
-                { name: "Aida Sparkling", price: "1600 LE" },
-                { name: "Lanson Champagne", price: "7800 LE" },
-                { name: "Cordon Rouge Champagne", price: "7800 LE" }
+                { name: "Draft Wine (Glass)", price: "190" },
+                { name: "Omar Khayyam (Red / Rose / White) (Bottle)", price: "950" },
+                { name: "Cape Bay (Red / Rose / White) (Bottle)", price: "1600" },
+                { name: "Jardin du Nil (Bottle)", price: "1250" },
+                { name: "Le Baron (Bottle)", price: "1600" },
+                { name: "Rocardet (Bottle)", price: "3125" },
+                { name: "Calvet (Bottle)", price: "3125" },
+                { name: "Aida Sparkling", price: "1600" },
+                { name: "Lanson Champagne", price: "7800" },
+                { name: "Cordon Rouge Champagne", price: "7800" }
             ],
             cognac: [
-                { name: "Cognac VS", price: "900 LE" },
-                { name: "Cognac VSOP", price: "950 LE" },
-                { name: "J&B", price: "500 LE" },
-                { name: "Ballantine's", price: "500 LE" },
-                { name: "Bell's", price: "625 LE" },
-                { name: "Jim Beam", price: "625 LE" },
-                { name: "Red Label", price: "780 LE" },
-                { name: "Chivas Regal", price: "720 LE" },
-                { name: "Canadian Club", price: "780 LE" },
-                { name: "Black Label", price: "1500 LE" }
+                { name: "Cognac VS", price: "900" },
+                { name: "Cognac VSOP", price: "950" },
+                { name: "J&B", price: "500" },
+                { name: "Ballantine's", price: "500" },
+                { name: "Bell's", price: "625" },
+                { name: "Jim Beam", price: "625" },
+                { name: "Red Label", price: "780" },
+                { name: "Chivas Regal", price: "720" },
+                { name: "Canadian Club", price: "780" },
+                { name: "Black Label", price: "1500" }
             ],
             local: [
-                { name: "Local (Gin) Shot / Bottle", price: "125 / 780 LE" },
-                { name: "Local (Vodka) Shot / Bottle", price: "125 / 780 LE" },
-                { name: "Local (Rum) Shot / Bottle", price: "125 / 780 LE" },
-                { name: "Local (Wisky) Shot / Bottle", price: "125 / 780 LE" },
-                { name: "Local (Brandy) Shot / Bottle", price: "125 / 780 LE" }
+                { name: "Local (Gin) Shot / Bottle", price: "125 / 780" },
+                { name: "Local (Vodka) Shot / Bottle", price: "125 / 780" },
+                { name: "Local (Rum) Shot / Bottle", price: "125 / 780" },
+                { name: "Local (Wisky) Shot / Bottle", price: "125 / 780" },
+                { name: "Local (Brandy) Shot / Bottle", price: "125 / 780" }
             ],
             premium: [
-                { name: "Premium (Gin) Shot / Bottle", price: "160 / 1100 LE" },
-                { name: "Premium (Vodka) Shot / Bottle", price: "160 / 1100 LE" },
-                { name: "Premium (Rum) Shot / Bottle", price: "160 / 1100 LE" },
-                { name: "Premium (Wisky) Shot / Bottle", price: "160 / 1100 LE" }
+                { name: "Premium (Gin) Shot / Bottle", price: "160 / 1100" },
+                { name: "Premium (Vodka) Shot / Bottle", price: "160 / 1100" },
+                { name: "Premium (Rum) Shot / Bottle", price: "160 / 1100" },
+                { name: "Premium (Wisky) Shot / Bottle", price: "160 / 1100" }
             ],
             liqueurs: [
-                { name: "Cherry Brandy", price: "470 LE" },
-                { name: "Crème de Menthe", price: "470 LE" },
-                { name: "Tia Maria", price: "470 LE" },
-                { name: "Cointreau", price: "470 LE" },
-                { name: "Triple Sec", price: "470 LE" },
-                { name: "Drambuie", price: "470 LE" },
-                { name: "Malibu", price: "470 LE" },
-                { name: "Martini Rosso", price: "470 LE" },
-                { name: "Pernod", price: "470 LE" },
-                { name: "Gordon Dry Gin", price: "470 LE" },
-                { name: "Grand Marne", price: "470 LE" },
-                { name: "Billy's", price: "470 LE" },
-                { name: "Ricard", price: "470 LE" },
-                { name: "Château Ksarak, Arak", price: "650 LE" },
-                { name: "Ouzo", price: "470 LE" },
-                { name: "Vodka", price: "470 LE" },
-                { name: "Tequila", price: "470 LE" },
-                { name: "Rum", price: "470 LE" }
+                { name: "Cherry Brandy", price: "470" },
+                { name: "Crème de Menthe", price: "470" },
+                { name: "Tia Maria", price: "470" },
+                { name: "Cointreau", price: "470" },
+                { name: "Triple Sec", price: "470" },
+                { name: "Drambuie", price: "470" },
+                { name: "Malibu", price: "470" },
+                { name: "Martini Rosso", price: "470" },
+                { name: "Pernod", price: "470" },
+                { name: "Gordon Dry Gin", price: "470" },
+                { name: "Grand Marne", price: "470" },
+                { name: "Billy's", price: "470" },
+                { name: "Ricard", price: "470" },
+                { name: "Château Ksarak, Arak", price: "650" },
+                { name: "Ouzo", price: "470" },
+                { name: "Vodka", price: "470" },
+                { name: "Tequila", price: "470" },
+                { name: "Rum", price: "470" }
             ]
         };
 
@@ -1719,8 +1743,24 @@
             var menuDocRef = firebaseDb.collection("settings").doc("roomServiceMenu");
             unsubscribers.menu = menuDocRef.onSnapshot(function(doc) {
                 if (doc.exists && doc.data() && doc.data().categories) {
-                    menuData = doc.data().categories;
+                    var cloudData = doc.data().categories;
+                    // Merge: keep cloud data but add any missing categories from defaults
+                    var merged = {};
+                    for (var key in menuDefaultData) {
+                        merged[key] = cloudData[key] || menuDefaultData[key];
+                    }
+                    menuData = merged;
                     menuLoadedFromCloud = true;
+                    // If we added missing categories, save back to cloud
+                    var needsUpdate = false;
+                    for (var k in menuDefaultData) {
+                        if (!cloudData[k]) needsUpdate = true;
+                    }
+                    if (needsUpdate && !menuSaveInFlight) {
+                        menuDocRef.set({ categories: merged, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: 'system_merge' }).catch(function(err) {
+                            console.error('Menu merge save error:', err);
+                        });
+                    }
                 } else if (!menuSaveInFlight) {
                     // First run on a fresh database: seed the defaults so every user shares the same prices.
                     menuDocRef.set({ categories: menuDefaultData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(function(err) {
@@ -1774,22 +1814,44 @@
 
         function createMenuRow(item, cat, idx) {
             var isEditable = canEditMenu();
-            var priceHtml = isEditable
-                ? '<input type="text" class="price-editable" inputmode="decimal" autocomplete="off" data-cat="' + cat + '" data-idx="' + idx + '" value="' + escapeHtml(item.price) + '">'
-                : '<span class="item-price">' + escapeHtml(item.price) + '</span>';
+            var priceHtml;
+            if (cat === 'buffetPrices') {
+                var dbVal = item.priceDB || '';
+                var dvVal = item.priceDV || '';
+                if (isEditable) {
+                    priceHtml = '<div class="buffet-prices">' +
+                        '<div class="buffet-price-box"><span class="buffet-label">D.B</span><input type="text" class="price-editable buffet-input" inputmode="decimal" autocomplete="off" data-cat="' + cat + '" data-idx="' + idx + '" data-field="priceDB" value="' + escapeHtml(dbVal) + '"></div>' +
+                        '<div class="buffet-price-box"><span class="buffet-label">D.V</span><input type="text" class="price-editable buffet-input" inputmode="decimal" autocomplete="off" data-cat="' + cat + '" data-idx="' + idx + '" data-field="priceDV" value="' + escapeHtml(dvVal) + '"></div>' +
+                        '</div>';
+                } else {
+                    priceHtml = '<div class="buffet-prices">' +
+                        '<div class="buffet-price-box"><span class="buffet-label">D.B</span><span class="item-price">' + escapeHtml(dbVal) + (dbVal ? ' LE' : '-') + '</span></div>' +
+                        '<div class="buffet-price-box"><span class="buffet-label">D.V</span><span class="item-price">' + escapeHtml(dvVal) + (dvVal ? ' LE' : '-') + '</span></div>' +
+                        '</div>';
+                }
+            } else {
+                priceHtml = isEditable
+                    ? '<input type="text" class="price-editable" inputmode="decimal" autocomplete="off" data-cat="' + cat + '" data-idx="' + idx + '" value="' + escapeHtml(item.price) + '">'
+                    : '<span class="item-price">' + escapeHtml(item.price) + '</span>';
+            }
             return '<div class="menu-row-e2" data-cat="' + cat + '" data-idx="' + idx + '"><span class="item-name">' + escapeHtml(item.name) + '</span>' + priceHtml + '</div>';
         }
 
         function renderMenuSection(containerId, category) {
             var el = document.getElementById(containerId);
             if (!el) return;
+            if (!menuData[category] || !Array.isArray(menuData[category])) {
+                el.innerHTML = '<div style="padding:10px; color:var(--text-muted); text-align:center;">لا توجد بيانات</div>';
+                return;
+            }
             el.innerHTML = menuData[category].map(function(item, idx) { return createMenuRow(item, category, idx); }).join('');
             if (canEditMenu()) {
                 el.querySelectorAll('.price-editable').forEach(function(inputEl) {
                     inputEl.addEventListener('change', function() {
                         var cat = this.dataset.cat;
                         var idx = parseInt(this.dataset.idx);
-                        menuData[cat][idx].price = this.value.trim();
+                        var field = this.dataset.field || 'price';
+                        menuData[cat][idx][field] = this.value.trim();
                         saveMenu();
                     });
                     inputEl.addEventListener('keydown', function(e) {
@@ -1810,6 +1872,7 @@
             renderMenuSection('menuIcecream', 'icecream');
             renderMenuSection('menuShisha', 'shisha');
             renderMenuSection('menuVip', 'vip');
+            renderMenuSection('menuBuffet', 'buffetPrices');
             renderMenuSection('menuMocktails', 'mocktails');
             renderMenuSection('menuSoft', 'soft');
             renderMenuSection('menuHot', 'hot');
@@ -1852,4 +1915,4 @@
         }
     </script>
 </body>
-</html>
+</html>I 
