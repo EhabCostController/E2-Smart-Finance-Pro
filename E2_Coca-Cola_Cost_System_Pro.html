@@ -39,9 +39,9 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 340px 1fr;
+            grid-template-columns: 360px 1fr;
             gap: 20px;
-            max-width: 1350px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -69,7 +69,7 @@
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         label {
@@ -84,7 +84,7 @@
             background: var(--input-bg);
             border: 1px solid var(--card-border);
             border-radius: 8px;
-            padding: 9px 12px;
+            padding: 8px 12px;
             color: var(--text-main);
             font-size: 0.9rem;
             font-weight: 600;
@@ -93,6 +93,7 @@
         }
 
         .input-style:focus { border-color: var(--info); }
+        .input-style[readonly] { background: #1f2937; color: var(--text-muted); cursor: not-allowed; }
 
         .btn-block {
             width: 100%;
@@ -127,7 +128,6 @@
 
         .btn-print:hover { background: #2563eb; }
 
-        /* ترويسة إذن الاستلام الاحترافية لـ E2 */
         .receipt-brand-header {
             display: flex;
             justify-content: space-between;
@@ -232,7 +232,6 @@
             display: none;
         }
 
-        /* توقيعات نهاية الإذن المطبوع */
         .signatures-section {
             display: none;
             margin-top: 40px;
@@ -297,9 +296,20 @@
                 <input type="number" id="packSize" class="input-style" value="0" min="1">
             </div>
 
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div class="form-group">
+                    <label>الكمية بالفاتورة</label>
+                    <input type="number" id="invoiceQty" class="input-style" value="0" min="1" oninput="calculateNetQty()">
+                </div>
+                <div class="form-group">
+                    <label style="color: var(--primary);">المرتجع</label>
+                    <input type="number" id="returnedQty" class="input-style" value="0" min="0" oninput="calculateNetQty()">
+                </div>
+            </div>
+
             <div class="form-group">
-                <label>الكمية المستلمة (الكراتين)</label>
-                <input type="number" id="qty" class="input-style" value="0" min="1">
+                <label style="color: var(--success);">الكمية المستلمة فعلياً</label>
+                <input type="number" id="actualQty" class="input-style" value="0" readonly>
             </div>
 
             <div class="form-group">
@@ -308,18 +318,29 @@
             </div>
 
             <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
-                <label>إجمالي الخصم للصنف</label>
-                <input type="number" id="totalDiscount" class="input-style" value="0" step="0.001">
+                <label>إجمالي الخصم بالفاتورة (لكل الكمية)</label>
+                <input type="number" id="totalDiscount" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
+            </div>
+            <div class="form-group">
+                <label style="color: var(--info); font-size: 0.75rem;">صافي خصم لقطعة واحدة (تلقائي)</label>
+                <input type="text" id="unitDiscountCalc" class="input-style" value="0.000" readonly>
+            </div>
+            <div class="form-group">
+                <label style="color: var(--success); font-size: 0.75rem;">صافي إجمالي الخصم (الكمية الفعلية × خصم القطعة)</label>
+                <input type="text" id="netTotalDiscountCalc" class="input-style" value="0.000" readonly>
             </div>
 
             <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
-                <label>إجمالي ضريبة 8%</label>
-                <input type="number" id="tax8" class="input-style" value="0" step="0.001">
+                <label>إجمالي ضريبة 14% بالفاتورة</label>
+                <input type="number" id="tax14" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
             </div>
-
             <div class="form-group">
-                <label style="color: #60a5fa;">إجمالي ضريبة 14%</label>
-                <input type="number" id="tax14" class="input-style" value="0" step="0.001">
+                <label style="color: var(--info); font-size: 0.75rem;">صافي ضريبة لقطعة واحدة (تلقائي)</label>
+                <input type="text" id="unitTaxCalc" class="input-style" value="0.000" readonly>
+            </div>
+            <div class="form-group">
+                <label style="color: var(--success); font-size: 0.75rem;">صافي إجمالي الضريبة (الكمية الفعلية × ضريبة القطعة)</label>
+                <input type="text" id="netTotalTaxCalc" class="input-style" value="0.000" readonly>
             </div>
 
             <div id="warningBox" class="warning-text"></div>
@@ -327,9 +348,8 @@
             <button class="btn-block" onclick="addItemToReceipt()"><i class="fa-solid fa-plus"></i> إضافة إلى إذن الاستلام</button>
         </div>
 
-        <!-- لوحة عرض إذن الاستلام المالي -->
+        <!-- لوحة عرض إذن الاستلام المالي (خالية من بيانات المرتجع تماماً) -->
         <div class="receipt-panel">
-            <!-- ترويسة إذن الاستلام مع شعار E2 -->
             <div class="receipt-brand-header">
                 <div class="brand-logo-area">
                     <h1>E2 - Cost System</h1>
@@ -350,10 +370,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 40%;">اسم الصنف</th>
+                            <th style="width: 42%;">اسم الصنف</th>
                             <th style="width: 15%;">الكمية</th>
-                            <th style="width: 20%;">السعر</th>
-                            <th style="width: 20%;">الإجمالي</th>
+                            <th style="width: 19%;">السعر</th>
+                            <th style="width: 19%;">الإجمالي</th>
                             <th style="width: 5%;">إجراء</th>
                         </tr>
                     </thead>
@@ -362,17 +382,17 @@
                     </tbody>
                     <tfoot>
                         <tr class="total-row">
-                            <td colspan="3"><b>الإجمالي غير شامل 14%</b></td>
+                            <td colspan="3"><b>الإجمالي غير شامل الضريبة</b></td>
                             <td id="grandNetWithout14" style="font-weight: bold;">0.000</td>
                             <td></td>
                         </tr>
                         <tr class="total-row">
-                            <td colspan="3"><b>قيمة ضريبة الـ 14%</b></td>
+                            <td colspan="3"><b>قيمة إجمالي الضريبة (14%)</b></td>
                             <td id="grandTax14" style="font-weight: bold;">0.000</td>
                             <td></td>
                         </tr>
                         <tr class="total-row yellow-highlight">
-                            <td colspan="3"><b>إجمالي الفاتورة النهائي</b></td>
+                            <td colspan="3"><b>إجمالي الفاتورة النهائي المستحق</b></td>
                             <td id="grandNetWith14" style="font-weight: bold;">0.000</td>
                             <td></td>
                         </tr>
@@ -380,10 +400,9 @@
                 </table>
             </div>
 
-            <!-- التوقيعات الرسمية عند الطباعة -->
             <div class="signatures-section">
-                <div class="sig-box">أمين المخزن</div>
-                <div class="sig-box">مراقب التكاليف</div>
+                <div class="sig-box">أمين الستور</div>
+                <div class="sig-box">Cost Controller</div>
                 <div class="sig-box">الاعتماد المالي</div>
             </div>
         </div>
@@ -392,7 +411,6 @@
     <script>
         let receiptItems = [];
 
-        // ضبط التاريخ الحالي تلقائياً
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('ar-EG');
 
         function autoSelectPack() {
@@ -404,6 +422,46 @@
             
             document.getElementById('packSize').value = pack;
             document.getElementById('price').value = price.toFixed(3);
+        }
+
+        function calculateNetQty() {
+            const invoiceQty = parseFloat(document.getElementById('invoiceQty').value) || 0;
+            const returnedQty = parseFloat(document.getElementById('returnedQty').value) || 0;
+            const actualQty = Math.max(0, invoiceQty - returnedQty);
+            
+            document.getElementById('actualQty').value = actualQty;
+            updateUnitCalcs();
+        }
+
+        function updateUnitCalcs() {
+            const invoiceQty = parseFloat(document.getElementById('invoiceQty').value) || 0;
+            const actualQty = parseFloat(document.getElementById('actualQty').value) || 0;
+            const packSize = parseInt(document.getElementById('packSize').value) || 1;
+            const totalUnitsInInvoice = invoiceQty * packSize;
+            const totalActualUnits = actualQty * packSize;
+
+            const totalDiscount = parseFloat(document.getElementById('totalDiscount').value) || 0;
+            const tax14 = parseFloat(document.getElementById('tax14').value) || 0;
+
+            if (totalUnitsInInvoice > 0) {
+                const unitDiscount = totalDiscount / totalUnitsInInvoice;
+                const unitTax = tax14 / totalUnitsInInvoice;
+
+                document.getElementById('unitDiscountCalc').value = unitDiscount.toFixed(3);
+                document.getElementById('unitTaxCalc').value = unitTax.toFixed(3);
+
+                // حساب صافي إجمالي الخصم والصافي إجمالي الضريبة بناءً على الكمية الفعلية المستلمة
+                const netTotalDiscount = unitDiscount * totalActualUnits;
+                const netTotalTax = unitTax * totalActualUnits;
+
+                document.getElementById('netTotalDiscountCalc').value = netTotalDiscount.toFixed(3);
+                document.getElementById('netTotalTaxCalc').value = netTotalTax.toFixed(3);
+            } else {
+                document.getElementById('unitDiscountCalc').value = "0.000";
+                document.getElementById('unitTaxCalc').value = "0.000";
+                document.getElementById('netTotalDiscountCalc').value = "0.000";
+                document.getElementById('netTotalTaxCalc').value = "0.000";
+            }
         }
 
         function showWarning(msg) {
@@ -429,32 +487,28 @@
             if (prodName === "") { alert('الرجاء اختيار صنف أولاً'); return; }
 
             const packSize = parseInt(document.getElementById('packSize').value) || 1;
-            const qty = parseFloat(document.getElementById('qty').value) || 0;
+            const invoiceQty = parseFloat(document.getElementById('invoiceQty').value) || 0;
+            const returnedQty = parseFloat(document.getElementById('returnedQty').value) || 0;
+            const actualQty = parseFloat(document.getElementById('actualQty').value) || 0;
             const price = parseFloat(document.getElementById('price').value) || 0;
             
             const totalDiscount = parseFloat(document.getElementById('totalDiscount').value) || 0;
-            const tax8 = parseFloat(document.getElementById('tax8').value) || 0;
             const tax14 = parseFloat(document.getElementById('tax14').value) || 0;
 
-            if (qty <= 0) { alert('الرجاء إدخال كمية صحيحة'); return; }
-            if (packSize <= 0) { alert('عدد الوحدات في الكرتونة يجب أن يكون أكبر من صفر'); return; }
+            if (invoiceQty <= 0) { alert('الرجاء إدخال كمية الفاتورة الصحيحة'); return; }
+            if (actualQty <= 0) { alert('الكمية الفعلية المستلمة لا يمكن أن تكون صفراً أو سالبة'); return; }
 
-            const discountPerCarton = totalDiscount / qty;
-            const tax8PerCarton = tax8 / qty;
-            const netCartonPrice = price - discountPerCarton + tax8PerCarton;
-            const totalNetVal = netCartonPrice * qty;
+            const totalUnitsInvoice = invoiceQty * packSize;
+            const unitDiscount = totalDiscount / totalUnitsInvoice;
+            
+            const netCartonPrice = price - (unitDiscount * packSize);
+            const totalNetVal = netCartonPrice * actualQty;
 
-            if (netCartonPrice < 0) {
-                showWarning('تنبيه: الخصم أكبر من سعر الكرتونة، السعر الصافي أصبح سالباً.');
-            }
-
-            const totalUnits = qty * packSize;
-            if (totalUnits <= 0) { alert('لا يمكن حساب عدد الوحدات، تأكد من الكمية وعدد الوحدات'); return; }
-
-            const rawUnitPrice = totalNetVal / totalUnits;
+            const totalActualUnits = actualQty * packSize;
+            const rawUnitPrice = totalNetVal / totalActualUnits;
             const roundedUnitPrice = floorTo2(rawUnitPrice);
 
-            const qtyRow1 = totalUnits - 1;
+            const qtyRow1 = totalActualUnits - 1;
             const rows = [];
 
             if (qtyRow1 > 0) {
@@ -464,17 +518,22 @@
                 rows.push({ qty: qtyRow1, price: priceRow1, total: totalRow1 });
                 rows.push({ qty: 1, price: totalRow2, total: totalRow2 });
             } else {
-                rows.push({ qty: totalUnits, price: totalNetVal, total: totalNetVal });
+                rows.push({ qty: totalActualUnits, price: totalNetVal, total: totalNetVal });
             }
+
+            // حساب الضريبة الصافية الفعلية للصنف بناءً على الوحدات الفعلية المستلمة
+            const unitTax = tax14 / totalUnitsInvoice;
+            const itemActualTax = unitTax * totalActualUnits;
 
             receiptItems.push({
                 name: prodName,
                 packSize: packSize,
-                qty: qty,
+                invoiceQty: invoiceQty,
+                returnedQty: returnedQty,
+                actualQty: actualQty,
                 price: price,
                 totalDiscount: totalDiscount,
-                tax8: tax8,
-                tax14: tax14,
+                tax14: itemActualTax,
                 totalNetVal: totalNetVal,
                 rows: rows
             });
@@ -486,11 +545,16 @@
         function resetForm() {
             document.getElementById('prodName').selectedIndex = 0;
             document.getElementById('packSize').value = 0;
+            document.getElementById('invoiceQty').value = 0;
+            document.getElementById('returnedQty').value = 0;
+            document.getElementById('actualQty').value = 0;
             document.getElementById('price').value = 0;
-            document.getElementById('qty').value = 0;
             document.getElementById('totalDiscount').value = 0;
-            document.getElementById('tax8').value = 0;
             document.getElementById('tax14').value = 0;
+            document.getElementById('unitDiscountCalc').value = "0.000";
+            document.getElementById('unitTaxCalc').value = "0.000";
+            document.getElementById('netTotalDiscountCalc').value = "0.000";
+            document.getElementById('netTotalTaxCalc').value = "0.000";
             clearWarning();
         }
 
@@ -511,11 +575,17 @@
             }
 
             document.getElementById('packSize').value = item.packSize;
-            document.getElementById('qty').value = item.qty;
+            document.getElementById('invoiceQty').value = item.invoiceQty;
+            document.getElementById('returnedQty').value = item.returnedQty;
+            document.getElementById('actualQty').value = item.actualQty;
             document.getElementById('price').value = item.price.toFixed(3);
             document.getElementById('totalDiscount').value = item.totalDiscount.toFixed(3);
-            document.getElementById('tax8').value = item.tax8.toFixed(3);
-            document.getElementById('tax14').value = item.tax14.toFixed(3);
+            
+            // عكس نسبة الضريبة لتعود لقيمة الفاتورة الاصلية عند التعديل
+            const originalInvoiceTax = (item.tax14 / (item.actualQty * item.packSize)) * (item.invoiceQty * item.packSize);
+            document.getElementById('tax14').value = originalInvoiceTax.toFixed(3);
+
+            updateUnitCalcs();
 
             receiptItems.splice(index, 1);
             renderReceipt();
