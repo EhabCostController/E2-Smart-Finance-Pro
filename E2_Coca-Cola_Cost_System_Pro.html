@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E2 Cost System - Professional Receiving Note</title>
+    <title>E2 Cola System - Professional Receiving Note</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -39,13 +39,13 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 360px 1fr;
+            grid-template-columns: 440px 1fr;
             gap: 20px;
-            max-width: 1400px;
+            max-width: 1500px;
             margin: 0 auto;
         }
 
-        @media (max-width: 1000px) {
+        @media (max-width: 1100px) {
             .main-grid { grid-template-columns: 1fr; }
         }
 
@@ -53,14 +53,14 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 24px;
+            padding: 20px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
 
         h2 {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             margin-bottom: 15px;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--card-border);
             display: flex;
             align-items: center;
@@ -68,25 +68,48 @@
             color: var(--text-main);
         }
 
+        .section-title {
+            font-size: 0.8rem;
+            color: var(--info);
+            margin: 12px 0 6px 0;
+            font-weight: 700;
+            border-bottom: 1px dashed var(--card-border);
+            padding-bottom: 3px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 0;
         }
 
         label {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .input-style {
             width: 100%;
             background: var(--input-bg);
             border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 8px 12px;
+            border-radius: 6px;
+            padding: 7px 10px;
             color: var(--text-main);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             outline: none;
             transition: border-color 0.2s;
@@ -100,10 +123,10 @@
             background: var(--success);
             color: white;
             border: none;
-            padding: 11px;
+            padding: 10px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
             margin-top: 15px;
             transition: background 0.2s;
@@ -267,36 +290,44 @@
 <body>
 
     <div class="main-grid">
-        <!-- لوحة الإدخال والتحكم -->
+        <!-- لوحة الإدخال والتحكم المدمجة والأكثر احترافية -->
         <div class="cashier-panel">
             <h2><i class="fa-solid fa-calculator" style="color: var(--primary);"></i> لوحة التحكم والإدخال</h2>
             
-            <div class="form-group">
-                <label>اسم الصنف</label>
-                <select id="prodName" class="input-style" onchange="autoSelectPack()">
-                    <option value="" data-pack="0" data-price="0.000" selected disabled>-- اختر الصنف --</option>
-                    <option value="كولا كانز" data-pack="24" data-price="279.650">كولا كانز</option>
-                    <option value="كولا دايت كانز" data-pack="24" data-price="279.650">كولا دايت كانز</option>
-                    <option value="اسبرايت كانز" data-pack="24" data-price="279.650">اسبرايت كانز</option>
-                    <option value="فانتا كانز" data-pack="24" data-price="279.650">فانتا كانز</option>
-                    <option value="صودا" data-pack="12" data-price="231.230">صودا</option>
-                    <option value="تونيك" data-pack="12" data-price="231.230">تونيك</option>
-                    <option value="كولا زيرو 0.95 لتر" data-pack="12" data-price="112.830">كولا زيرو 0.95 لتر</option>
-                    <option value="مياة دساني 1.5 لتر" data-pack="12" data-price="93.860">مياة دساني 1.5 لتر</option>
-                    <option value="مياة دساني 600 ملي" data-pack="20" data-price="96.490">مياة دساني 600 ملي</option>
-                    <option value="كولا باجين" data-pack="1" data-price="1840.480">كولا باجين</option>
-                    <option value="اسبرايت باجين" data-pack="1" data-price="1840.480">اسبرايت باجين</option>
-                    <option value="فانتا باجين" data-pack="1" data-price="1840.480">فانتا باجين</option>
-                    <option value="غاز كولا" data-pack="1" data-price="28.950">غاز كولا</option>
-                </select>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label>اسم الصنف</label>
+                    <select id="prodName" class="input-style" onchange="autoSelectPack()">
+                        <option value="" data-pack="0" data-price="0.000" selected disabled>-- اختر الصنف --</option>
+                        <option value="كولا كانز" data-pack="24" data-price="279.650">كولا كانز</option>
+                        <option value="كولا دايت كانز" data-pack="24" data-price="279.650">كولا دايت كانز</option>
+                        <option value="اسبرايت كانز" data-pack="24" data-price="279.650">اسبرايت كانز</option>
+                        <option value="فانتا كانز" data-pack="24" data-price="279.650">فانتا كانز</option>
+                        <option value="صودا" data-pack="12" data-price="231.230">صودا</option>
+                        <option value="تونيك" data-pack="12" data-price="231.230">تونيك</option>
+                        <option value="كولا زيرو 0.95 لتر" data-pack="12" data-price="112.830">كولا زيرو 0.95 لتر</option>
+                        <option value="مياة دساني 1.5 لتر" data-pack="12" data-price="93.860">مياة دساني 1.5 لتر</option>
+                        <option value="مياة دساني 600 ملي" data-pack="20" data-price="96.490">مياة دساني 600 ملي</option>
+                        <option value="كولا باجين" data-pack="1" data-price="1840.480">كولا باجين</option>
+                        <option value="اسبرايت باجين" data-pack="1" data-price="1840.480">اسبرايت باجين</option>
+                        <option value="فانتا باجين" data-pack="1" data-price="1840.480">فانتا باجين</option>
+                        <option value="غاز كولا" data-pack="1" data-price="28.950">غاز كولا</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>عدد الوحدات في الكرتونة</label>
-                <input type="number" id="packSize" class="input-style" value="0" min="1">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>وحدات الكرتونة</label>
+                    <input type="number" id="packSize" class="input-style" value="0" min="1">
+                </div>
+                <div class="form-group">
+                    <label>السعر الأساسي</label>
+                    <input type="number" id="price" class="input-style" value="0" step="0.001">
+                </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="form-row">
                 <div class="form-group">
                     <label>الكمية بالفاتورة</label>
                     <input type="number" id="invoiceQty" class="input-style" value="0" min="1" oninput="calculateNetQty()">
@@ -307,56 +338,68 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label style="color: var(--success);">الكمية المستلمة فعلياً</label>
-                <input type="number" id="actualQty" class="input-style" value="0" readonly>
-            </div>
-
-            <div class="form-group">
-                <label>السعر الأساسي للكرتونة</label>
-                <input type="number" id="price" class="input-style" value="0" step="0.001">
+            <div class="form-row full">
+                <div class="form-group">
+                    <label style="color: var(--success);">الكمية المستلمة فعلياً</label>
+                    <input type="number" id="actualQty" class="input-style" value="0" readonly>
+                </div>
             </div>
 
             <!-- قسم الخصم -->
-            <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
-                <label>إجمالي الخصم بالفاتورة (لكل الكمية)</label>
-                <input type="number" id="totalDiscount" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
+            <div class="section-title"><i class="fa-solid fa-percent"></i> تسوية الخصم</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>إجمالي الخصم بالفاتورة</label>
+                    <input type="number" id="totalDiscount" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
+                </div>
+                <div class="form-group">
+                    <label style="color: var(--info);">خصم القطعة (تلقائي)</label>
+                    <input type="text" id="unitDiscountCalc" class="input-style" value="0.000" readonly>
+                </div>
             </div>
-            <div class="form-group">
-                <label style="color: var(--info); font-size: 0.75rem;">صافي خصم لقطعة واحدة (تلقائي)</label>
-                <input type="text" id="unitDiscountCalc" class="input-style" value="0.000" readonly>
-            </div>
-            <div class="form-group">
-                <label style="color: var(--success); font-size: 0.75rem;">صافي إجمالي الخصم (الكمية الفعلية × خصم القطعة)</label>
-                <input type="text" id="netTotalDiscountCalc" class="input-style" value="0.000" readonly>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label style="color: var(--success);">صافي إجمالي الخصم (الفعلية × خصم القطعة)</label>
+                    <input type="text" id="netTotalDiscountCalc" class="input-style" value="0.000" readonly>
+                </div>
             </div>
 
             <!-- قسم ضريبة 14% -->
-            <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
-                <label>إجمالي ضريبة 14% بالفاتورة</label>
-                <input type="number" id="tax14" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
+            <div class="section-title"><i class="fa-solid fa-file-invoice"></i> تسوية ضريبة 14%</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>إجمالي ضريبة 14% بالفاتورة</label>
+                    <input type="number" id="tax14" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
+                </div>
+                <div class="form-group">
+                    <label style="color: var(--info);">ضريبة القطعة 14% (تلقائي)</label>
+                    <input type="text" id="unitTax14Calc" class="input-style" value="0.000" readonly>
+                </div>
             </div>
-            <div class="form-group">
-                <label style="color: var(--info); font-size: 0.75rem;">صافي ضريبة 14% لقطعة واحدة (تلقائي)</label>
-                <input type="text" id="unitTax14Calc" class="input-style" value="0.000" readonly>
-            </div>
-            <div class="form-group">
-                <label style="color: var(--success); font-size: 0.75rem;">صافي إجمالي ضريبة 14% (الكمية الفعلية × ضريبة القطعة)</label>
-                <input type="text" id="netTotalTax14Calc" class="input-style" value="0.000" readonly>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label style="color: var(--success);">صافي إجمالي ضريبة 14% (الفعلية × ضريبة القطعة)</label>
+                    <input type="text" id="netTotalTax14Calc" class="input-style" value="0.000" readonly>
+                </div>
             </div>
 
             <!-- قسم ضريبة 8% -->
-            <div class="form-group" style="border-top: 1px dashed var(--card-border); padding-top: 8px;">
-                <label>إجمالي ضريبة 8% بالفاتورة</label>
-                <input type="number" id="tax8" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
+            <div class="section-title"><i class="fa-solid fa-file-invoice"></i> تسوية ضريبة 8%</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>إجمالي ضريبة 8% بالفاتورة</label>
+                    <input type="number" id="tax8" class="input-style" value="0" step="0.001" oninput="updateUnitCalcs()">
+                </div>
+                <div class="form-group">
+                    <label style="color: var(--info);">ضريبة القطعة 8% (تلقائي)</label>
+                    <input type="text" id="unitTax8Calc" class="input-style" value="0.000" readonly>
+                </div>
             </div>
-            <div class="form-group">
-                <label style="color: var(--info); font-size: 0.75rem;">صافي ضريبة 8% لقطعة واحدة (تلقائي)</label>
-                <input type="text" id="unitTax8Calc" class="input-style" value="0.000" readonly>
-            </div>
-            <div class="form-group">
-                <label style="color: var(--success); font-size: 0.75rem;">صافي إجمالي ضريبة 8% (الكمية الفعلية × ضريبة القطعة)</label>
-                <input type="text" id="netTotalTax8Calc" class="input-style" value="0.000" readonly>
+            <div class="form-row full">
+                <div class="form-group">
+                    <label style="color: var(--success);">صافي إجمالي ضريبة 8% (الفعلية × ضريبة القطعة)</label>
+                    <input type="text" id="netTotalTax8Calc" class="input-style" value="0.000" readonly>
+                </div>
             </div>
 
             <div id="warningBox" class="warning-text"></div>
@@ -368,11 +411,11 @@
         <div class="receipt-panel">
             <div class="receipt-brand-header">
                 <div class="brand-logo-area">
-                    <h1>E2 - Cost System</h1>
-                    <p>نظام الرقابة المالية وإذن الاستلام الدقيق</p>
+                    <h1>E2 - Cola System</h1>
+                    <p>نظام مراججعة فاتورة وكتابة اذن الاستلام الدقيق</p>
                 </div>
                 <div class="receipt-meta-info">
-                    <p>رقم الإذن: <b>#E2-REC-2026</b></p>
+                    <p>رقم الإذن: <b>#E2-Cola_RCV-2026</b></p>
                     <p>التاريخ: <b id="currentDate"></b></p>
                 </div>
             </div>
@@ -407,11 +450,6 @@
                             <td id="grandTax14" style="font-weight: bold;">0.000</td>
                             <td></td>
                         </tr>
-                        <tr class="total-row">
-                            <td colspan="3"><b>قيمة إجمالي ضريبة (8%)</b></td>
-                            <td id="grandTax8" style="font-weight: bold;">0.000</td>
-                            <td></td>
-                        </tr>
                         <tr class="total-row yellow-highlight">
                             <td colspan="3"><b>إجمالي الفاتورة النهائي المستحق</b></td>
                             <td id="grandNetWithAllTaxes" style="font-weight: bold;">0.000</td>
@@ -422,9 +460,9 @@
             </div>
 
             <div class="signatures-section">
-                <div class="sig-box">أمين الستور</div>
-                <div class="sig-box">Cost Controller</div>
-                <div class="sig-box">الاعتماد المالي</div>
+                <div class="sig-box">موظف الاستلام</div>
+                <div class="sig-box">أمين المخزن</div>
+                <div class="sig-box">رئيس المخازن</div>
             </div>
         </div>
     </div>
@@ -617,7 +655,6 @@
             document.getElementById('price').value = item.price.toFixed(3);
             document.getElementById('totalDiscount').value = item.totalDiscount.toFixed(3);
             
-            // عكس النسب الأصلية للفاتورة لتعود لقيمتها الأصلية عند التعديل
             const totalUnitsInv = item.invoiceQty * item.packSize;
             const totalUnitsAct = item.actualQty * item.packSize;
             
